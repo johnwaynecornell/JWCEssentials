@@ -1,0 +1,16 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JWCEssentials.net", "JWCEssentials.net\JWCEssentials.net.csproj", "{CE131EA3-0877-4539-AF36-EC1700254FFC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CE131EA3-0877-4539-AF36-EC1700254FFC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CE131EA3-0877-4539-AF36-EC1700254FFC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CE131EA3-0877-4539-AF36-EC1700254FFC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CE131EA3-0877-4539-AF36-EC1700254FFC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
