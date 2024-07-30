@@ -5,6 +5,8 @@
 #include <sys/wait.h>
 #include <poll.h>
 
+#include "Args.h"
+
 void ProcessHandler_VerifyStringContained(const char *string, size_t string_bytes, const char *msg);
 
 #include <string>
@@ -65,8 +67,12 @@ public:
                 close(err_pipe[1]);
             }
 
+            utf8_string_handle command_line = shell + escapeStringForCommandLine(command);
 
-            execl("/bin/sh", "sh", "-c", escapeStringForCommandLine(command), (char *) 0);
+            char **args =execvArgs_convertTo(command_line);
+            execv(args[0], args);
+
+            //execl("/bin/sh", "sh", "-c", escapeStringForCommandLine(command), (char *) 0);
             _exit(EXIT_FAILURE);
         } else {  // Parent process
             if (pipes & E_PIPE_STDIN)

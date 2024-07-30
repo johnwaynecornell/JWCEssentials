@@ -1,4 +1,4 @@
-#include "../JWCEssentials.h"
+#include "JWCEssentials/JWCEssentials.h"
 
 utf8_string_handle WindowsToLinux(const utf8_string_handle &path);
 utf8_string_handle LinuxToWindows(const utf8_string_handle &path);

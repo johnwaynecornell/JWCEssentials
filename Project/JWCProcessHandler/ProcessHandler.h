@@ -2,7 +2,7 @@
 #pragma once
 #include <string>
 
-#include "../JWCEssentials.h"
+#include "JWCEssentials/JWCEssentials.h"
 
 class ProcessHandler {
 public:

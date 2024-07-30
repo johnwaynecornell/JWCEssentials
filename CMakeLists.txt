@@ -7,38 +7,39 @@ set(CMAKE_CXX_STANDARD 17)
 
 project(ProcessHandler)
 
+include_directories(include)
+
 if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
     add_library(JWCEssentials SHARED
-            JWCEssentials.cpp
-            JWCEssentials.h
-            JWCEssentials.cpp
-            Intern.h
-            Intern.h
-            utf8_string_handle.cpp
-            utf8_string_handle.h
-            Paths.cpp
-            Paths.h
-            Windows/Paths_Windows.cpp
-            Escapes.cpp
-            Escapes.h
+            include/JWCEssentials/JWCEssentials.h
+            include/JWCEssentials/Intern.h
+            include/JWCEssentials/utf8_string_handle.h
+            include/JWCEssentials/Escapes.h
+
+            src/JWCEssentials.cpp
+            src/utf8_string_handle.cpp
+            src/Paths.cpp
+            include/JWCEssentials/Paths.h
+            src/Escapes.cpp
+
+            src/Platform_Windows/Paths_Windows.cpp
     )
 
     add_definitions(-D_EXPORT_=__declspec\(dllexport\))
 else()
     add_library(JWCEssentials SHARED
-            JWCEssentials.cpp
-            JWCEssentials.h
-            JWCEssentials.cpp
-            Intern.h
-            Intern.h
-            utf8_string_handle.cpp
-            utf8_string_handle.h
-            Paths.cpp
-            Paths.h
-            Linux/Paths_Linux.cpp
-            Escapes.cpp
-            Escapes.h
-            Test/test_bash_invoke.cpp
+            include/JWCEssentials/JWCEssentials.h
+            include/JWCEssentials/Intern.h
+            include/JWCEssentials/utf8_string_handle.h
+            include/JWCEssentials/Escapes.h
+
+            src/JWCEssentials.cpp
+            src/utf8_string_handle.cpp
+            src/Paths.cpp
+            include/JWCEssentials/Paths.h
+            src/Escapes.cpp
+
+            src/Platform_Linux/Paths_Linux.cpp
     )
 
     add_definitions(-D_EXPORT_=)
@@ -47,10 +48,7 @@ endif()
 #get_target_property(OUTPUT_DIR JWCEssentials OUTPUT_DIRECTORY)
 #link_directories( ${OUTPUT_DIR})
 
-add_subdirectory(JWCProcessHandler)
+add_subdirectory(Project/JWCProcessHandler)
 
-add_executable(test Test/test.cpp Test/test.h)
+add_executable(test src/Test/test.cpp src/Test/test.h)
 target_link_libraries(test PUBLIC JWCEssentials)
-
-add_executable(test_bash_invoke Test/test_bash_invoke.cpp)
-target_link_libraries(test_bash_invoke PUBLIC JWCEssentials JWCProcessHandler)

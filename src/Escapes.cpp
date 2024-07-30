@@ -1,4 +1,4 @@
-#include "JWCEssentials.h"
+#include "JWCEssentials/JWCEssentials.h"
 
 #include <string>
 #include <sstream>

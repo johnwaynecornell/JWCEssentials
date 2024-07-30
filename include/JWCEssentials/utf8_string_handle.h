@@ -56,6 +56,8 @@ struct utf8_string_handle
 };
 #pragma pack(pop)
 
+_CLASSEXPORT_ utf8_string_handle operator +(utf8_string_handle A, utf8_string_handle B);
+
 _EXPORT_ utf8_string_handle PlatformLineEnding();
 
 #endif //PROCESSHANDLER_UTF8_STRING_HANDLE_H

@@ -1,7 +1,3 @@
-//
-// Created by johnw on 7/28/2024.
-//
-
 #ifndef PROCESSHANDLER_PATHS_H
 #define PROCESSHANDLER_PATHS_H
 

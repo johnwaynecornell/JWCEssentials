@@ -1,8 +1,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <string>
-#include <windows.h>
-#include "../JWCProcessHandler/ProcessHandler.h"
+#include "ProcessHandler.h"
 
 /*
 class BashProcessHandler : public ProcessHandler {

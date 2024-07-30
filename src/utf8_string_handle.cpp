@@ -1,4 +1,6 @@
-#include "JWCEssentials.h"
+#include <cstring>
+
+#include "JWCEssentials/JWCEssentials.h"
 
 #include <string>
 #include <sstream>
@@ -131,6 +133,15 @@ utf8_string_handle::operator std::string() const {
 // Implicit conversion from std::string to utf8_string_handle
 utf8_string_handle operator"" _utf8_string_handle(const char* str, size_t len) {
     return utf8_string_handle(str, len);
+}
+
+utf8_string_handle operator +(utf8_string_handle A, utf8_string_handle B) {
+    utf8_string_handle R;
+    R.Alloc(A.length + B.length);
+    int o = 0;
+    for (int i=0; i<A.length; i++) R[o++] = A[i];
+    for (int i=0; i<B.length; i++) R[o++] = B[i];
+    return R;
 }
 
 utf8_string_handle PlatformLineEnding()

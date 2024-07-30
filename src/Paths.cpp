@@ -1,9 +1,9 @@
-#include "JWCEssentials.h"
+#include "JWCEssentials/JWCEssentials.h"
 
 #include <algorithm>
 #include <regex>
 
-// Convert Windows path to Linux path
+// Convert Platform_Windows path to Linux path
 utf8_string_handle WindowsToLinux(const utf8_string_handle &path) {
     std::string normalized_path = path;
     std::replace(normalized_path.begin(), normalized_path.end(), '\\', '/');
@@ -13,7 +13,7 @@ utf8_string_handle WindowsToLinux(const utf8_string_handle &path) {
     return normalized_path;
 }
 
-// Convert Linux path to Windows path
+// Convert Linux path to Platform_Windows path
 utf8_string_handle LinuxToWindows(const utf8_string_handle &path) {
     std::string normalized_path = path;
     std::replace(normalized_path.begin(), normalized_path.end(), '/', '\\');

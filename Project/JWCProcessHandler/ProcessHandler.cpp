@@ -2,7 +2,6 @@
 #include "Intern.h"
 
 #include <cstring>
-#include <stdexcept>
 
 utf8_string_handle ProcessHandler::ReadLine(E_PIPE targ) {
     if (END[targ]) return nullptr;
