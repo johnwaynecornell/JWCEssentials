@@ -10,6 +10,12 @@ supports_color() {
 
 
 if [ supports_color ]; then
+    if [ -z "${COLOR_GREEN+x}" ]; then
+        echo colors loaded
+        source colors.sh
+    fi
+
+
     echo -e "${COLOR_YELLOW}$@${COLOR_RESET}"
 else
     echo "$@"

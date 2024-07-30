@@ -1,0 +1,20 @@
+# Define color codes
+export COLOR_BLACK='\e[30m'
+export COLOR_RED='\e[31m'
+export COLOR_GREEN='\e[32m'
+export COLOR_YELLOW='\e[33m'
+export COLOR_BLUE='\e[34m'
+export COLOR_MAGENTA='\e[35m'
+export COLOR_CYAN='\e[36m'
+export COLOR_WHITE='\e[37m'
+
+export COLOR_BG_BLACK='\e[40m'
+export COLOR_BG_RED='\e[41m'
+export COLOR_BG_GREEN='\e[42m'
+export COLOR_BG_YELLOW='\e[43m'
+export COLOR_BG_BLUE='\e[44m'
+export COLOR_BG_MAGENTA='\e[45m'
+export COLOR_BG_CYAN='\e[46m'
+export COLOR_BG_WHITE='\e[47m'
+
+export COLOR_RESET='\e[0m'

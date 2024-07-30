@@ -9,17 +9,9 @@ if [ $? -ne 0 ]; then
     echo '     git branch --set-upstream-to="remote/branch"'
 fi
 
-
-echo The current remote \'$current_remote\'
-
 # Loop through each remote
 git remote | while IFS= read -r remote; do
-    echo "Switching to $remote..."
-    git branch --set-upstream-to="$remote/main"
-    verbose.sh "$@"
+    on_remote.sh $remote "$@"
 done
 
-
-# Revert back to the original remote tracking branch
-echo "Reverting back to the original remote..."
-git branch --set-upstream-to="$current_remote"
+git branch --set-upstream-to="$current_remote" > /dev/null

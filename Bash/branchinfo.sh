@@ -13,7 +13,16 @@ count_ahead_behind() {
     ahead_count=$(git rev-list --count ${remote_branch}..${local_branch})
     behind_count=$(git rev-list --count ${local_branch}..${remote_branch})
 
-    echo "Branch: ${local_branch} (ahead ${ahead_count}, behind ${behind_count})"
+
+    if [ $ahead_count != "0" ]; then
+        status="ahead $ahead_count"
+    elif [ $behind_count != "0" ]; then
+        status="behind $behind_count"
+    else
+        status="current"
+    fi
+
+    echo "branch: [$remote_branch], work tree $status"
 }
 
 # Show branch information only with ahead/behind counts
