@@ -1,10 +1,10 @@
 #!/bin/bash
 
-items=$(git status -s)
+items=($(git status -u -s))
 
-if [ -z "$items" ]; then
-    echo clean
-    exit
+# Check the number of items in the array
+if [ ${#items[@]} -eq 0 ]; then
+    echo "clean"
+else
+    echo "dirty"
 fi
-
-echo dirty
