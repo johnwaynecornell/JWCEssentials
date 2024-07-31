@@ -7,7 +7,7 @@ utf8_string_handle escapeStringForCommandLine_Windows(utf8_string_handle text) {
     std::ostringstream escaped;
     escaped << '"';
 
-    std::string input = text;
+    std::string input = std::string(text.c_str);
 
     for (size_t i = 0; i < input.size(); ++i) {
         char c = input[i];
@@ -54,11 +54,11 @@ utf8_string_handle escapeStringForCommandLine_Windows(utf8_string_handle text) {
     return escaped.str();
 }
 
-utf8_string_handle escapeStringForCommandLine_Linux(utf8_string_handle &text) {
+utf8_string_handle escapeStringForCommandLine_Linux(utf8_string_handle text) {
     std::ostringstream escaped;
     escaped << '\'';
 
-    std::string input = text;
+    std::string input = std::string(text.c_str);
 
     for (char c : input) {
         if (c == '\'') {

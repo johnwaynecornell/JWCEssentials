@@ -5,6 +5,14 @@ set(CMAKE_CXX_COMPILER "clang++")
 
 set(CMAKE_CXX_STANDARD 17)
 
+# Set the build type to Debug by default
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Debug)
+endif()
+
+# Add debug information
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
+
 project(ProcessHandler)
 
 include_directories(include)

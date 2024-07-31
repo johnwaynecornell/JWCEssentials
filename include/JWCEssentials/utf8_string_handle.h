@@ -51,7 +51,7 @@ struct utf8_string_handle
     // Implicit conversion to char*
     _CLASSEXPORT_ operator char*() const;
     // Implicit conversion to std::string
-    _CLASSEXPORT_ operator std::string() const;
+    //_CLASSEXPORT_ operator std::string() const;
 
 };
 #pragma pack(pop)

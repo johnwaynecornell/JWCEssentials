@@ -5,7 +5,7 @@
 
 // Convert Platform_Windows path to Linux path
 utf8_string_handle WindowsToLinux(const utf8_string_handle &path) {
-    std::string normalized_path = path;
+    std::string normalized_path = std::string(path);
     std::replace(normalized_path.begin(), normalized_path.end(), '\\', '/');
     std::regex drive_letter_regex(R"(^([a-zA-Z]):/)");
     normalized_path = std::regex_replace(normalized_path, drive_letter_regex, "/$1/");
@@ -15,7 +15,7 @@ utf8_string_handle WindowsToLinux(const utf8_string_handle &path) {
 
 // Convert Linux path to Platform_Windows path
 utf8_string_handle LinuxToWindows(const utf8_string_handle &path) {
-    std::string normalized_path = path;
+    std::string normalized_path = std::string(path);
     std::replace(normalized_path.begin(), normalized_path.end(), '/', '\\');
     std::regex linux_path_regex(R"(^/([a-zA-Z])/)");
     normalized_path = std::regex_replace(normalized_path, linux_path_regex, "$1:/");

@@ -109,7 +109,10 @@ void utf8_string_handle::Alloc(size_t length)
 // Release memory
 void utf8_string_handle::Release()
 {
-    if (free_c_str && c_str) free_c_str(c_str);
+    if (free_c_str && c_str) {
+        printf("utf8_string_handle::Release %016llX\n", (unsigned long long) c_str);
+        free_c_str(c_str);
+    }
     c_str = nullptr;
     length = 0;
 }
@@ -125,9 +128,9 @@ utf8_string_handle::operator char*() const {
 }
 
 // Implicit conversion to std::string
-utf8_string_handle::operator std::string() const {
-    return std::string(c_str);
-}
+//utf8_string_handle::operator std::string() const {
+//    return std::string(c_str);
+//}
 
 
 // Implicit conversion from std::string to utf8_string_handle

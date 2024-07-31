@@ -41,6 +41,11 @@ public:
         if (pipes & E_PIPE_STDOUT && pipe(out_pipe) == -1) throw std::runtime_error("Pipe creation failed");
         if (pipes & E_PIPE_STDERR && pipe(err_pipe) == -1) throw std::runtime_error("Pipe creation failed");
 
+        utf8_string_handle command_line = shell + escapeStringForCommandLine(command);
+        char **args =execvArgs_convertTo(command_line);
+        execv(args[0], args);
+
+
         pid = fork();
         if (pid == -1)
             throw std::runtime_error("Fork failed");
@@ -67,14 +72,11 @@ public:
                 close(err_pipe[1]);
             }
 
-            utf8_string_handle command_line = shell + escapeStringForCommandLine(command);
-
-            char **args =execvArgs_convertTo(command_line);
-            execv(args[0], args);
-
             //execl("/bin/sh", "sh", "-c", escapeStringForCommandLine(command), (char *) 0);
             _exit(EXIT_FAILURE);
         } else {  // Parent process
+            execvArgs_free(args);
+
             if (pipes & E_PIPE_STDIN)
             {
                 close(in_pipe[0]);

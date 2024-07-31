@@ -34,7 +34,7 @@ std::vector<std::string> splitString(const std::string& command) {
 // Function to convert a vector of strings to a format compatible with execv
 char** execvArgs_convertTo(const utf8_string_handle &command_line) {
 
-    const std::vector<std::string> args = splitString(command_line);
+    const std::vector<std::string> args = splitString(std::string(command_line));
     char** argv = new char*[args.size() + 1];
     for (size_t i = 0; i < args.size(); ++i) {
         argv[i] = new char[args[i].size() + 1];
