@@ -1,11 +1,33 @@
-#include "../ProcessHandler.h"
+#include "../CommandSpawn.h"
 #include <Windows.h>
 #include <iostream>
 #include <vector>
 
-void ProcessHandler_VerifyStringContained(const char *string, size_t string_bytes, const char *msg);
+using namespace JWCEssentials;
+namespace JWCCommandSpawn
+{
 
-class WindowsProcessHandler : public ProcessHandler {
+void CommandSpawn_VerifyStringContained(const char *string, size_t string_bytes, const char *msg);
+
+utf8_string_struct LastErrorString()
+{
+    LPVOID lpMsgBuf;
+    DWORD dw = GetLastError();
+    FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                  NULL, dw, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR) &lpMsgBuf, 0, NULL);
+
+    utf8_string_struct R = (LPTSTR) lpMsgBuf;
+    //TRACE(_T("::executeCommandLine() failed at CreateProcess()\nCommand=%s\nMessage=%s\n\n"), cmdLine, strError);
+
+    // Free resources created by the system
+    LocalFree(lpMsgBuf);
+
+    return R;
+}
+
+
+
+class CommandSpawn_Windows : public CommandSpawn {
 private:
     HANDLE g_hChildStd_IN_Rd = NULL;
     HANDLE g_hChildStd_IN_Wr = NULL;
@@ -16,14 +38,14 @@ private:
     HANDLE g_hChildStd_ERR_Rd = NULL;
     HANDLE g_hChildStd_ERR_Wr = NULL;
 
+    PROCESS_INFORMATION pi;
+
 public:
-    WindowsProcessHandler() : ProcessHandler()
+    CommandSpawn_Windows() : CommandSpawn()
     {
-        shell = "cmd /c ";
-        shell = "C:\\Program Files\\Git\\bin\\bash.exe -c ";
     }
 
-    ~WindowsProcessHandler() override {
+    ~CommandSpawn_Windows() override {
         if (g_hChildStd_IN_Rd) CloseHandle(g_hChildStd_IN_Rd);
         if (g_hChildStd_IN_Wr) CloseHandle(g_hChildStd_IN_Wr);
 
@@ -32,11 +54,38 @@ public:
 
         if (g_hChildStd_ERR_Rd) CloseHandle(g_hChildStd_ERR_Rd);
         if (g_hChildStd_ERR_Wr) CloseHandle(g_hChildStd_ERR_Wr);
+
+        Join();
+
+        // Close handles to the child process and its primary thread
+        CloseHandle(pi.hProcess);
+        CloseHandle(pi.hThread);
+
     }
 
-    void StartProcess(utf8_string_handle command, E_PIPE pipes) override{
+    long Join() override
+    {
+        WaitForSingleObject(pi.hProcess);
+
+        long exitCode;
+        // Get the exit code.
+        GetExitCodeProcess(pi.hProcess, &exitCode);
+
+        return exitCode;
+    }
+
+    void SetDefaultShell() override {
+        SetShell("cmd", "/c");
+    }
+
+    void SetBashShell() override {
+        SetShell("bash", "-c");
+
+        //SetShell("C:\\Program Files\\Git\\bin\\bash.exe", "-c");
+    }
+
+    bool Command(utf8_string_struct command, E_PIPE pipes) override{
         STARTUPINFO si;
-        PROCESS_INFORMATION pi;
         SECURITY_ATTRIBUTES sa;
 
         // Set the bInheritHandle flag so pipe handles are inherited
@@ -90,17 +139,12 @@ public:
             si.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
         }
 
-
         // Set up members of the PROCESS_INFORMATION structure
         ZeroMemory(&pi, sizeof(PROCESS_INFORMATION));
 
-        utf8_string_handle command_str = (std::string) shell + (std::string) escapeStringForCommandLine(command);
+        utf8_string_struct command_str = ToString(command);
 
-        //std::string command_str = "cmd /c \"" + std::string(command) + "\"";
-        //utf8_string_handle command_handle(command_str);
-
-        std::cout << "Executing: " << command_str << std::endl;
-
+        bool rc = true;
         // Create the child process
         if (!CreateProcess(NULL,
                            command_str,  // command line
@@ -113,17 +157,18 @@ public:
                            &si,                                // STARTUPINFO pointer
                            &pi))                               // receives PROCESS_INFORMATION
         {
-            throw std::runtime_error("CreateProcess failed");
-        }
+            std::cerr << command_str << " not found";
+            std::cerr << LastErrorString();
 
-        // Close handles to the child process and its primary thread
-        CloseHandle(pi.hProcess);
-        CloseHandle(pi.hThread);
+            rc = false;
+        }
 
         // Close handles to the stdin and stdout pipes no longer needed by the parent process
         if (pipes & E_PIPE_STDIN) CloseHandle(g_hChildStd_IN_Rd);
         if (pipes & E_PIPE_STDOUT) CloseHandle(g_hChildStd_OUT_Wr);
         if (pipes & E_PIPE_STDERR) CloseHandle(g_hChildStd_ERR_Wr);
+
+        return rc;
     }
 
     bool HasData(E_PIPE targ) override {
@@ -165,6 +210,6 @@ public:
 
 };
 
-ProcessHandler *ProcessHandler_Create() {
-    return new WindowsProcessHandler();
-}
+CommandSpawn *CommandSpawn_Create() {
+    return new WindowsCommandSpawn();
+}}

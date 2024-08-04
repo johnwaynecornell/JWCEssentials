@@ -3,3 +3,6 @@
 
 #include <cstring>
 #include <stdexcept>
+
+namespace JWCEssentials {
+}

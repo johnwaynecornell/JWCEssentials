@@ -1,10 +1,13 @@
 #include <iostream>
 #include <stdexcept>
 #include <string>
-#include "ProcessHandler.h"
+#include "JWCCommandSpawn/CommandSpawn.h"
+
+using namespace JWCEssentials;
+using namespace JWCCommandSpawn;
 
 /*
-class BashProcessHandler : public ProcessHandler {
+class BashCommandSpawn : public CommandSpawn {
 public:
     void StartProcess(const std::string &command) override {
         std::string bashCommand = "C:\\Program Files\\Git\\git-bash.exe -c \"" + command + "\"";
@@ -40,23 +43,36 @@ public:
     }
 };
 */
+
+void dump_strings();
+
 int main() {
 
-    ProcessHandler *handler = ProcessHandler_Create();
-    try {
-        handler->StartProcess("echo Hello, World!", ProcessHandler::E_PIPE_STDOUT);
-    } catch (const std::exception &ex) {
-        std::cerr << "Error: " << ex.what() << std::endl;
+    std::cerr << "\033[31m";
+
+    bool rc;
+    CommandSpawn *handler = CommandSpawn_Create();
+    {
+        try {
+            handler->SetShell(handler->GetShell_Bash());
+
+            rc = handler->Command("echo Hello, World!", CommandSpawn::E_PIPE_STDOUT);
+        } catch (const std::exception &ex) {
+            std::cerr << "Error: " << ex.what() << std::endl;
+        }
+
+        if (rc) {
+            utf8_string_struct line;
+            while ((line = handler->ReadLine(CommandSpawn::E_PIPE_STDOUT)) != nullptr) {
+                std::cout << "got " << line << std::endl;
+
+            }
+
+            CommandSpawn_Destroy(handler);
+        }
     }
 
-    utf8_string_handle line;
-    while ((line = handler->ReadLine(ProcessHandler::E_PIPE_STDOUT)) != nullptr) {
-        std::cout << "got " << line << std::endl;
-
-    }
-
-
-
+    //dump_strings();
 
     return 0;
 }

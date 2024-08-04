@@ -1,49 +1,51 @@
 #include "../JWCEssentials.h"
 
-utf8_string_handle WindowsToLinux(const utf8_string_handle &path);
-utf8_string_handle LinuxToWindows(const utf8_string_handle &path);
+namespace JWCEssentials {
+utf8_string_struct WindowsToLinux(const utf8_string_struct &path);
+utf8_string_struct LinuxToWindows(const utf8_string_struct &path);
 
-utf8_string_handle escapeStringForCommandLine(utf8_string_handle string)
+utf8_string_struct escapeStringForCommandLine(utf8_string_struct string)
 {
     return escapeStringForCommandLine_Windows(string);
 }
 
-LPath::LPath(utf8_string_handle lpath)
+LPath::LPath(utf8_string_struct lpath)
 {
     handle = lpath;
 }
 
-LPath::operator utf8_string_handle() const
+LPath::operator utf8_string_struct() const
 {
     return handle;
 }
 
-LPath LPath::FromNative(utf8_string_handle native)
+LPath LPath::FromNative(utf8_string_struct native)
 {
     return WindowsToLinux(native);
 }
 
-utf8_string_handle LPath::ToNative()
+utf8_string_struct LPath::ToNative()
 {
     return LinuxToWindows(handle);
 }
 
-WPath::WPath(utf8_string_handle native_path)
+WPath::WPath(utf8_string_struct native_path)
 {
     handle = native_path;
 }
 
-WPath::operator utf8_string_handle() const
+WPath::operator utf8_string_struct() const
 {
     return handle;
 }
 
-WPath WPath::FromNative(utf8_string_handle native)
+WPath WPath::FromNative(utf8_string_struct native)
 {
     return native;
 }
 
-utf8_string_handle WPath::ToNative()
+utf8_string_struct WPath::ToNative()
 {
     return handle;
+}
 }

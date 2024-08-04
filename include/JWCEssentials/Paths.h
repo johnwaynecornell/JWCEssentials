@@ -1,57 +1,59 @@
-#ifndef PROCESSHANDLER_PATHS_H
-#define PROCESSHANDLER_PATHS_H
+#ifndef JWCESSENTIALS_PATHS_H
+#define JWCESSENTIALS_PATHS_H
 
-struct LPath;
-struct WPath;
+namespace JWCEssentials {
+    struct LPath;
+    struct WPath;
 
 #pragma pack(push, 0)
-struct LPath
-{
-    utf8_string_handle handle;
+    struct LPath
+    {
+        utf8_string_struct handle;
 
-    utf8_string_handle * explicit_handle() const;
+        utf8_string_struct * explicit_handle() const;
 
-    LPath();
+        LPath();
 
-    LPath(utf8_string_handle lpath);
-    operator utf8_string_handle() const;
+        LPath(utf8_string_struct lpath);
+        operator utf8_string_struct() const;
 
-    LPath(WPath windows_path);
-    operator WPath() const;
+        LPath(WPath windows_path);
+        operator WPath() const;
 
-    static LPath FromNative(utf8_string_handle native);
-    utf8_string_handle ToNative();
+        static LPath FromNative(utf8_string_struct native);
+        utf8_string_struct ToNative();
 
-};
+    };
 #pragma pack(pop)
 
 #pragma pack(push, 0)
-struct WPath
-{
-    utf8_string_handle handle;
+    struct WPath
+    {
+        utf8_string_struct handle;
 
-    utf8_string_handle * explicit_handle() const;
+        utf8_string_struct * explicit_handle() const;
 
-    WPath();
+        WPath();
 
-    WPath(utf8_string_handle wpath);
-    operator utf8_string_handle() const;
+        WPath(utf8_string_struct wpath);
+        operator utf8_string_struct() const;
 
-    WPath(LPath linux_path);
-    operator LPath() const;
+        WPath(LPath linux_path);
+        operator LPath() const;
 
-    static WPath FromNative(utf8_string_handle native);
-    utf8_string_handle ToNative();
-};
+        static WPath FromNative(utf8_string_struct native);
+        utf8_string_struct ToNative();
+    };
 
 #pragma pack(pop)
 
 #ifdef _WIN32
 #define _Path WPath
-//#define _PathI LPath
+    //#define _PathI LPath
 #else
 #define _Path LPath
-//#define _PathI WPath
+    //#define _PathI WPath
 #endif
+};
 
-#endif //PROCESSHANDLER_PATHS_H
+#endif //JWCESSENTIALS_PATHS_H

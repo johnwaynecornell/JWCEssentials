@@ -5,9 +5,6 @@
 #ifndef TEST_H
 #define TEST_H
 
-#include "ProcessHandler.h"
-
-
-
+#include "JWCCommandSpawn//CommandSpawn.h"
 
 #endif //TEST_H

@@ -7,7 +7,7 @@
 
 - **JWCEssentials**
     1. [ ] **Implement**
-        1. [ ] **JWCProcessHandler** 
+        1. [ ] **JWCCommandSpawn** 
             1. [ ] **Linux** **Shell** selection
             2. [ ] **Windows** bash selectiob** 
 - **JWCEssentials.net**

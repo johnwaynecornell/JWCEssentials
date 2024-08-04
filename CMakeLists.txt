@@ -5,58 +5,66 @@ set(CMAKE_CXX_COMPILER "clang++")
 
 set(CMAKE_CXX_STANDARD 17)
 
-# Set the build type to Debug by default
-if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Debug)
-endif()
-
-# Add debug information
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
-
-project(ProcessHandler)
-
 include_directories(include)
+# set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/include/JWCEssentials/" ${CMAKE_MODULE_PATH})
+
+add_definitions(-DBUILD_JWCESSENTIALS)
+
+# message(STATUS "${CMAKE_MODULE_PATH}")
+
+project(CommandSpawn)
 
 if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
     add_library(JWCEssentials SHARED
             include/JWCEssentials/JWCEssentials.h
             include/JWCEssentials/Intern.h
-            include/JWCEssentials/utf8_string_handle.h
+            include/JWCEssentials/utf8_string_struct.h
+            include/JWCEssentials/struct_array_struct.h
             include/JWCEssentials/Escapes.h
+            include/JWCEssentials/Paths.h
 
             src/JWCEssentials.cpp
-            src/utf8_string_handle.cpp
+            src/utf8_string_struct.cpp
+            src/struct_array_struct.cpp
             src/Paths.cpp
-            include/JWCEssentials/Paths.h
             src/Escapes.cpp
+            src/feffect.cpp
 
             src/Platform_Windows/Paths_Windows.cpp
+            include/JWCEssentials/colors.h
     )
 
-    add_definitions(-D_EXPORT_=__declspec\(dllexport\))
-else()
+elseif ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
     add_library(JWCEssentials SHARED
             include/JWCEssentials/JWCEssentials.h
             include/JWCEssentials/Intern.h
-            include/JWCEssentials/utf8_string_handle.h
+            include/JWCEssentials/utf8_string_struct.h
+            include/JWCEssentials/struct_array_struct.h
             include/JWCEssentials/Escapes.h
+            include/JWCEssentials/Paths.h
 
             src/JWCEssentials.cpp
-            src/utf8_string_handle.cpp
+            src/utf8_string_struct.cpp
+            src/struct_array_struct.cpp
             src/Paths.cpp
-            include/JWCEssentials/Paths.h
             src/Escapes.cpp
+            src/feffect.cpp
 
             src/Platform_Linux/Paths_Linux.cpp
+            include/JWCEssentials/colors.h
+            include/JWCEssentials/feffect.h
     )
-
-    add_definitions(-D_EXPORT_=)
 endif()
+
+include( "${CMAKE_SOURCE_DIR}/include/JWCEssentials/JWCEssentials.cmake")
 
 #get_target_property(OUTPUT_DIR JWCEssentials OUTPUT_DIRECTORY)
 #link_directories( ${OUTPUT_DIR})
 
-add_subdirectory(Project/JWCProcessHandler)
+add_subdirectory(Project/JWCCommandSpawn)
 
 add_executable(test src/Test/test.cpp src/Test/test.h)
 target_link_libraries(test PUBLIC JWCEssentials)
+
+add_executable(feffect src/Utils/feffect.cpp)
+target_link_libraries(feffect PUBLIC JWCEssentials)
