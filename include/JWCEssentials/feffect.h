@@ -34,9 +34,10 @@ namespace JWCEssentials {
 
     class feffect_processor {
     public:
+        std::vector<std::string> escape_accum;
+        std::string result_accum;
+
         struct feffect_stack_data {
-            std::string escape_accum;
-            std::string result_accum;
             bool is_paren = false;
             std::vector<std::string> command_accum;
             std::vector<std::string> command_close;
@@ -55,6 +56,11 @@ namespace JWCEssentials {
         utf8_string_struct process(utf8_string_struct command, utf8_string_struct escape);
 
     private:
+        void escape_flush();
+        void result_write(std::string string);
+        void escape_put(std::string string);
+
+
         std::string transit(std::string command, bool direction);
 
         utf8_string_struct escape = "\\033";

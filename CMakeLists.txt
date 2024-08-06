@@ -31,7 +31,7 @@ if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
             src/feffect.cpp
 
             src/Platform_Windows/Paths_Windows.cpp
-            include/JWCEssentials/colors.h
+            include/JWCEssentials/feffect.h
     )
 
 elseif ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
@@ -51,7 +51,7 @@ elseif ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
             src/feffect.cpp
 
             src/Platform_Linux/Paths_Linux.cpp
-            include/JWCEssentials/colors.h
+
             include/JWCEssentials/feffect.h
     )
 endif()

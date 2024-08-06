@@ -1,13 +1,6 @@
+#include <cstring>
 
 #include "JWCEssentials/JWCEssentials.h"
-
-#include <string>
-#include <vector>
-#include <atomic>
-#include <iostream>
-#include <cstring>
-#include <stdexcept>
-#include <unistd.h>
 
 namespace JWCEssentials {
 
@@ -123,7 +116,7 @@ namespace JWCEssentials {
     utf8_string_struct feffect_processor::process(utf8_string_struct command, utf8_string_struct escape) {
         pstack.push_back({});
 
-        if (escape == nullptr) escape ="\033";
+        if (escape == nullptr) escape = "\033";
 
         cursor = {command.c_str};
 
@@ -157,30 +150,6 @@ namespace JWCEssentials {
                         expect_identifier = false;
                     }
 
-/*
-                    if (identifier.length() >= 3) {
-                        std::string g = identifier.substr(0, 3);
-
-                        utf8_string_struct code;
-                        bool off = false;
-                        if (identifier.size() >= 4 && identifier.substr(identifier.size() - 4) == "_off") {
-                            if (g == "fg_") {
-                                identifier = fg_stack.back();
-                                fg_stack.pop_back();
-                            } else if (g == "bg_") {
-                                identifier = bg_stack.back();
-                                bg_stack.pop_back();
-                            }
-                        } else {
-                            if (g == "fg_") {
-                                fg_stack.push_back(identifier);
-                            } else if (g == "bg_") {
-                                bg_stack.push_back(identifier);
-                            }
-                        }
-
-                    }
-*/
                     if (identifier.empty()) {
                         std::cerr << "developer error" << std::endl;
                         return nullptr;
@@ -214,7 +183,7 @@ namespace JWCEssentials {
                             if (!escape) {
                                 if (cursor.c() == end_quote) {
                                     if (!cur.cycle_command_accum(this)) return nullptr;
-                                    cur.result_accum += text;
+                                    result_write(text);
                                     cursor.advance();
                                     found_end_quote = true;
                                     break;
@@ -239,12 +208,10 @@ namespace JWCEssentials {
                     } else if (cursor.c() == '(') {
                         cursor.advance();
                         feffect_stack_data d = {};
-                        //d.command_close = cur.command_close;
                         for (const auto& t : cur.command_accum) {
                             d.command_close.push_back(t);
                         }
 
-                        //cur.command_close.clear();
                         if (!cur.cycle_command_accum(this)) return nullptr;
                         d.is_paren = true;
 
@@ -260,15 +227,14 @@ namespace JWCEssentials {
 
                         if (!cur.cycle_command_accum(this)) return nullptr;
 
+                        cur.cycle_command_close(this);
+                        /*
                         if (!pstack.empty()) {
-                            pstack.back().result_accum += cur.result_accum;
-
+                            //pstack.back().result_accum += cur.result_accum;
                             cur.command_close_transfer(this, pstack.back());
-                            //cur.command_accum = {};
                         } else {
                             cur.cycle_command_close(this);
-
-                        }
+                        }*/
                         cursor.advance();
 
                         last_was_identifier = false;
@@ -286,11 +252,51 @@ namespace JWCEssentials {
 
             if (pstack.empty()) {
                 cur.cycle_command_accum(this);
-                return cur.result_accum.c_str();
+                escape_flush();
+                return result_accum.c_str();
             }
         }
 
         return nullptr;
+    }
+
+    void feffect_processor::escape_flush() {
+        if (escape_accum.empty()) return;
+        result_accum += escape;
+        result_accum += "[";
+
+        bool first = true;
+        for (int i = escape_accum.size() - 1; i >= 0; --i) {
+            std::string close = escape_accum[i];
+
+            utf8_string_struct code = feffect_code(escape_accum[i].c_str());;
+
+            if (code) {
+                if (!first) result_accum += ";";
+                result_accum += code;
+                first = false;
+            }  else {
+                std::cerr << "code not found" << std::endl;
+                throw std::runtime_error("developer error");
+            }
+        }
+
+        result_accum += "m";
+        escape_accum.clear();
+    }
+    void feffect_processor::result_write(std::string string) {
+        escape_flush();
+        result_accum += string;
+    }
+
+    void feffect_processor::escape_put(std::string string) {
+        utf8_string_struct code = feffect_code(string.c_str());;
+
+        if (!code) {
+            std::cerr << "code not found" << std::endl;
+            throw std::runtime_error("developer error");
+        }
+        escape_accum.push_back(string);
     }
 
     utf8_string_struct feffect(utf8_string_struct command, utf8_string_struct escape) {
@@ -300,74 +306,84 @@ namespace JWCEssentials {
 
     std::string feffect_processor::transit(std::string command, bool direction) {
         bool inverted = false;
-        if (command.size() >= 4 && command.substr(command.length()-4, 4) == "_off") inverted = true;
+
+        if (command.size() >= 8 && command.substr(command.length() - 8) == "_off._off")
+            command = command.substr(0, command.length()-8);
+
+        if (command.size() >= 4 && command.substr(command.length() - 4) == "_off") inverted = true;
 
         char type = '_';
 
-        if (command.size() >= 3 && command.substr(0,3) == "fg_") type = 'f';
-        else if (command.size() >= 3 && command.substr(0,3) == "bg_") type = 'b';
+        if (command.size() >= 3 && command.substr(0, 3) == "fg_") type = 'f';
+        else if (command.size() >= 3 && command.substr(0, 3) == "bg_") type = 'b';
 
-        //if (direction) {
         if (inverted ^ direction) {
             if (type == 'f') fg_stack.push_back(command);
             if (type == 'b') bg_stack.push_back(command);
 
-            if (inverted) return command.substr(0, command.length()-4);
+            //if (inverted) return command.substr(0, command.length() - 4);
 
             return command;
         } else {
-
             bool popped = false;
             if (type == 'f') {
-                //fg_stack.pop_back();
-
-                popped = true;
                 fg_stack.pop_back();
                 command = fg_stack.back();
-
-            } else if (type == 'b') {
-                //bg_stack.pop_back();
                 popped = true;
+            } else if (type == 'b') {
                 bg_stack.pop_back();
                 command = bg_stack.back();
+                popped = true;
             }
 
             if (!popped) {
                 if (command.size() >= 4 && command.substr(command.size() - 4) != "_off") {
-                    command += "_off";
-                } else command = command.substr(0, command.size() - 4);
+                    //command += "_off";
+                } else {
+                    command = command.substr(0, command.size() - 4);
+                }
             }
+
+            //if (inverted) return command.substr(0, command.length() - 4);
+
+            //if (inverted) return command.substr(0, command.length() - 4);
             return command;
         }
     }
 
-    void feffect_processor::feffect_stack_data::cycle_command_close(feffect_processor *processor) {
+
+    bool feffect_processor::feffect_stack_data::cycle_command_accum(feffect_processor* processor) {
+        if (command_accum.empty()) return true;
+
+        for (size_t i = 0; i < command_accum.size(); ++i) {
+            if (command_accum[i].empty()) {
+                std::cerr << "developer error" << std::endl;
+                return false;
+            }
+
+            std::string final = processor->transit(command_accum[i], 1);
+            processor->escape_put(final);
+        }
+
+        command_accum.clear();
+
+        return true;
+    }
+
+    void feffect_processor::feffect_stack_data::cycle_command_close(feffect_processor* processor) {
         if (command_close.empty()) return;
 
-        result_accum += processor->escape;
-        result_accum += "[";
-
-        bool first = true;
         for (int i = command_close.size() - 1; i >= 0; --i) {
             std::string close = command_close[i];
 
-            utf8_string_struct code;
-
-            close = processor->transit( close, false);
-            code = feffect_code(close.c_str());
-
-            if (code != nullptr) {
-                if (!first) result_accum += ";";
-                result_accum += code;
-                first = false;
-            }
+            std::string final = processor->transit(close, false);;
+            processor->escape_put(final);
         }
 
-        result_accum += "m";
         command_close.clear();
     }
 
-    void feffect_processor::feffect_stack_data::command_close_transfer(feffect_processor *processor, feffect_processor::feffect_stack_data &target) {
+    void feffect_processor::feffect_stack_data::command_close_transfer(feffect_processor* processor, feffect_processor::feffect_stack_data& target) {
         if (command_close.empty()) return;
 
         for (int i = command_close.size() - 1; i >= 0; --i) {
@@ -384,7 +400,9 @@ namespace JWCEssentials {
 
             if (cmd.size() <= 4 || cmd.substr(cmd.size() - 4) != "_off") {
                 cmd += "_off";
-            } else cmd = cmd.substr(0, cmd.size() - 4);
+            } else {
+                cmd = cmd.substr(0, cmd.size() - 4);
+            }
 
             if (cmd.empty()) {
                 std::cerr << "developer trace" << std::endl;
@@ -394,61 +412,6 @@ namespace JWCEssentials {
             if (!cmd.empty()) target.command_accum.push_back(cmd);
         }
         command_close.clear();
-    }
-
-    bool feffect_processor::feffect_stack_data::cycle_command_accum(feffect_processor *processor) {
-        if (command_accum.empty()) return true;
-
-        result_accum += processor->escape;
-        result_accum += "[";
-
-        std::string command;
-
-        utf8_string_struct code;
-        std::string final;
-
-        for (size_t i = 0; i < command_accum.size() - 1; ++i) {
-            if (command_accum[i].empty()) {
-                std::cerr << "developer error" << std::endl;
-                return false;
-            }
-
-            final = processor->transit(command_accum[i], 1);
-            code = feffect_code(final.c_str());
-
-            /*
-            processor->fg_stack.push_back(command_accum[i]);
-            command = processor->translate(command_accum[i]);
-
-            if (command.empty()) {
-                std::cerr << "developer error" << std::endl;
-                throw std::runtime_error("developer error");
-            }
-
-            code = feffect_code(command.c_str());
-            */
-            if (code) {
-                result_accum += code;
-                result_accum += ";";
-            } else {
-                std::cerr << "code not found" << std::endl;
-                throw std::runtime_error("developer error");
-            }
-        }
-
-        final = processor->transit(command_accum.back(), 1);
-        code = feffect_code(final.c_str());
-
-        if (code) {
-            result_accum += code;
-            result_accum += "m";
-        } else {
-            std::cerr << "identifier not found" << std::endl;
-            return false;
-        }
-
-        command_accum.clear();
-        return true;
     }
 
     bool feffect_processor::lower(char c) const {
