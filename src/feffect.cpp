@@ -135,7 +135,7 @@ namespace JWCEssentials {
             while (!cursor.end()) {
                 cursor.whitespace_advance();
 
-                if (cursor.c() == '_' || alpha(cursor.c())) {
+                if (cursor.c() == '_' || cursor.c() == '~' || alpha(cursor.c())) {
                     std::string identifier;
                     while (!cursor.end() && id_char(cursor.c())) {
                         identifier += cursor.c();
@@ -266,7 +266,7 @@ namespace JWCEssentials {
         result_accum += "[";
 
         bool first = true;
-        for (int i = escape_accum.size() - 1; i >= 0; --i) {
+        for (int i = 0; i < escape_accum.size(); i++) {
             std::string close = escape_accum[i];
 
             utf8_string_struct code = feffect_code(escape_accum[i].c_str());;
@@ -293,7 +293,7 @@ namespace JWCEssentials {
         utf8_string_struct code = feffect_code(string.c_str());;
 
         if (!code) {
-            std::cerr << "code not found" << std::endl;
+            std::cerr << "code not found for: " <<string << std::endl;
             throw std::runtime_error("developer error");
         }
         escape_accum.push_back(string);
@@ -307,38 +307,67 @@ namespace JWCEssentials {
     std::string feffect_processor::transit(std::string command, bool direction) {
         bool inverted = false;
 
-        if (command.size() >= 8 && command.substr(command.length() - 8) == "_off._off")
+        while (command.size() >= 8 && command.substr(command.length() - 2) == "~~")
             command = command.substr(0, command.length()-8);
 
-        if (command.size() >= 4 && command.substr(command.length() - 4) == "_off") inverted = true;
+        if (command.size() >= 1 && command.substr(0, 1) == "~") {
+            inverted = true;
+            command = command.substr(1);
+        }
 
         char type = '_';
 
-        if (command.size() >= 3 && command.substr(0, 3) == "fg_") type = 'f';
-        else if (command.size() >= 3 && command.substr(0, 3) == "bg_") type = 'b';
+        if ((command.size() >= 3 && command.substr(0, 3) == "fg_") || command == "fg") type = 'f';
+        else if ((command.size() >= 3 && command.substr(0, 3) == "bg_") || command=="bg") type = 'b';
 
-        if (inverted ^ direction) {
-            if (type == 'f') fg_stack.push_back(command);
-            if (type == 'b') bg_stack.push_back(command);
+        //if (inverted ^ direction) {
+        if (direction || inverted) {
 
+            if (type == 'f') {
+                if (inverted) {
+                    std::string reg = fg_stack.back();
+                    fg_stack.pop_back();
+
+                    std::string reg2 = fg_stack.back();
+                    fg_stack.pop_back();
+
+                    fg_stack.push_back(reg);
+                    fg_stack.push_back(reg2);
+
+                } else fg_stack.push_back(command);
+
+                return fg_stack.back();
+            } else if (type == 'b') {
+                if (inverted) {
+                    std::string reg = bg_stack.back();
+                    bg_stack.pop_back();
+
+                    std::string reg2 = bg_stack.back();
+                    bg_stack.pop_back();
+
+                    bg_stack.push_back(reg);
+                    bg_stack.push_back(reg2);
+
+                } else bg_stack.push_back(command);
+            } else bg_stack.push_back(command);
             //if (inverted) return command.substr(0, command.length() - 4);
 
-            return command;
+            return bg_stack.back();
         } else {
             bool popped = false;
             if (type == 'f') {
-                fg_stack.pop_back();
+                if (!inverted) fg_stack.pop_back();
                 command = fg_stack.back();
                 popped = true;
             } else if (type == 'b') {
-                bg_stack.pop_back();
+                if (!inverted) bg_stack.pop_back();
                 command = bg_stack.back();
                 popped = true;
             }
 
             if (!popped) {
                 if (command.size() >= 4 && command.substr(command.size() - 4) != "_off") {
-                    //command += "_off";
+                    command += "_off";
                 } else {
                     command = command.substr(0, command.size() - 4);
                 }
@@ -350,7 +379,6 @@ namespace JWCEssentials {
             return command;
         }
     }
-
 
     bool feffect_processor::feffect_stack_data::cycle_command_accum(feffect_processor* processor) {
         if (command_accum.empty()) return true;
@@ -373,7 +401,8 @@ namespace JWCEssentials {
     void feffect_processor::feffect_stack_data::cycle_command_close(feffect_processor* processor) {
         if (command_close.empty()) return;
 
-        for (int i = command_close.size() - 1; i >= 0; --i) {
+        //for (int i = command_close.size() - 1; i >= 0; --i) {
+        for (int i = 0; i < command_close.size(); i++) {
             std::string close = command_close[i];
 
             std::string final = processor->transit(close, false);;
@@ -383,10 +412,12 @@ namespace JWCEssentials {
         command_close.clear();
     }
 
+    /*
     void feffect_processor::feffect_stack_data::command_close_transfer(feffect_processor* processor, feffect_processor::feffect_stack_data& target) {
         if (command_close.empty()) return;
 
-        for (int i = command_close.size() - 1; i >= 0; --i) {
+        //for (int i = command_close.size() - 1; i >= 0; --i) {
+        for (int i = 0; command_close.size() - 1; i++) {
             std::string command = command_close[i];
 
             if (command.empty()) {
@@ -412,7 +443,7 @@ namespace JWCEssentials {
             if (!cmd.empty()) target.command_accum.push_back(cmd);
         }
         command_close.clear();
-    }
+    }*/
 
     bool feffect_processor::lower(char c) const {
         return c >= 'a' && c <= 'z';
@@ -431,7 +462,7 @@ namespace JWCEssentials {
     }
 
     bool feffect_processor::id_char(char c) const {
-        return c == '_' || alpha(c) || numer(c);
+        return c == '_' || c == '~'|| alpha(c) || numer(c);
     }
 
 } // namespace JWCEssentials
