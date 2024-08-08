@@ -49,11 +49,11 @@ namespace JWCEssentials {
         {"bg_white", "47"},
         {"bg_set", "48"},
         {"bg_default", "49"},
-        {"framed", "51"},
-        {"encircled", "52"},
+        //{"framed", "51"},
+        //{"encircled", "52"},
         {"overlined", "53"},
-        {"framed_off", "54"},
-        {"encircled_off", "54"},
+        //{"framed_off", "54"},
+        //{"encircled_off", "54"},
         {"overlined_off", "55"},
         {nullptr, nullptr}
     };
@@ -111,7 +111,14 @@ namespace JWCEssentials {
         position += count;
     }
 
-    feffect_processor::feffect_processor() : cursor("") {}
+    feffect_processor::feffect_processor() : cursor("") {
+        std::vector<utf8_string_struct> binaries = {"bold","italic", "underline","blink",
+            "reverse", "crossed", "overlined", nullptr};
+
+        states.Alloc(binaries.size());
+        for (int i=0; i < states.length; i++) states[i] = { binaries[i] };
+
+    }
 
     utf8_string_struct feffect_processor::process(utf8_string_struct command, utf8_string_struct escape) {
         pstack.push_back({});
@@ -307,11 +314,8 @@ namespace JWCEssentials {
     std::string feffect_processor::transit(std::string command, bool direction) {
         bool inverted = false;
 
-        while (command.size() >= 8 && command.substr(command.length() - 2) == "~~")
-            command = command.substr(0, command.length()-8);
-
-        if (command.size() >= 1 && command.substr(0, 1) == "~") {
-            inverted = true;
+        while (command.size() >= 1 && command.substr(0, 1) == "~") {
+            inverted = !inverted;
             command = command.substr(1);
         }
 
@@ -349,6 +353,9 @@ namespace JWCEssentials {
                     bg_stack.push_back(reg2);
 
                 } else bg_stack.push_back(command);
+            } else if (inverted) {
+
+
             } else bg_stack.push_back(command);
             //if (inverted) return command.substr(0, command.length() - 4);
 

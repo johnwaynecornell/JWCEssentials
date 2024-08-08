@@ -55,6 +55,14 @@ namespace JWCEssentials {
         feffect_processor();
         utf8_string_struct process(utf8_string_struct command, utf8_string_struct escape);
 
+        struct binary{
+            utf8_string_struct identifier;
+            bool value;
+        };
+
+        struct_array_struct<binary> states;
+
+
     private:
         void escape_flush();
         void result_write(std::string string);
