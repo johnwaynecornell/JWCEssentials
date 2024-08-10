@@ -39,6 +39,19 @@ namespace JWCEssentials {
         {"fg_white", "37"},
         {"fg_set", "38"},
         {"fg_default", "39"},
+
+        {"fg_bright_black", "90"},
+        {"fg_bright_red", "91"},
+        {"fg_bright_green", "92"},
+        {"fg_bright_yellow", "93"},
+        {"fg_bright_blue", "94"},
+        {"fg_bright_magenta", "95"},
+        {"fg_bright_cyan", "96"},
+        {"fg_bright_white", "97"},
+
+        {"fg_set", "38"},
+        {"fg_default", "39"},
+
         {"bg_black", "40"},
         {"bg_red", "41"},
         {"bg_green", "42"},
@@ -49,12 +62,18 @@ namespace JWCEssentials {
         {"bg_white", "47"},
         {"bg_set", "48"},
         {"bg_default", "49"},
-        //{"framed", "51"},
-        //{"encircled", "52"},
-        {"overlined", "53"},
-        //{"framed_off", "54"},
-        //{"encircled_off", "54"},
-        {"overlined_off", "55"},
+
+        {"bg_bright_black", "100"},
+        {"bg_bright_red", "101"},
+        {"bg_bright_green", "102"},
+        {"bg_bright_yellow", "103"},
+        {"bg_bright_blue", "104"},
+        {"bg_bright_magenta", "105"},
+        {"bg_bright_cyan", "106"},
+        {"bg_bright_white", "107"},
+
+        {"overline", "53"},
+        {"overline_off", "55"},
         {nullptr, nullptr}
     };
 
@@ -112,12 +131,39 @@ namespace JWCEssentials {
     }
 
     feffect_processor::feffect_processor() : cursor("") {
-        std::vector<utf8_string_struct> binaries = {"bold","italic", "underline","blink",
-            "reverse", "crossed", "overlined", nullptr};
+        std::vector<std::string> binaries = {"bold","italic", "underline","blink",
+            "reverse", "crossed", "overline"};
 
-        states.Alloc(binaries.size());
-        for (int i=0; i < states.length; i++) states[i] = { binaries[i] };
+        stacks.Alloc(2+binaries.size());
 
+        stacks[0] = {"fg"};
+        stacks[0].stack.push_back("fg_default");
+        stacks[0].stack.push_back("fg_default");
+
+        stacks[1] = { "bg" };
+        stacks[1].stack.push_back("bg_default");
+        stacks[1].stack.push_back("bg_default");
+
+        for (int i=0; i < binaries.size(); i++) {
+            stacks[2+i] = { binaries[i] };
+            stacks[2+i].stack.push_back(((std::string) binaries[i]));
+            stacks[2+i].stack.push_back(((std::string) binaries[i])+"_off");
+        }
+    }
+
+    bool feffect_processor::has_stack(std::string identifier) {
+        for (int i=0; i < stacks.length; i++) {
+            if (stacks[i].identifier == identifier) return true;
+        }
+        return false;
+    }
+
+
+    std::vector<std::string> & feffect_processor::get_stack(std::string identifier) {
+        for (int i=0; i < stacks.length; i++) {
+            if (stacks[i].identifier == identifier) return stacks[i].stack;
+        }
+        throw std::runtime_error("stack not found");
     }
 
     utf8_string_struct feffect_processor::process(utf8_string_struct command, utf8_string_struct escape) {
@@ -128,9 +174,6 @@ namespace JWCEssentials {
         cursor = {command.c_str};
 
         this->escape = escape;
-
-        fg_stack.push_back("fg_default");
-        bg_stack.push_back("bg_default");
 
         while (!pstack.empty()) {
             feffect_stack_data cur = pstack.back();
@@ -235,13 +278,6 @@ namespace JWCEssentials {
                         if (!cur.cycle_command_accum(this)) return nullptr;
 
                         cur.cycle_command_close(this);
-                        /*
-                        if (!pstack.empty()) {
-                            //pstack.back().result_accum += cur.result_accum;
-                            cur.command_close_transfer(this, pstack.back());
-                        } else {
-                            cur.cycle_command_close(this);
-                        }*/
                         cursor.advance();
 
                         last_was_identifier = false;
@@ -312,67 +348,66 @@ namespace JWCEssentials {
     }
 
     std::string feffect_processor::transit(std::string command, bool direction) {
-        bool inverted = false;
+        int inverted = 0;
 
         while (command.size() >= 1 && command.substr(0, 1) == "~") {
-            inverted = !inverted;
+            inverted++;
             command = command.substr(1);
         }
 
-        char type = '_';
+        std::string stack_id = "";
 
-        if ((command.size() >= 3 && command.substr(0, 3) == "fg_") || command == "fg") type = 'f';
-        else if ((command.size() >= 3 && command.substr(0, 3) == "bg_") || command=="bg") type = 'b';
-
-        //if (inverted ^ direction) {
-        if (direction || inverted) {
-
-            if (type == 'f') {
-                if (inverted) {
-                    std::string reg = fg_stack.back();
-                    fg_stack.pop_back();
-
-                    std::string reg2 = fg_stack.back();
-                    fg_stack.pop_back();
-
-                    fg_stack.push_back(reg);
-                    fg_stack.push_back(reg2);
-
-                } else fg_stack.push_back(command);
-
-                return fg_stack.back();
-            } else if (type == 'b') {
-                if (inverted) {
-                    std::string reg = bg_stack.back();
-                    bg_stack.pop_back();
-
-                    std::string reg2 = bg_stack.back();
-                    bg_stack.pop_back();
-
-                    bg_stack.push_back(reg);
-                    bg_stack.push_back(reg2);
-
-                } else bg_stack.push_back(command);
-            } else if (inverted) {
-
-
-            } else bg_stack.push_back(command);
-            //if (inverted) return command.substr(0, command.length() - 4);
-
-            return bg_stack.back();
-        } else {
-            bool popped = false;
-            if (type == 'f') {
-                if (!inverted) fg_stack.pop_back();
-                command = fg_stack.back();
-                popped = true;
-            } else if (type == 'b') {
-                if (!inverted) bg_stack.pop_back();
-                command = bg_stack.back();
-                popped = true;
+        if ((command.size() >= 3 && command.substr(0, 3) == "fg_") || command == "fg") stack_id = "fg";
+        else if ((command.size() >= 3 && command.substr(0, 3) == "bg_") || command=="bg") stack_id = "bg";
+        else {
+            utf8_string_struct trunc_command = command.c_str();
+            for (int i=0; i < trunc_command.length; i++) {
+                if (trunc_command[i] == '_') {
+                    trunc_command[i] = 0;
+                    break;
+                }
             }
 
-            if (!popped) {
+            if (has_stack(trunc_command.c_str)) stack_id = trunc_command.c_str;
+        }
+
+
+        if (inverted) {
+            std::vector<std::string> &stack = get_stack(stack_id);
+
+            if (inverted % 2) {
+                std::string reg = stack.back();
+                stack.pop_back();
+
+                std::string reg2 = stack.back();
+                stack.pop_back();
+
+                stack.push_back(reg);
+                stack.push_back(reg2);
+            }
+            return stack.back();
+        }
+
+        //if (inverted ^ direction) {
+        if (direction) {
+            if (stack_id != "") {
+                std::vector<std::string> &stack = get_stack(stack_id);
+                stack.push_back(command);
+
+                return stack.back();
+            }
+            return command;
+        } else {
+
+            if (stack_id != "") {
+                std::vector<std::string> &stack = get_stack(stack_id);
+
+                stack.pop_back();
+
+                return stack.back();
+            }
+
+            if (!((stack_id == "fg") || (stack_id == "bg"))) {
                 if (command.size() >= 4 && command.substr(command.size() - 4) != "_off") {
                     command += "_off";
                 } else {
@@ -380,9 +415,6 @@ namespace JWCEssentials {
                 }
             }
 
-            //if (inverted) return command.substr(0, command.length() - 4);
-
-            //if (inverted) return command.substr(0, command.length() - 4);
             return command;
         }
     }
@@ -408,8 +440,7 @@ namespace JWCEssentials {
     void feffect_processor::feffect_stack_data::cycle_command_close(feffect_processor* processor) {
         if (command_close.empty()) return;
 
-        //for (int i = command_close.size() - 1; i >= 0; --i) {
-        for (int i = 0; i < command_close.size(); i++) {
+        for (int i = command_close.size() - 1; i >= 0; --i) {
             std::string close = command_close[i];
 
             std::string final = processor->transit(close, false);;
@@ -418,39 +449,6 @@ namespace JWCEssentials {
 
         command_close.clear();
     }
-
-    /*
-    void feffect_processor::feffect_stack_data::command_close_transfer(feffect_processor* processor, feffect_processor::feffect_stack_data& target) {
-        if (command_close.empty()) return;
-
-        //for (int i = command_close.size() - 1; i >= 0; --i) {
-        for (int i = 0; command_close.size() - 1; i++) {
-            std::string command = command_close[i];
-
-            if (command.empty()) {
-                std::cerr << "developer error" << std::endl;
-                throw std::runtime_error("developer error");
-            }
-
-            std::string close = command_close[i];
-
-            std::string cmd = close;
-
-            if (cmd.size() <= 4 || cmd.substr(cmd.size() - 4) != "_off") {
-                cmd += "_off";
-            } else {
-                cmd = cmd.substr(0, cmd.size() - 4);
-            }
-
-            if (cmd.empty()) {
-                std::cerr << "developer trace" << std::endl;
-                __asm("int3");
-            }
-
-            if (!cmd.empty()) target.command_accum.push_back(cmd);
-        }
-        command_close.clear();
-    }*/
 
     bool feffect_processor::lower(char c) const {
         return c >= 'a' && c <= 'z';

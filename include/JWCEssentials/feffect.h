@@ -49,19 +49,18 @@ namespace JWCEssentials {
 
         };
 
-        std::vector<std::string> fg_stack;
-        std::vector<std::string> bg_stack;
+        struct code_stack{
+            std::string identifier;
+            std::vector<std::string> stack;
+        };
+
+        bool has_stack(std::string identifier);
+        std::vector<std::string> & get_stack(std::string identifier);
+
+        struct_array_struct<code_stack> stacks;
 
         feffect_processor();
         utf8_string_struct process(utf8_string_struct command, utf8_string_struct escape);
-
-        struct binary{
-            utf8_string_struct identifier;
-            bool value;
-        };
-
-        struct_array_struct<binary> states;
-
 
     private:
         void escape_flush();
