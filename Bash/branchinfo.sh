@@ -13,13 +13,23 @@ count_ahead_behind() {
     ahead_count=$(git rev-list --count ${remote_branch}..${local_branch})
     behind_count=$(git rev-list --count ${local_branch}..${remote_branch})
 
+    sep=""
 
-    if [ $ahead_count != "0" ]; then
-        status="ahead $ahead_count"
-    elif [ $behind_count != "0" ]; then
-        status="behind $behind_count"
-    else
-        status="current"
+    if [ $ahead_count != "0" ] || [ $behind_count != "0" ]; then
+	status=""
+
+        if [ $ahead_count != "0" ]; then
+	    status = status + "ahead $ahead_count"
+	    sep=", "	    
+        fi
+
+        if [ $behind_count != "0" ]; then
+	    status = status + sep + "behind $behind_count"	    
+        fi
+
+    else	
+	status="current"
+
     fi
 
     echo "branch: [$remote_branch], work tree $status"
