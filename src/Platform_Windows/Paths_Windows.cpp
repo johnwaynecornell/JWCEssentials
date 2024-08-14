@@ -1,4 +1,4 @@
-#include "../JWCEssentials.h"
+#include "JWCEssentials//JWCEssentials.h"
 
 namespace JWCEssentials {
 utf8_string_struct WindowsToLinux(const utf8_string_struct &path);

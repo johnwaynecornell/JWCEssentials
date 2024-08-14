@@ -61,8 +61,6 @@ include( "${CMAKE_SOURCE_DIR}/include/JWCEssentials/JWCEssentials.cmake")
 #get_target_property(OUTPUT_DIR JWCEssentials OUTPUT_DIRECTORY)
 #link_directories( ${OUTPUT_DIR})
 
-add_subdirectory(Project/JWCCommandSpawn)
-
 add_executable(test src/Test/test.cpp src/Test/test.h)
 target_link_libraries(test PUBLIC JWCEssentials)
 

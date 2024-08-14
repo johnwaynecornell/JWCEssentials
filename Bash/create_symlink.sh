@@ -2,14 +2,14 @@
 
 # Function to create a symbolic link on Windows
 create_symlink_windows() {
-    local link="$1"
-    local target="$2"
+    local link="$(cygpath -w $1)"
+    local target="$(cygpath -w $2)"
 
     # Check if it's a directory or file
     if [ -d "$target" ]; then
         cmd <<< "mklink /D \"$link\" \"$target\""
     else
-        cmd <<< "mklink \"$link\" \"$target\""
+        cmd <<< "mklink /H \"$link\" \"$target\""
     fi
 }
 
