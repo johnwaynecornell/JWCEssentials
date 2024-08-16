@@ -55,10 +55,6 @@ int main(int argc, char **argv) {
     if (!result) return 1;
     std::cout << result << std::endl;
 
-    result = feffect(command, "\033");
-    if (!result) return 1;
-    std::cout << result << std::endl;
-
     //res = feffect("underline(italic(\"Hello World!\")) \"test\"");
 
     return 0;

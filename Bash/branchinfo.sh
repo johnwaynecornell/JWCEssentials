@@ -14,6 +14,7 @@ count_ahead_behind() {
     behind_count=$(git rev-list --count ${local_branch}..${remote_branch})
 
     sep=" "
+    extra=""
 
     if [ $ahead_count != "0" ] || [ $behind_count != "0" ]; then
 	status=""
@@ -26,13 +27,15 @@ count_ahead_behind() {
         if [ $behind_count != "0" ]; then
 	    status="$status${sep}behind $behind_count"	    
         fi
+        extra=".blink"
 
     else	
 	status="current"
 
     fi
 
-    echo "branch: [$remote_branch], work tree $status"
+    feffect -e "'branch: ' fg_red('[' fg_bright_yellow$extra('$remote_branch') ']' ) ', work tree $status'"
+    #echo "branch: $(feffect "fg_red('[' fg_bright_yellow('$remote_branch') ']')"), work tree $status"
 }
 
 # Show branch information only with ahead/behind counts
