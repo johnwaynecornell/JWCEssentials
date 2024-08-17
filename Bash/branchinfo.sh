@@ -27,14 +27,14 @@ count_ahead_behind() {
         if [ $behind_count != "0" ]; then
 	    status="$status${sep}behind $behind_count"	    
         fi
-        extra=".blink"
+        extra=".blink.underline.overline"
 
     else	
 	status="current"
 
     fi
 
-    feffect -e "'branch: ' fg_red('[' fg_bright_yellow$extra('$remote_branch') ']' ) ', work tree $status'"
+    feffect -e "'branch: ' fg_bright_black('[' fg_bright_yellow$extra('$remote_branch') ']' ) ', work tree $status'"
     #echo "branch: $(feffect "fg_red('[' fg_bright_yellow('$remote_branch') ']')"), work tree $status"
 }
 
