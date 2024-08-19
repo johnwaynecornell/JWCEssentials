@@ -52,7 +52,11 @@ namespace JWCEssentials {
         struct code_stack{
             std::string identifier;
             std::vector<std::string> stack;
+            std::vector<int> water;
         };
+
+        void enter();
+        void exit();
 
         bool has_stack(std::string identifier);
         std::vector<std::string> & get_stack(std::string identifier);

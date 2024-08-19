@@ -166,6 +166,30 @@ namespace JWCEssentials {
         throw std::runtime_error("stack not found");
     }
 
+    /*
+    struct code_stack{
+        std::string identifier;
+        std::vector<std::string> stack;
+        std::vector<int> water;
+    };*/
+
+    void feffect_processor::enter()
+    {
+        for (int i=0; i < stacks.length; i++) {
+            stacks[i].water.push_back(stacks[i].stack.size());
+        }
+    }
+
+    void feffect_processor::exit()
+    {
+        for (int i=0; i < stacks.length; i++) {
+            while (stacks[i].stack.size() > stacks[i].water.back()) stacks[i].stack.pop_back();
+            stacks[i].water.pop_back();
+        }
+
+    }
+
+
     utf8_string_struct feffect_processor::process(utf8_string_struct command, utf8_string_struct escape) {
         pstack.push_back({});
 
@@ -267,6 +291,7 @@ namespace JWCEssentials {
 
                         pstack.push_back(cur);
                         pstack.push_back(d);
+                        enter();
                         goto __continue;
 
                     } else if (cursor.c() == ')') {
@@ -281,6 +306,7 @@ namespace JWCEssentials {
                         cursor.advance();
 
                         last_was_identifier = false;
+                        exit();
                         break;
                     } else {
                         std::cerr << "unexpected character: " << cursor.c() << std::endl;
