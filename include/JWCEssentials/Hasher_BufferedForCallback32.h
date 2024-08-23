@@ -1,0 +1,35 @@
+// MIT License
+// Copyright (c) 2024 John W. Cornell
+// See LICENSE file in the project root for full license information.
+#ifndef FARMHASH_HASHER_BUFFEREDFORCALLBACK32_H
+#define FARMHASH_HASHER_BUFFEREDFORCALLBACK32_H
+
+namespace JWCEssentials {
+    class Hasher_BufferedForCallback32 : public HasherClass32 {
+
+    public:
+
+        P_INSTANCE(BufferHelper)  MyBuffer = nullptr;
+        typedef uint32_t (*Hash_fn)(P_ELEMENTS(const uint8_t)dta, size_t size);
+
+        Hash_fn Under_HashFunction;
+
+        utf8_string_struct hashFunctionName;
+
+        Hasher_BufferedForCallback32(utf8_string_struct hashFunctionName, Hash_fn HashFunction, size_t buffersize);
+        ~Hasher_BufferedForCallback32() override;
+
+        utf8_string_struct get_identifier() override;
+
+        void Compute_Rev(P_ELEMENTS(uint8_t) m, size_t element_size, size_t element_count) override;
+        void Compute_Raw(P_ELEMENTS(uint8_t) m, size_t element_size, size_t element_count) override;
+
+        void Under_Hash(P_ELEMENTS(const uint8_t)m, size_t len);
+
+        void set_seed(uint32_t seed) override;
+        void Hash_Begin() override;
+        void Hash_End() override;
+    };
+}
+
+#endif //FARMHASH_HASHER_BUFFEREDFORCALLBACK32_H

@@ -24,6 +24,9 @@ namespace JWCEssentials {
         _CLASSEXPORT_ utf8_string_struct(utf8_string_struct &&other) noexcept;
         _CLASSEXPORT_ utf8_string_struct(const char *c_str);
 
+        _CLASSEXPORT_ explicit utf8_string_struct(const std::string &other);
+        _CLASSEXPORT_ explicit operator std::string();
+
         _CLASSEXPORT_ char & operator[](size_t index) const;
 
         //_CLASSEXPORT_ utf8_string_struct(utf8_string_struct&& other) noexcept;
@@ -48,6 +51,7 @@ namespace JWCEssentials {
 
         _CLASSEXPORT_ void verify_contained();
     };
+
 #pragma pack(pop)
 
     _EXPORT_ utf8_string_struct PlatformLineEnding();

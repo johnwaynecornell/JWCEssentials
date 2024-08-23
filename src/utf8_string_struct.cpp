@@ -103,7 +103,7 @@ namespace JWCEssentials {
         size_t count = (unsigned long long) utf8_string_struct::allocated_utf8_strings;
 
         if (count != 0) {
-            fprintf(stderr, "utf8_string_struct::allocated_utf8_string=%lld\n", count);
+            fprintf(stderr, "utf8_string_struct::allocated_utf8_string=%lld\n", (long long) count);
 
             fprintf(stderr,"DANGLED STRINGS:\n");
             for (auto i=utf8_strings.begin(); i != utf8_strings.end(); i++) {
@@ -143,6 +143,13 @@ namespace JWCEssentials {
 
     utf8_string_struct::operator bool() const {
         return c_str != nullptr;
+    }
+
+    utf8_string_struct::utf8_string_struct(const std::string &other) : utf8_string_struct(other.c_str()){
+
+    }
+    utf8_string_struct::operator std::string() {
+        return c_str;
     }
 
     utf8_string_struct &utf8_string_struct::operator =(utf8_string_struct &other) {

@@ -5,11 +5,16 @@ create_symlink_windows() {
     local link="$(cygpath -w $1)"
     local target="$(cygpath -w $2)"
 
+    if [ -f "$link" ] || [ -L "$link" ]; then
+        rm "$link"
+    fi
+
+
     # Check if it's a directory or file
     if [ -d "$target" ]; then
         cmd <<< "mklink /D \"$link\" \"$target\""
     else
-        cmd <<< "mklink /H \"$link\" \"$target\""
+        cmd <<< "mklink \"$link\" \"$target\""
     fi
 }
 
@@ -17,6 +22,10 @@ create_symlink_windows() {
 create_symlink_linux() {
     local link="$1"
     local target="$2"
+
+    if [ -f "$link" ] || [ -L "$link" ]; then
+        rm "$link"
+    fi
 
     ln -s "$target" "$link"
 }
