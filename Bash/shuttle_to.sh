@@ -1,14 +1,15 @@
 #!/bin/bash
 
 pool="$1"
-src="$2"
+src="$(cygpath "$2")"
 mod="$3"
-pedigree="$4"
+pedigree="$(cygpath "$4")"
 
-path=""
+echo pool=\"$pool\" src=\"$src\" mod=\"$mod\" pedigree=\"$pedigree\"
 
 if [ "$#" -gt 4 ]; then
-    split_command="$5"
+    split_command="$(cygpath "$5")"
+    echo "$split_command"
 else
     split_command="split_arg"
 fi
@@ -36,8 +37,13 @@ done
 echo "$path"
 cd "$path"
 
-$split_command "$pedigree" "/" | while IFS= read line; do
+${split_command} ${pedigree} |
+
+while IFS= read -e line; do
     use="true"
+
+    line=$(echo $line | grep "\S.")
+
     if [ -d $line ]; then
         use="false"
     fi
@@ -46,6 +52,7 @@ $split_command "$pedigree" "/" | while IFS= read line; do
         mkdir "$line"
     fi
 
+    echo "******$line*********"
     cd "$line"
 done
 
@@ -60,6 +67,7 @@ do_link(){
 do_link "$mod"
 do_link "$mod.exe"
 do_link "lib$mod.so"
+do_link "$mod.lib"
 do_link "$mod.dll"
 do_link "$mod.pdb"
 

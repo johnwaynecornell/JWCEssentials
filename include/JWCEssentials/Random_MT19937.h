@@ -21,18 +21,18 @@ namespace JWCEssentials {
         int32_t mti = N + 1;
     public:
 
-        _CLASSEXPORT_ Random_MT19937();
+        Random_MT19937();
 
-        _CLASSEXPORT_ ~Random_MT19937() override;
-        _CLASSEXPORT_ void Reset() override;
+        ~Random_MT19937() override;
+        void Reset() override;
 
-        _CLASSEXPORT_ void SetSeed(uint32_t seed) override;
+        void SetSeed(uint32_t seed) override;
 
-        _CLASSEXPORT_ struct_array_struct<uint8_t> get_state() override;
-        _CLASSEXPORT_ void set_state(struct_array_struct<uint8_t> state) override;
+        struct_array_struct<uint8_t> get_state() override;
+        void set_state(struct_array_struct<uint8_t> state) override;
 
-        _CLASSEXPORT_ uint32_t Get_uint32_t() override;
-        _CLASSEXPORT_ uint64_t Get_uint64_t() override;
+        uint32_t Get_uint32_t() override;
+        uint64_t Get_uint64_t() override;
     };
 
     _EXPORT_ P_INSTANCE(Random_MT19937) Random_MT19937_Create(uint32_t seed);

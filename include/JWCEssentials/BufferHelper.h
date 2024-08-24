@@ -12,7 +12,7 @@
 namespace JWCEssentials
 {
 
-    class BufferHelper {
+    class _CLASSEXPORT_ BufferHelper {
 
     public:
         P_ELEMENTS(uint8_t) buffer;

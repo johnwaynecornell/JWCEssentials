@@ -82,3 +82,11 @@ function(shuttle target pool)
 endfunction()
 
 add_compile_options(-Wno-return-type-c-linkage)
+include_directories( "$ENV{NewAge}/include")
+
+if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
+    link_directories('$ENV{NewAge}/lib/Debug/Windows/AMD64')
+    # set(CMAKE_LIBRARY_PATH '$ENV{LD_LIBRARY_PATH}')
+    set(CMAKE_LIBRARY_PATH '$ENV{NewAge}/lib/Debug/Windows/AMD64')
+    message(STATUS "on windows")
+endif()

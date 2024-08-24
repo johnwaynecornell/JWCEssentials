@@ -8,22 +8,22 @@
 #include <cstdlib>
 
 namespace JWCEssentials {
-    _CLASSEXPORT_ class Random_Generator
+    class _CLASSEXPORT_ Random_Generator
     {
     public:
-        _CLASSEXPORT_ virtual ~Random_Generator() = default;
+        virtual ~Random_Generator() = default;
 
-        _CLASSEXPORT_ Random_Generator();
-        _CLASSEXPORT_ virtual void SetSeed(uint32_t seed);
-        _CLASSEXPORT_ virtual uint32_t Get_uint32_t() = 0;
-        _CLASSEXPORT_ virtual uint64_t Get_uint64_t() = 0;
-        _CLASSEXPORT_ virtual utf8_string_struct cstyle_identifier(int length);
-        _CLASSEXPORT_ virtual void Reset() = 0;
+        Random_Generator();
+        virtual void SetSeed(uint32_t seed);
+        virtual uint32_t Get_uint32_t() = 0;
+        virtual uint64_t Get_uint64_t() = 0;
+        virtual utf8_string_struct cstyle_identifier(int length);
+        virtual void Reset() = 0;
 
-        _CLASSEXPORT_ virtual struct_array_struct<uint8_t> get_state() = 0;
-        _CLASSEXPORT_ virtual void set_state(struct_array_struct<uint8_t> state) = 0;
+        virtual struct_array_struct<uint8_t> get_state() = 0;
+        virtual void set_state(struct_array_struct<uint8_t> state) = 0;
 
-        _CLASSEXPORT_ virtual uint8_t GetByte();
+        virtual uint8_t GetByte();
     protected:
         uint32_t ByteRegister;
         int32_t ByesRemain;

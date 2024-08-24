@@ -8,11 +8,14 @@ set(CMAKE_CXX_STANDARD 17)
 include_directories(include)
 # set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/include/JWCEssentials/" ${CMAKE_MODULE_PATH})
 
+
 add_definitions(-DBUILD_JWCESSENTIALS)
 
 # message(STATUS "${CMAKE_MODULE_PATH}")
 
 project(JWCEssentials)
+
+include( "${CMAKE_SOURCE_DIR}/include/JWCEssentials/JWCEssentials.cmake")
 
 if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
     add_library(JWCEssentials SHARED
@@ -29,6 +32,7 @@ if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
             src/Paths.cpp
             src/Escapes.cpp
             src/feffect.cpp
+            src/BufferHelper.cpp
 
 
             src/Platform_Windows/Paths_Windows.cpp
@@ -59,7 +63,6 @@ elseif ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
 endif()
 
 target_compile_options(JWCEssentials PUBLIC "-Wno-return-type-c-linkage")
-include( "${CMAKE_SOURCE_DIR}/include/JWCEssentials/JWCEssentials.cmake")
 include( "${CMAKE_SOURCE_DIR}/src/Random/Random.cmake")
 
 include( "${CMAKE_SOURCE_DIR}/src/Hasher/Hasher.cmake")
@@ -107,8 +110,9 @@ set(PTH "${PTH}/${CMAKE_SYSTEM_NAME}/${CMAKE_SYSTEM_PROCESSOR}")
 #add_executable(split_arg src/Utils/split_arg.cpp)
 
 add_custom_command(TARGET split_arg POST_BUILD
-        COMMAND verbose.sh shuttle_to.sh bin "${CMAKE_CURRENT_BINARY_DIR}" "split_arg" "${PTH}" "${CMAKE_CURRENT_BINARY_DIR}/split_arg"
-        COMMAND verbose.sh shuttle_to.sh bin "${CMAKE_CURRENT_BINARY_DIR}" "feffect" "${PTH}"
-        COMMAND verbose.sh shuttle_to.sh bin "${CMAKE_CURRENT_BINARY_DIR}" "rand_identifier" "${PTH}"
-        COMMAND verbose.sh shuttle_to.sh lib "${CMAKE_CURRENT_BINARY_DIR}" "${name}" "${PTH}"
+        COMMAND bash verbose.sh shuttle_to.sh bin "${CMAKE_CURRENT_BINARY_DIR}" "split_arg" "${PTH}" "${CMAKE_CURRENT_BINARY_DIR}/split_arg"
+        COMMAND bash verbose.sh shuttle_to.sh lib "${CMAKE_CURRENT_BINARY_DIR}" "JWCEssentials" "${PTH}" "${CMAKE_CURRENT_BINARY_DIR}/split_arg"
+        
+        COMMAND bash verbose.sh shuttle_to.sh bin "${CMAKE_CURRENT_BINARY_DIR}" "feffect" "${PTH}"
+        COMMAND bash verbose.sh shuttle_to.sh bin "${CMAKE_CURRENT_BINARY_DIR}" "rand_identifier" "${PTH}"
 )

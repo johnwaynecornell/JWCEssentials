@@ -19,8 +19,14 @@ bool match(char *&in, char *string) {
 }
 
 int main(int argc, char **argv) {
+
     char *input = argv[1];
-    char *divider = argv[2];
+    char *divider;
+
+    if (argc == 3) divider = argv[2];
+    else divider = "/";
+
+    std::cerr << "argc : \"" << argc << "\" input : \"" << input << "\" divider : \"" << divider << "\"" << std::endl;
 
     bool has = false;
 
@@ -31,13 +37,15 @@ int main(int argc, char **argv) {
         if (match(I, divider)) {
             next = I;
             has = false;
-            std::cout << std::endl;
+            printf("\r\n");
+      //      std::cout << "\r\n";
         } else {
             std::cout << *I;
             has = true;
         }
     }
 
-    if (has) std::cout << std::endl;
+    if (has) printf("\r\n");
+
     return 0;
 }
