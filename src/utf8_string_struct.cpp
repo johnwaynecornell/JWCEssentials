@@ -202,11 +202,15 @@ namespace JWCEssentials {
     void utf8_string_struct::verify_contained() {
         int I;
 
-        for (I=0; I<length+1; I++) {
-            if (c_str[I] == 0) return;
-        }
+        if (c_str)
+        {
 
-        throw std::runtime_error("ERROR Memory corruption unterminated string");
+            for (I=0; I<length+1; I++) {
+                if (c_str[I] == 0) return;
+            }
+
+            throw std::runtime_error("ERROR Memory corruption unterminated string");
+        }
     }
 
 
