@@ -37,7 +37,7 @@ int main(int argc, char **argv) {
         if (match(I, divider)) {
             next = I;
             has = false;
-            printf("\r\n");
+            printf("\n");
       //      std::cout << "\r\n";
         } else {
             std::cout << *I;
@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
         }
     }
 
-    if (has) printf("\r\n");
+    if (has) printf("\n");
 
     return 0;
 }
