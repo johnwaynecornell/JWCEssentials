@@ -7,7 +7,7 @@ using System.Text.Unicode;
 namespace JWCEssentials.net
 {
     [StructLayout(LayoutKind.Sequential)]
-    public struct utf8_string_struct
+    public struct utf8_string_struct : IDisposable
     {
         public ulong c_str;
         public ulong length;
@@ -48,9 +48,6 @@ namespace JWCEssentials.net
             bytesWritten = bytes.Length;
 
             byte[] zero = new byte[] { 0 };
-            
-            Console.WriteLine("sz = " + Marshal.SizeOf<utf8_string_struct>());
-            
             
             utf8_string_struct handle;
             

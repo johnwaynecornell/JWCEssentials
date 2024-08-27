@@ -88,11 +88,8 @@ public class HasherClass
         public static extern void HasherClass_delete(IntPtr ctx);
 
         [DllImport("JWCEssentials")]
-        public static extern IntPtr HasherFactory_Get(utf8_string_struct Name);
+        public static extern IntPtr HasherFactory_Get(ref utf8_string_struct Name);
         
-        [DllImport("JWCEssentials", CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr HasherFactory_Get(ref utf8_string_struct_test Name);
-
         public delegate void ComputeDelegate(IntPtr ctx, IntPtr m, IntPtr element_size, IntPtr element_count);
 
         public static Imports.ComputeDelegate[] dels = new ComputeDelegate[]
@@ -100,25 +97,12 @@ public class HasherClass
     }
 
     public IntPtr This;
-
-    [StructLayout(LayoutKind.Sequential)]
-    public struct utf8_string_struct_test
-    {
-        public ulong c_str;
-        public ulong length;
-        public ulong free_cstr;
-    }
-
+    
     public static HasherClass FromFactory(string name)
     {
         utf8_string_struct st = name;
-
-        utf8_string_struct_test t;
-        t.c_str = st.c_str;
-        t.length = st.length;
-        t.free_cstr = st.free_cstr;
         
-        IntPtr This = Imports.HasherFactory_Get(ref t);
+        IntPtr This = Imports.HasherFactory_Get(ref st);
         if (This == null) throw new AggregateException("HasherClass::HasherFactory unable to get \"" + name + "\"");
 
         int bits = (int)Imports.HasherClass_get_bits(This);
@@ -197,15 +181,7 @@ public class HasherClass
                 do
                 {
                     d = A.Rank - 1;
-
-                    for (int i = 0; i < index.Length; i++)
-                    {
-                        Console.Write(index[i] + ", ");
-
-                    }
-
-                    Console.WriteLine();
-
+                    
                     Compute(A.GetValue(index));
 
                     do
@@ -235,7 +211,8 @@ public class HasherClass
                 Utf8.FromUtf16((string)o, bw.GetSpan(), out charsRead, out bytesWritten);
 
                 Compute(bw.GetSpan().ToArray());
-
+                int i = 982344978;
+                Compute(i);
                 return;
 
             }
