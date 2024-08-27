@@ -82,12 +82,12 @@ namespace JWCEssentials {
     }
 
     std::vector<const char *> utf8_strings;
-    std::atomic_llong utf8_string_struct::allocated_utf8_strings = 0;
+    std::atomic_llong allocated_utf8_strings = 0;
     // Allocate memory
     void utf8_string_struct::Alloc(size_t length)
     {
         Release();
-        utf8_string_struct::allocated_utf8_strings.fetch_add(1);
+        allocated_utf8_strings.fetch_add(1);
 
         this->length = length;
 
@@ -100,7 +100,7 @@ namespace JWCEssentials {
     }
 
     void dump_strings() {
-        size_t count = (unsigned long long) utf8_string_struct::allocated_utf8_strings;
+        size_t count = (unsigned long long) allocated_utf8_strings;
 
         if (count != 0) {
             fprintf(stderr, "utf8_string_struct::allocated_utf8_string=%lld\n", (long long) count);
@@ -117,7 +117,7 @@ namespace JWCEssentials {
     {
         if (c_str) {
             if (free_c_str) {
-                utf8_string_struct::allocated_utf8_strings.fetch_sub(1);
+                allocated_utf8_strings.fetch_sub(1);
                 for (auto i=utf8_strings.begin(); i != utf8_strings.end(); i++) if (*i == c_str) {
                     utf8_strings.erase(i);
                     break;

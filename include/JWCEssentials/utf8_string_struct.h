@@ -8,12 +8,12 @@
 
 namespace JWCEssentials {
 #pragma pack(push, 0)
+    extern std::atomic_llong allocated_utf8_strings;
 
     struct utf8_string_struct {
-        static std::atomic_llong allocated_utf8_strings;
 
         char *c_str = nullptr;
-        size_t length = 0;
+        uint64_t length = 0;
 
         void (*free_c_str)(const char *c_str) = nullptr;
 

@@ -14,11 +14,19 @@ namespace JWCEssentials {
 
     P_INSTANCE(HasherClass) HasherFactory_Get(utf8_string_struct Name)
     {
+        printf("got here c_str=%016lX length=%016lX free_cstr=%016lX\n", (int64_t) Name.c_str, (int64_t) Name.length, (int64_t) Name.free_c_str);
+
+        std::cout << "sizeof void * = " << sizeof(void *) << std::endl;
+        std::cout << "sizeof utf8_string_struct = " << sizeof(utf8_string_struct) << std::endl;
+
+        std::cout << "got here " << Name.c_str << "." << std::endl;
+        std::cout << "got here " << Name.length << "." << std::endl;
+
         P_INSTANCE(HasherClass) R = nullptr;
         if (strcmp(Name, "PRNG:32")==0) R= new Hasher_PRNG32();
         else if (strcmp(Name, "PRNG:64")==0) R= new Hasher_PRNG64();
-        else if (strcmp(Name, "Buffered:UnderCrystalCatalyst:32")==0) R= new Hasher_BufferedForCallback32("UnderCrystalCatalyst", (Hasher_BufferedForCallback32::Hash_fn) farmhash_fingerprint32, 8192);
-        else if (strcmp(Name, "Buffered:UnderCrystalCatalyst:64")==0) R= new Hasher_BufferedForCallback64("UnderCrystalCatalyst", (Hasher_BufferedForCallback64::Hash_fn) farmhash_fingerprint64, 8192);
+        else if (strcmp(Name, "Buffered:FarmHash:32")==0) R= new Hasher_BufferedForCallback32("FarmHash", (Hasher_BufferedForCallback32::Hash_fn) farmhash_fingerprint32, 8192);
+        else if (strcmp(Name, "Buffered:FarmHash:64")==0) R= new Hasher_BufferedForCallback64("FarmHash", (Hasher_BufferedForCallback64::Hash_fn) farmhash_fingerprint64, 8192);
 
         if (R != nullptr)
         {

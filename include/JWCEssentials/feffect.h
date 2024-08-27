@@ -12,7 +12,7 @@ namespace JWCEssentials {
     _EXPORT_ utf8_string_struct_array feffect_list();
     _EXPORT_ utf8_string_struct feffect_code(utf8_string_struct name);
     _EXPORT_ utf8_string_struct feffect_name(utf8_string_struct code);
-    _EXPORT_ utf8_string_struct feffect(utf8_string_struct command, utf8_string_struct escape);
+    _EXPORT_ utf8_string_struct feffect(utf8_string_struct command, utf8_string_struct escape=nullptr);
 
     struct basic_token {
         utf8_string_struct type;

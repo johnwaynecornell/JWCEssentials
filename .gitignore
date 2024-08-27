@@ -3,3 +3,4 @@ bin
 obj
 cmake-build-*
 *.kate-swp
+*DotSettings.user
