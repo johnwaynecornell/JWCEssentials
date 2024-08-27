@@ -91,7 +91,7 @@ public class HasherClass
         public static extern IntPtr HasherFactory_Get(utf8_string_struct Name);
         
         [DllImport("JWCEssentials", CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr HasherFactory_Get(utf8_string_struct_test Name);
+        public static extern IntPtr HasherFactory_Get(ref utf8_string_struct_test Name);
 
         public delegate void ComputeDelegate(IntPtr ctx, IntPtr m, IntPtr element_size, IntPtr element_count);
 
@@ -118,8 +118,8 @@ public class HasherClass
         t.length = st.length;
         t.free_cstr = st.free_cstr;
         
-        IntPtr This = Imports.HasherFactory_Get(t);
-        if (This == null) throw new AggregateException("HasherClass::FrinFactory unable to get \"" + name + "\"");
+        IntPtr This = Imports.HasherFactory_Get(ref t);
+        if (This == null) throw new AggregateException("HasherClass::HasherFactory unable to get \"" + name + "\"");
 
         int bits = (int)Imports.HasherClass_get_bits(This);
 

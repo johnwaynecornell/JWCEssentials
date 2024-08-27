@@ -7,8 +7,9 @@
 #include <atomic>
 
 namespace JWCEssentials {
-#pragma pack(push, 0)
     extern std::atomic_llong allocated_utf8_strings;
+
+#pragma pack(push, 1)
 
     struct utf8_string_struct {
 
