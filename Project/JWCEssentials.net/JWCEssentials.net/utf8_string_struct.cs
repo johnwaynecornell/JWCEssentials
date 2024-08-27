@@ -53,17 +53,12 @@ namespace JWCEssentials.net
             
             
             utf8_string_struct handle;
-            /*
-            handle.c_str = Marshal.AllocCoTaskMem(bytesWritten+1);
-            Marshal.Copy(bytes, 0, handle.c_str, bytesWritten);
+            
+            handle.c_str = (ulong) Marshal.AllocCoTaskMem(bytesWritten+1);
+            Marshal.Copy(bytes, 0, (IntPtr) handle.c_str, bytesWritten);
             Marshal.Copy(zero, 0, (IntPtr) ((ulong) handle.c_str + (ulong) bytesWritten), 1);
-            handle.length = (IntPtr)bytesWritten;
-            handle.free_cstr = p_my_free; 
-            */
-
-            handle.c_str = 1;
-            handle.length = 0;
-            handle.free_cstr = 0;
+            handle.length = (ulong)bytesWritten;
+            handle.free_cstr = (ulong)p_my_free; 
             
             return handle;
         }
