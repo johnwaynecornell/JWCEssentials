@@ -26,6 +26,8 @@ int main(int argc, char **argv) {
     if (argc == 3) divider = argv[2];
     else divider = "/";
 
+    //std::cerr << "argc : \"" << argc << "\" input : \"" << input << "\" divider : \"" << divider << "\"" << std::endl;
+
     bool has = false;
 
     char *next;
@@ -36,6 +38,8 @@ int main(int argc, char **argv) {
             next = I;
             has = false;
             printf("\n");
+            fflush(stdout);
+
       //      std::cout << "\r\n";
         } else {
             std::cout << *I;
@@ -44,6 +48,7 @@ int main(int argc, char **argv) {
     }
 
     if (has) printf("\n");
+    fflush(stdout);
 
     return 0;
 }

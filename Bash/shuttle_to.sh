@@ -5,16 +5,15 @@ src="$(cygpath "$2")"
 mod="$3"
 pedigree="$(cygpath "$4")"
 
-echo pool=\"$pool\" src=\"$src\" mod=\"$mod\" pedigree=\"$pedigree\"
+#echo pool=\"$pool\" src=\"$src\" mod=\"$mod\" pedigree=\"$pedigree\"
 
 if [ "$#" -gt 4 ]; then
     split_command="$(cygpath "$5")"
-    echo "$split_command"
 else
     split_command="split_arg"
 fi
 
-pwd
+#pwd
 
 if [ -d "$pool" ]; then
     path="$(realpath "$pool")"
@@ -34,7 +33,7 @@ while [ $(realpath "$acum/..") != "/" ]; do
     fi
 done
 
-echo "$path"
+#echo "$path"
 cd "$path"
 
 ${split_command} ${pedigree} |
@@ -52,7 +51,6 @@ while IFS= read -e line; do
         mkdir "$line"
     fi
 
-    echo "******$line*********"
     cd "$line"
 done
 
@@ -60,7 +58,12 @@ do_link(){
     file="$1"
 
     if [ -f "$src/$file" ]; then
-        create_symlink.sh "$src/$file" "$path/$pedigree/$file"
+        if [ -f "$path/$pedigree/$file" ] || [ -l "$path/$pedigree/$file" ]; then
+            rm "$path/$pedigree/$file"
+        fi
+
+
+        verbose.sh create_symlink.sh "$src/$file" "$path/$pedigree/$file"
     fi
 }
 

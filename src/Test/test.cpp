@@ -20,6 +20,9 @@ int main() {
 
     printf("%s\n", A.A == B.A ? "fail" : "pass");
 
+    printf("%s\n", feffect("fg_red('iuyhdf')").c_str);
+
+
     utf8_string_struct string = "hello";
 
     utf8_string_struct string2 = string;
