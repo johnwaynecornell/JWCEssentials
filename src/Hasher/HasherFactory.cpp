@@ -23,6 +23,7 @@ namespace JWCEssentials {
         if (R != nullptr)
         {
             R->Initialize();
+            /*
             R->Hash_Begin();
 
             _Compute(R, 0.9827487238479237);
@@ -35,7 +36,9 @@ namespace JWCEssentials {
             utf8_string_struct rb = R->get_identifier();
 
             if (R->get_bits() == 32) printf("%s: sanity value = %08X\n", (char *)rb, ((P_INSTANCE(HasherClass32) )R)->get_value());
-            else if (R->get_bits() == 64) printf("%s: sanity value = %016lX\n", (char *)rb, ((P_INSTANCE(HasherClass64) )R)->get_value());
+            else if (R->get_bits() == 64) printf("%s: sanity value = %016llX\n", (char *)rb, ((P_INSTANCE(HasherClass64) )R)->get_value());
+            fflush(stdout);
+            */
         }
 
         return R;

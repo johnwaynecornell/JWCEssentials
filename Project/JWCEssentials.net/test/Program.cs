@@ -30,7 +30,7 @@ byte[] state = r.get_state();
 Console.WriteLine("_______________");
 Console.WriteLine(r.GetDouble());
 Console.WriteLine(r.Get_uint32_t());
-Console.WriteLine(Essentials.feffect(String.Format("fg_green('{0}')", r.cstyle_identifier())));
+Console.WriteLine(Essentials.feffect($"fg_green('{r.cstyle_identifier()}')"));
 
 r = RandomGenerator.MT19937_Create(902834);
 r.set_state(state);
@@ -38,7 +38,7 @@ r.set_state(state);
 Console.WriteLine("_______________");
 Console.WriteLine(r.GetDouble());
 Console.WriteLine(r.Get_uint32_t());
-Console.WriteLine(Essentials.feffect(String.Format("fg_green('{0}')", r.cstyle_identifier())));
+Console.WriteLine(Essentials.feffect($"fg_green('{r.cstyle_identifier()}')"));
 
 double d = 0.0;
 int c = 0;

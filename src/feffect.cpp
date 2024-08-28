@@ -1,4 +1,5 @@
 #include <cstring>
+#include <utility>
 
 #include "JWCEssentials/JWCEssentials.h"
 
@@ -157,7 +158,6 @@ namespace JWCEssentials {
         }
         return false;
     }
-
 
     std::vector<std::string> & feffect_processor::get_stack(std::string identifier) {
         for (int i=0; i < stacks.length; i++) {
@@ -370,7 +370,7 @@ namespace JWCEssentials {
 
     utf8_string_struct feffect(utf8_string_struct command, utf8_string_struct escape) {
         feffect_processor fp;
-        return fp.process(command, escape);
+        return fp.process(std::move(command), std::move(escape));
     }
 
     std::string feffect_processor::transit(std::string command, bool direction) {
