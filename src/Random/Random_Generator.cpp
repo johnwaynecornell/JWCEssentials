@@ -27,7 +27,12 @@ namespace JWCEssentials {
 
     void Random_Generator::SetSeed(uint32_t seed)
     {
+        this->seed = seed;
         ByesRemain = 0;
+    }
+
+    uint32_t Random_Generator::GetSeed() {
+        return seed;
     }
 
     uint8_t Random_Generator::GetByte()
@@ -45,8 +50,16 @@ namespace JWCEssentials {
         return R;
     }
 
+    double Random_Generator::Get_double() {
+        return Get_uint64_t() / (double) 0xFFFFFFFFFFFFFFFF;
+    }
+
     void Random_Generator_SetSeed(Random_Generator *This, uint32_t seed) {
         This->SetSeed(seed);
+    }
+
+    uint32_t Random_Generator_GetSeed(P_INSTANCE(Random_Generator) This) {
+        return This->GetSeed();
     }
 
     uint32_t Random_Generator_Get_uint32_t(Random_Generator *This) {
@@ -76,4 +89,9 @@ namespace JWCEssentials {
     uint8_t Random_Generator_GetByte(Random_Generator *This) {
         return This->GetByte();
     }
+
+    double Random_Generator_Get_double(Random_Generator *This) {
+        return This->Get_double();
+    }
+
 }

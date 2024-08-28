@@ -13,3 +13,42 @@ H.Compute(a);
 H.End();
 
 Console.WriteLine(H.value);
+
+RandomGenerator r;
+
+string[] codes = Essentials.feffect_list();
+
+r = RandomGenerator.MT19937_Create(32);
+
+for (int i = 0; i < 128; i++)
+{
+    if (r.Get_uint32_t() % 2 == 1) r.GetByte();
+}
+
+byte[] state = r.get_state();
+
+Console.WriteLine("_______________");
+Console.WriteLine(r.GetDouble());
+Console.WriteLine(r.Get_uint32_t());
+Console.WriteLine(Essentials.feffect(String.Format("fg_green('{0}')", r.cstyle_identifier())));
+
+r = RandomGenerator.MT19937_Create(902834);
+r.set_state(state);
+
+Console.WriteLine("_______________");
+Console.WriteLine(r.GetDouble());
+Console.WriteLine(r.Get_uint32_t());
+Console.WriteLine(Essentials.feffect(String.Format("fg_green('{0}')", r.cstyle_identifier())));
+
+double d = 0.0;
+int c = 0;
+
+for (int i = 0; i < 1000; i++) 
+{
+    d += r.GetDouble();
+    c++; 
+}
+
+Console.WriteLine(d / c);
+
+

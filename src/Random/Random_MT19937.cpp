@@ -28,7 +28,7 @@ namespace JWCEssentials {
 
     struct_array_struct<uint8_t> Random_MT19937::get_state() {
         struct_array_struct<uint8_t> R;
-        R.Alloc((N*2+3) << 2);
+        R.Alloc((N*2+4) << 2);
 
         uint8_t *O = R;
 
@@ -41,6 +41,7 @@ namespace JWCEssentials {
         }
 
         big_endian_put(mti, O);
+        big_endian_put(seed, O);
         big_endian_put(this->ByesRemain, O);
         big_endian_put(this->ByteRegister, O);
 
@@ -60,6 +61,7 @@ namespace JWCEssentials {
         }
 
         mti = (int32_t) big_endian_get(I);
+        seed = (int32_t) big_endian_get(I);
         this->ByesRemain =(int32_t)  big_endian_get( I);
         this->ByteRegister = big_endian_get(I);
 
@@ -128,7 +130,11 @@ namespace JWCEssentials {
     }
 
     Random_MT19937 *Random_MT19937_Create(uint32_t seed) {
-        return new Random_MT19937();
+
+        Random_MT19937 *R = new Random_MT19937();
+        R->SetSeed(seed);
+        return R;
     }
+
 
 }

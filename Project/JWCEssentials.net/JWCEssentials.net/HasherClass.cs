@@ -6,31 +6,6 @@ namespace JWCEssentials.net;
 
 public class HasherClass
 {
-    /*
-
-       _EXPORT_ utf8_string_struct escapeStringForCommandLine(utf8_string_struct string);
-
-       _EXPORT_ void Random_Generator_SetSeed(P_INSTANCE(Random_Generator) This, uint32_t seed);
-       _EXPORT_ uint32_t Random_Generator_Get_uint32_t(P_INSTANCE(Random_Generator) This);
-       _EXPORT_ uint64_t Random_Generator_Get_uint64_t(P_INSTANCE(Random_Generator) This);
-       _EXPORT_ utf8_string_struct Random_Generator_cstyle_identifier(P_INSTANCE(Random_Generator) This, int length);
-       _EXPORT_ void Random_Generator_Reset(P_INSTANCE(Random_Generator) This);
-       _EXPORT_ struct_array_struct<uint8_t> Random_Generator_get_state(P_INSTANCE(Random_Generator) This);
-       _EXPORT_ void Random_Generator_set_state(P_INSTANCE(Random_Generator) This, struct_array_struct<uint8_t> state);
-       _EXPORT_ uint8_t Random_Generator_GetByte(P_INSTANCE(Random_Generator) This);
-
-       _EXPORT_ P_INSTANCE(HasherClass) HasherFactory_Get(utf8_string_struct Name);
-
-       _EXPORT_ P_INSTANCE(Random_MT19937) Random_MT19937_Create(uint32_t seed);
-
-       _EXPORT_ utf8_string_struct_array feffect_list();
-       _EXPORT_ utf8_string_struct feffect_code(utf8_string_struct name);
-       _EXPORT_ utf8_string_struct feffect_name(utf8_string_struct code);
-       _EXPORT_ utf8_string_struct feffect(utf8_string_struct command, utf8_string_struct escape=nullptr);
-       _EXPORT_ utf8_string_struct PlatformLineEnding();
-
-     */
-
     protected class Imports
     {
         /*
