@@ -77,7 +77,7 @@ function(shuttle target pool)
 
     set(COMMAND "verbose.sh shuttle_to.sh \"${pool}\" \"${CMAKE_CURRENT_BINARY_DIR}\" \"${name}\" \"${PTH}\"")
     add_custom_command(TARGET ${target} POST_BUILD
-            COMMAND bash "${COMMAND}"
+            COMMAND bash -c "${COMMAND}"
     )
 
 endfunction()

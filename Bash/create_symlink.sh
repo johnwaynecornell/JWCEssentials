@@ -12,9 +12,9 @@ create_symlink_windows() {
 
     # Check if it's a directory or file
     if [ -d "$target" ]; then
-        mklink /D \"$link\" \"$target\"
+        cmd /C <<< "mklink /D \"$link\" \"$target\""
     else
-        mklink \"$link\" \"$target\"
+        cmd /C <<<  "mklink \"$link\" \"$target\""
     fi
 }
 

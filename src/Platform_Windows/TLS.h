@@ -8,8 +8,7 @@
 #include "JWCEssentials/JWCEssentials.h"
 #include <Windows.h>
 
-
-namespace NewAge {
+namespace JWCEssentials {
 
 class TLS_Windows : public TLS {
 public:
