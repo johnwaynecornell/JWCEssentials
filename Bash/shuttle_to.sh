@@ -72,3 +72,6 @@ do_link "$mod.dll"
 do_link "$mod.pdb"
 
 # echo $pool $src $pedigree $(realpath "$path") "$path"
+echo shuttle_to.sh complete
+exit 0
+
