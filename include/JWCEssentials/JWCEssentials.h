@@ -39,6 +39,9 @@
 #include "Random_Generator.h"
 #include "Random_MT19937.h"
 
+#include "TLS.h"
+#include "ErrorSystem.h"
+
 namespace JWCEssentials {
 };
 

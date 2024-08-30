@@ -58,7 +58,7 @@ do_link(){
     file="$1"
 
     if [ -f "$src/$file" ]; then
-        if [ -f "$path/$pedigree/$file" ] || [ -l "$path/$pedigree/$file" ]; then
+        if [ -f "$path/$pedigree/$file" ] || [ -L "$path/$pedigree/$file" ]; then
             rm "$path/$pedigree/$file"
         fi
 

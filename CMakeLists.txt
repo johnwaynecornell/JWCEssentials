@@ -34,9 +34,17 @@ if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
             src/feffect.cpp
             src/BufferHelper.cpp
 
-
             src/Platform_Windows/Paths_Windows.cpp
             include/JWCEssentials/feffect.h
+
+            include/JWCEssentials/TLS.h
+            src/TLS.cpp
+
+            include/JWCEssentials/ErrorSystem.h
+            src/ErrorSystem.cpp
+
+            src/Platform_Windows/TLS.h
+            src/Platform_Windows/TLS.cpp
     )
 
 elseif ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
@@ -59,6 +67,15 @@ elseif ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
             src/Platform_Linux/Paths_Linux.cpp
 
             include/JWCEssentials/feffect.h
+
+            include/JWCEssentials/TLS.h
+            src/TLS.cpp
+
+            include/JWCEssentials/ErrorSystem.h
+            src/ErrorSystem.cpp
+
+            src/Platform_Linux/TLS.h
+            src/Platform_Linux/TLS.cpp
     )
 endif()
 

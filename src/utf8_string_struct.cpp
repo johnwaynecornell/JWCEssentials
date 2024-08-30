@@ -33,7 +33,9 @@ namespace JWCEssentials {
     {
         if (other) {
             Alloc(other.length);
-            std::copy(other.c_str, other.c_str + length, c_str);
+            int i;
+            for (i=0; i<length; i++) c_str[i] = other[i];
+            c_str[i] = 0;
         }
     }
 
@@ -77,7 +79,7 @@ namespace JWCEssentials {
     */
 
     char & utf8_string_struct::operator[](size_t index) const{
-        if (index >= length) throw std::runtime_error("index out of bounds");
+        if (index > length) throw std::runtime_error("index out of bounds");
         return c_str[index];
     }
 
