@@ -54,6 +54,21 @@ namespace JWCEssentials {
     const std::string Category_Performance = "Performance";
     const std::string Category_Initialization = "Initialization";
     const std::string Category_ResourceManagement = "ResourceManagement";
-    // Add more categories as needed*/
+    // Add more categories as needed
+
+    Facilities (to broaden scope across the system):
+Facility_Rendering: For errors related to the rendering engine.
+Facility_Audio: Handling audio-related issues.
+Facility_Serialization: Issues when serializing/deserializing data.
+Facility_IO: For file and stream input/output.
+Facility_MemoryManagement: For errors related to memory allocation/deallocation.
+Facility_Concurrency: Managing multi-threading or async operations.
+Categories (capturing more specific error contexts):
+Category_Timeout: Useful for signaling when an operation exceeded its allowed time.
+Category_Validation: For input or state validation errors.
+Category_Dependency: Signaling errors due to external dependencies or version mismatches.
+Category_Protocol: For errors in communication protocols (e.g., network, IPC).
+Category_Exception: Errors raised from uncaught exceptions in code.
+*/
 }
 #endif //ERRORSYSTEM_H
