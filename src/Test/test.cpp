@@ -8,17 +8,20 @@
 
 using namespace JWCEssentials;
 
-struct test {
-    utf8_string_struct A;
-    utf8_string_struct B;
-};
+//struct test {
+//    utf8_string_struct A;
+//    utf8_string_struct B;
+//};
+
 
 int main() {
-    test A = { "this","pointer"};
+    //test A = { "this","pointer"};
 
-    test B = A;
+    //test B = A;
 
-    printf("%s\n", A.A == B.A ? "fail" : "pass");
+    //printf("%s\n", A.A == B.A ? "fail" : "pass");
+
+    testErrorSystem();
 
     printf("%s\n", feffect("fg_red('iuyhdf')").c_str);
 

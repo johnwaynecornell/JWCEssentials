@@ -43,8 +43,8 @@ if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
             include/JWCEssentials/ErrorSystem.h
             src/ErrorSystem.cpp
 
-            src/Platform_Windows/TLS.h
-            src/Platform_Windows/TLS.cpp
+            src/Platform_Windows/TLS_Windows.h
+            src/Platform_Windows/TLS_Windows.cpp
     )
 
 elseif ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
@@ -74,8 +74,9 @@ elseif ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
             include/JWCEssentials/ErrorSystem.h
             src/ErrorSystem.cpp
 
-            src/Platform_Linux/TLS.h
-            src/Platform_Linux/TLS.cpp
+            src/Platform_Linux/TLS_Linux.h
+            src/Platform_Linux/TLS_Linux.cpp
+            src/ErrorSystem.cpp
     )
 endif()
 

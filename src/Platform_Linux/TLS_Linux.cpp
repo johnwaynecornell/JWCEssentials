@@ -1,7 +1,7 @@
 // MIT License
 // Copyright (c) 2024 John W. Cornell
 // See LICENSE file in the project root for full license information.
-#include "TLS.h"
+#include "TLS_Linux.h"
 
 namespace JWCEssentials {
     void tls_cleanup(P_INSTANCE(void) data) {

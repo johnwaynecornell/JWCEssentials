@@ -1,123 +1,198 @@
-// MIT License
-// Copyright (c) 2024 John W. Cornell
-// See LICENSE file in the project root for full license information.
+//
+// Created by jwc on 10/13/24.
+//
+
+#include <list>
+#include <map>
+
 #include "JWCEssentials/JWCEssentials.h"
 
 namespace JWCEssentials {
+    struct ErrorLogEntry {
+        utf8_string_struct errorMessage;
+        utf8_string_struct errorCategory;
+        utf8_string_struct moduleOfOrigin;     // Explicitly labeled as the module of origin
+        utf8_string_struct timestamp;          // Can be more complex if desired
 
-    void *inialize_value_ErrorInfo() {
-        return new SingleLink_Node<P_INSTANCE(ErrorInfo)>();
-    }
-
-    void destroy_ErrorInfo(void *ei) {
-        delete (SingleLink_Node<P_INSTANCE(ErrorInfo)> *) ei;
-    }
-
-    TLS *initializeErrors()
-    {
-        return TLS_Alloc(inialize_value_ErrorInfo, destroy_ErrorInfo);
-    }
-
-    TLS *JWCESSENTIALS_Errors = initializeErrors();
-
-    ErrorInfo::ErrorInfo(P_ELEMENTS(const ErrorKeyValue) details, size_t detail_count, utf8_string_struct msg) {
-        this->detail_count = detail_count;
-        this->details = new ErrorKeyValue[detail_count];
-
-        for (int i=0; i<detail_count; i++) {
-            this->details[i] = (ErrorKeyValue) details[i];
+        ErrorLogEntry(const ErrorLogEntry &other) {
+            errorMessage = other.errorMessage;
+            errorCategory = other.errorCategory;
+            timestamp = other.timestamp;
+            moduleOfOrigin = other.moduleOfOrigin;
         }
 
-        this->message = msg;
-    }
-
-    ErrorInfo::~ErrorInfo() {
-
-        for (int i=0; i<detail_count; i++) {
-            delete[] this->details[i].key;
-            delete[] this->details[i].name;
-            delete[] this->details[i].value;
+        ErrorLogEntry(ErrorLogEntry &&other) noexcept {
+            errorMessage = std::move(other.errorMessage);
+            errorCategory = std::move(other.errorCategory);
+            timestamp = std::move(other.timestamp);
+            moduleOfOrigin = std::move(other.moduleOfOrigin);
         }
 
-        delete[] this->details;
-        delete[] this->message;
-    }
-
-    P_INSTANCE(void) TLS_ERRORS_INITIALIZE_VALUE()
-    {
-        return new SingleLink_Node<P_INSTANCE(ErrorInfo) >();
-    }
-
-    void TLS_ERRORS_DESTRUCTOR(P_INSTANCE(void) value)
-    {
-        /* TODO */ //consider logging to stderr
-
-        P_INSTANCE(SingleLink_Node<P_INSTANCE(ErrorInfo)>) n;
-        P_INSTANCE(SingleLink_Node<P_INSTANCE(ErrorInfo)>) n2;
-
-        for (n = static_cast<P_INSTANCE(SingleLink_Node<P_INSTANCE(ErrorInfo)>) >(value); n != nullptr; n = n2) {
-
-            n2 = n->next;
-
-            delete n->value;
-            delete n;
-        }
-    }
-
-    void ClearErrors() {
-        P_INSTANCE(SingleLink_Node<P_INSTANCE(ErrorInfo)>) n;
-        P_INSTANCE(SingleLink_Node<P_INSTANCE(ErrorInfo)>) n2;
-        P_INSTANCE(SingleLink_Node<P_INSTANCE(ErrorInfo)>) head =
-            static_cast<P_INSTANCE(SingleLink_Node<P_INSTANCE(ErrorInfo)>) >(JWCESSENTIALS_Errors->get());
-
-        for (n = head->next; n != nullptr; n = n2) {
-
-            n2 = n->next;
-
-            if (n->value) delete n->value;
-            delete n;
+        ErrorLogEntry() {
+            errorMessage = nullptr;
+            errorCategory = nullptr;
+            timestamp = nullptr;
+            moduleOfOrigin = nullptr;
         }
 
-        head->next = nullptr;
+        ErrorLogEntry &operator=(ErrorLogEntry &other) {
+            errorMessage = other.errorMessage;
+            errorCategory = other.errorCategory;
+            timestamp = other.timestamp;
+            moduleOfOrigin = other.moduleOfOrigin;
+
+            return *this;
+
+        }
+
+        ErrorLogEntry &operator=(ErrorLogEntry &&other) noexcept{
+            errorMessage = std::move(other.errorMessage);
+            errorCategory = std::move(other.errorCategory);
+            timestamp = std::move(other.timestamp);
+            moduleOfOrigin = std::move(other.moduleOfOrigin);
+
+            return *this;
+        }
+    };
+
+    struct KeyValueEntry {
+        utf8_string_struct Key;       // Category name (e.g., "IO Error")
+        utf8_string_struct Value;     // Description of the category
+        KeyValueEntry* next = nullptr; // Pointer to the next category
+    };
+
+    KeyValueEntry errorCategories;  // Dummy node, next points to the head of the list
+    KeyValueEntry modules;  // Dummy node for module list
+
+    KeyValueEntry * keyValueTail(KeyValueEntry *head) {
+        while (head->next != nullptr) head = head->next;
+        return head;
+    }
+
+    std::pmr::list<ErrorLogEntry> errorLog;
+
+    void AddErrorCategory(const utf8_string_struct& key, const utf8_string_struct& description) {
+        KeyValueEntry* newEntry = new KeyValueEntry();
+        newEntry->Key = key;
+        newEntry->Value = description;
+
+        keyValueTail(&errorCategories)->next = newEntry;
+
+    }
+
+    void AddModule(const utf8_string_struct& moduleName, const utf8_string_struct& description) {
+        KeyValueEntry* newModule = new KeyValueEntry();
+        newModule->Key = moduleName;
+        newModule->Value = description;
+
+        keyValueTail(&modules)->next = newModule;
     }
 
 
-    P_INSTANCE(TLS)  _initialize_errors_() {
-        return TLS_Alloc(TLS_ERRORS_INITIALIZE_VALUE, TLS_ERRORS_DESTRUCTOR);
+    void InitErrorSystem() {
+
+        AddErrorCategory("Resource Limit", "The system ran into resource allocation limits.");
+        AddErrorCategory("Timeout Error", "An operation took longer than the allowed time.");
+        AddErrorCategory("IO Error", "An input/output error occurred.");
+        AddErrorCategory("Memory Overflow", "Memory allocation exceeded the available limit.");
+        AddErrorCategory("Network Failure", "An error occurred while trying to communicate over the network.");
+        AddErrorCategory("Unexpected Value", "An unexpected value was encountered during processing.");
     }
 
-    std::string AggregateErrors() {
-        std::string aggregatedMessage;
+    void InitModuleSystem() {
+        // Initialize with some default modules
+        AddModule("Windowing", "Handles window creation and management.");
+        AddModule("FileIO", "Handles file input/output operations.");
+        AddModule("Networking", "Manages network connections and data transfers.");
+    }
 
-        for (P_INSTANCE(SingleLink_Node<P_INSTANCE(ErrorInfo)>) node =
-                ( (P_INSTANCE(SingleLink_Node<P_INSTANCE(ErrorInfo)>) )
-            JWCESSENTIALS_Errors->get())->next; node != nullptr; node = node->next) {
-            P_INSTANCE(ErrorInfo)  current = node->value;
+    utf8_string_struct GetModuleInfo(const utf8_string_struct& moduleName) {
+        KeyValueEntry* current = modules.next;
 
-            for (int i=0; i < current->detail_count; i++) {
-
-                ErrorKeyValue detail = current->details[i];
-                aggregatedMessage += detail.name + ":[" + detail.key + " = \"" + detail.value + "\"] ";
-
+        // Search for the module in the list
+        while (current != nullptr) {
+            if (current->Key == moduleName) {
+                return current->Value;  // Return the description of the module
             }
-            aggregatedMessage += (std::string) current->message + "\n";
-            }
+            current = current->next;
+        }
 
-        return aggregatedMessage;
+        // If module not found
+        return "Unknown module";
     }
 
-    void LogError(P_ELEMENTS(const ErrorKeyValue)  details, size_t detail_count, utf8_string_struct message) {
-        P_INSTANCE(ErrorInfo) err = new ErrorInfo(details, detail_count, message);
 
-        P_INSTANCE(SingleLink_Node<P_INSTANCE(ErrorInfo)>)  l = ((P_INSTANCE(SingleLink_Node<P_INSTANCE(ErrorInfo)>) )
-            JWCESSENTIALS_Errors->get());
+    std::map<std::string, int> errorCounts;
 
-        l->tail_add(err);
+    void LogError(const utf8_string_struct& errorMessage, const utf8_string_struct& errorCategory, const utf8_string_struct& moduleOfOrigin) {
+        // Create a new log entry
+        ErrorLogEntry newEntry;
+        newEntry.errorMessage = errorMessage;
+        newEntry.errorCategory = errorCategory;     // Error category
+        newEntry.moduleOfOrigin = moduleOfOrigin;   // Module of origin
+
+        // Add a timestamp
+        time_t now = time(0);
+        newEntry.timestamp = ctime(&now);
+
+        // Add to the error log
+        int nextIndex = 0;  // Get the next available index
+        errorLog.push_back(newEntry);
+
+        // Optionally print the log for debugging
+        std::cout << "Logged Error: " << errorMessage.c_str
+                  << " | Category: " << errorCategory.c_str
+                  << " | Module of Origin: " << moduleOfOrigin.c_str
+                  << " | Time: " << newEntry.timestamp << std::endl;
     }
 
-    void _LogError(P_ELEMENTS(const ErrorKeyValue)  details, utf8_string_struct message) {
-        size_t detail_count = 0;
-        while (details[detail_count].key != nullptr) detail_count++;
-        LogError(details, detail_count, message);
+
+    void AggregateError(const utf8_string_struct& errorCategory) {
+        errorCounts[errorCategory.c_str]++;
+        std::cout << "Category: " << errorCategory.c_str << " has occurred " << errorCounts[errorCategory.c_str] << " times." << std::endl;
     }
+
+    ErrorLogEntry GetErrorLogEntry(int index) {
+        int e;
+
+        for (std::list<ErrorLogEntry>::iterator i = errorLog.begin(); i != errorLog.end(); i++) {
+            if (index-- == 0) return *i;
+        }
+
+        throw std::exception();
+    }
+
+    struct_array_struct<ErrorLogEntry> GetAllErrors() {
+        int count = 0;
+        for (std::list<ErrorLogEntry>::iterator i = errorLog.begin(); i != errorLog.end(); i++) {
+            count++;
+        }
+
+        struct_array_struct<ErrorLogEntry> R;
+        R.Alloc(count);
+
+        int index;
+
+        for (std::list<ErrorLogEntry>::iterator i = errorLog.begin(); i != errorLog.end(); i++) {
+            R[index++] = *i;
+        }
+
+        return R;
+    }
+
+    int testErrorSystem() {
+        InitErrorSystem();  // Initialize default error categories
+        InitModuleSystem(); // Initialize default modules
+
+        // Log errors with module of origin information
+        LogError("File not found", "IO Error", "FileIO");
+        LogError("Connection timeout", "Network Failure", "Networking");
+
+        // Retrieve and display an error log entry
+        ErrorLogEntry entry = GetErrorLogEntry(0);  // Get the first error
+        std::cout << "Client Retrieved Error: " << entry.errorMessage.c_str << " | Category: " << entry.errorCategory.c_str << " | Time: " << entry.timestamp << std::endl;
+
+        return 0;
+    }
+
 }
