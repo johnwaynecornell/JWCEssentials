@@ -1,4 +1,5 @@
 #include <cstring>
+#include <mutex>
 
 #include "JWCEssentials/JWCEssentials.h"
 
@@ -83,7 +84,11 @@ namespace JWCEssentials {
         return c_str[index];
     }
 
+    bool global_log = false;
+
+    std::mutex log_mutex;
     std::vector<const char *> utf8_strings;
+
     std::atomic_llong allocated_utf8_strings = 0;
     // Allocate memory
     void utf8_string_struct::Alloc(size_t length)
@@ -98,18 +103,32 @@ namespace JWCEssentials {
 
         free_c_str = my_free;
 
-        utf8_strings.push_back(c_str);
+        if (global_log)
+        {
+            log_mutex.lock();
+            utf8_strings.push_back(c_str);
+            log_mutex.unlock();
+        }
     }
 
     void dump_strings() {
         size_t count = (unsigned long long) allocated_utf8_strings;
 
-        if (count != 0) {
+        if (count != 0)
+        {
             fprintf(stderr, "utf8_string_struct::allocated_utf8_string=%lld\n", (long long) count);
 
-            fprintf(stderr,"DANGLED STRINGS:\n");
-            for (auto i=utf8_strings.begin(); i != utf8_strings.end(); i++) {
-                fprintf(stderr,"\t|%s\n", *i);
+            if (!global_log)
+            {
+                fprintf(stderr, "logging incative\n");
+            } else
+            {
+                log_mutex.lock();
+                fprintf(stderr,"DANGLED STRINGS:\n");
+                for (auto i=utf8_strings.begin(); i != utf8_strings.end(); i++) {
+                    fprintf(stderr,"\t|%s\n", *i);
+                }
+                log_mutex.unlock();
             }
         }
     }
@@ -120,9 +139,15 @@ namespace JWCEssentials {
         if (c_str) {
             if (free_c_str) {
                 allocated_utf8_strings.fetch_sub(1);
-                for (auto i=utf8_strings.begin(); i != utf8_strings.end(); i++) if (*i == c_str) {
-                    utf8_strings.erase(i);
-                    break;
+
+                if (global_log)
+                {
+                    log_mutex.lock();
+                    for (auto i=utf8_strings.begin(); i != utf8_strings.end(); i++) if (*i == c_str) {
+                        utf8_strings.erase(i);
+                        break;
+                    }
+                    log_mutex.unlock();
                 }
                 free_c_str(c_str);
             } else {
