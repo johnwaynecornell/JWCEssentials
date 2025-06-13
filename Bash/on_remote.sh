@@ -1,15 +1,18 @@
 #!/bin/bash
 
-
-# Get the current remote tracking branch
-current_remote=$(git branch -vv | grep -o "\[.*\]" | sed 's/^\[\([^:]*\).*\]$/\1/')
+# Get the current remote tracking branch of the current branch
+current_remote=$(git branch -vv | grep '^\*' | grep -o '\[.*\]' | sed 's/^\[\([^:]*\).*\]$/\1/')
 
 remote="$1"
-branch=$(git branch | sed 's/\* //g')
+branch=$(git branch --show-current)
 
 shift
 
-git branch --set-upstream-to="$remote/$branch" $branch > /dev/null
+# Temporarily set the upstream to new remote
+git branch --set-upstream-to="$remote/$branch" "$branch" > /dev/null
+
+# Run the command(s)
 "$@"
 
-git branch --set-upstream-to="$current_remote" $branch > /dev/null
+# Restore original upstream
+git branch --set-upstream-to="$current_remote" "$branch" > /dev/null
