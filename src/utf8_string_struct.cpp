@@ -253,6 +253,18 @@ namespace JWCEssentials {
         o << std::endl;
         return o.str().c_str();
     }
+
+    bool StartingWith(JWCEssentials::utf8_string_struct prefix, JWCEssentials::utf8_string_struct str) {
+        if (prefix == nullptr) return str == nullptr;
+        if (str == nullptr) return false;
+
+        for (int32_t i = 0; prefix[i] != 0; i++) {
+            if (str[i] == 0) return false;
+            if (str[i] != prefix[i]) return false;
+        }
+
+        return true;
+    }
 }
 
 JWCEssentials::utf8_string_struct operator+(const JWCEssentials::utf8_string_struct &A, const JWCEssentials::utf8_string_struct &B){

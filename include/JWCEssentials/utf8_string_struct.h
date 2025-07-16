@@ -62,7 +62,10 @@ namespace JWCEssentials {
 
 #pragma pack(pop)
 
+    extern "C" {
     _EXPORT_ utf8_string_struct PlatformLineEnding();
+    _EXPORT_ bool StartingWith(utf8_string_struct prefix, utf8_string_struct str);
+    }
     _CLASSEXPORT_ void utf8_string_struct_move(utf8_string_struct &This, utf8_string_struct &other);
 
 //_CLASSEXPORT_ JWCEssentials::utf8_string_struct operator"" _utf8_string_struct(const char *source, size_t length);

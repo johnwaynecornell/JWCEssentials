@@ -30,6 +30,10 @@ public class Essentials
         public static extern utf8_string_struct feffect(ref utf8_string_struct command, ref utf8_string_struct escape);
         [DllImport("JWCEssentials")]
         public static extern utf8_string_struct PlatformLineEnding();
+        
+        [DllImport("JWCEssentials")]
+        public static extern bool StartingWith(ref utf8_string_struct command, ref utf8_string_struct escape);
+
     }
 
     public string escapeStringForCommandLine(string text)
