@@ -36,6 +36,8 @@ namespace JWCEssentials.net
             return Marshal.PtrToStringUTF8((IntPtr) handle.c_str);
         }
 
+        public static byte[] zero = new byte[] { 0 };
+
         public static implicit operator utf8_string_struct(string str)
         {
             if (str == null) return new utf8_string_struct();
@@ -49,8 +51,6 @@ namespace JWCEssentials.net
 
             byte[] bytes = Encoding.Default.GetBytes(str);
             bytesWritten = bytes.Length;
-
-            byte[] zero = new byte[] { 0 };
             
             utf8_string_struct handle;
             
@@ -65,7 +65,6 @@ namespace JWCEssentials.net
 
         public void Release()
         {
-            Console.WriteLine("RELEASE");
             length = 0;
             if (c_str != 0)
             {
