@@ -41,15 +41,13 @@ namespace JWCEssentials.net
         public static implicit operator utf8_string_struct(string str)
         {
             if (str == null) return new utf8_string_struct();
-            
-            //ArrayBufferWriter<byte> bw = new ArrayBufferWriter<byte>();
 
             int charsRead;
             int bytesWritten;
+            
+            if (str.IndexOf((char)0) != -1) throw new Exception("Null character not allowed in utf8_string_struct");
 
-            //Utf8.FromUtf16(str, bw.GetSpan(), out charsRead, out bytesWritten);
-
-            byte[] bytes = Encoding.Default.GetBytes(str);
+            byte[] bytes = Encoding.UTF8.GetBytes(str);
             bytesWritten = bytes.Length;
             
             utf8_string_struct handle;
