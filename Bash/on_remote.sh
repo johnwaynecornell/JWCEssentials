@@ -1,7 +1,9 @@
 #!/bin/bash
 
 # Get the current remote tracking branch of the current branch
-current_remote=$(git branch -vv | grep '^\*' | grep -o '\[.*\]' | sed 's/^\[\([^:]*\).*\]$/\1/')
+# current_remote=$(git branch -vv | grep '^\*' | grep -o '\[.*\]' | sed 's/^\[\([^:]*\).*\]$/\1/')
+
+current_remote=$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null)
 
 remote="$1"
 branch=$(git branch --show-current)
