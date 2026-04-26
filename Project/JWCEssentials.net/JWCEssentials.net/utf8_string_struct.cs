@@ -7,7 +7,7 @@ using System.Text.Unicode;
 namespace JWCEssentials.net
 {
     [StructLayout(LayoutKind.Sequential)]
-    public struct utf8_string_struct : IDisposable
+    public struct utf8_string_struct : IDisposable , IOwnedInteropStruct
     {
         public IntPtr c_str;
         public IntPtr length;

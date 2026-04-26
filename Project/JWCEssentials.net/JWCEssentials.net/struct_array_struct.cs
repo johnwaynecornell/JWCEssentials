@@ -16,12 +16,11 @@ namespace JWCEssentials.net
     
     [StructLayout(LayoutKind.Sequential)]
     
-    public struct struct_array_struct<T> : IDisposable
+    public struct struct_array_struct<T> : IDisposable , IOwnedInteropStruct
     {
         public IntPtr memory;
         public IntPtr length;
         public IntPtr free_cstr;
-
         
         private static void my_free(IntPtr c_str)
         {
@@ -62,6 +61,7 @@ namespace JWCEssentials.net
                         
             handle.memory = Marshal.AllocCoTaskMem(bytesWritten);
                         
+            bool transfer_elements = typeof(IOwnedInteropStruct).IsAssignableFrom(typeof(T));;
             
             if (arr == null || arr.Length == 0)
             {
@@ -70,17 +70,27 @@ namespace JWCEssentials.net
                 handle.free_cstr = p_my_free;
                 return handle;
             }
-
             
             // Pin the array in memory to get its raw address
             GCHandle h = GCHandle.Alloc(arr, GCHandleType.Pinned);
-                
-            // Copy bytes from the pinned array to an intermediate buffer, then to unmanaged memory
-            byte[] buffer = new byte[bytesWritten];
-            Marshal.Copy(h.AddrOfPinnedObject(), buffer, 0, bytesWritten);
-            h.Free();
-                
-            Marshal.Copy(buffer, 0, handle.memory, bytesWritten);
+            
+            try
+            {
+                // Copy bytes from the pinned array to an intermediate buffer, then to unmanaged memory
+                            
+                byte[] buffer = new byte[bytesWritten];
+                Marshal.Copy(h.AddrOfPinnedObject(), buffer, 0, bytesWritten);
+
+                if (transfer_elements)
+                    for (int i = 0; i < arr.Length; i++)
+                        arr[i] = default!;
+
+                Marshal.Copy(buffer, 0, handle.memory, bytesWritten);
+            }
+            finally
+            {
+                h.Free();
+            }
             
             handle.length = (IntPtr)arr.Length;
             handle.free_cstr = p_my_free; 
