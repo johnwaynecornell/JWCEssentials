@@ -55,18 +55,34 @@ namespace JWCEssentials.net
         public static implicit operator struct_array_struct<T>(T[] arr)
         {
             //ArrayBufferWriter<byte> bw = new ArrayBufferWriter<byte>();
+
+            struct_array_struct<T> handle = new struct_array_struct<T>();
             
             int bytesWritten = Marshal.SizeOf(typeof(T)) * arr.Length;
-            
-            struct_array_struct<T> handle;
-            
+                        
             handle.memory = Marshal.AllocCoTaskMem(bytesWritten);
+                        
             
-            MethodInfo Copy = typeof(Marshal).GetMethod("Copy", new Type[] { typeof(T[]),  typeof(int), typeof(IntPtr), typeof(int)});
+            if (arr == null || arr.Length == 0)
+            {
+                //handle.memory = IntPtr.Zero;
+                handle.length = IntPtr.Zero;
+                handle.free_cstr = p_my_free;
+                return handle;
+            }
+
             
-            Copy.Invoke(null, new object?[]{arr, 0, (IntPtr) handle.memory, bytesWritten});
+            // Pin the array in memory to get its raw address
+            GCHandle h = GCHandle.Alloc(arr, GCHandleType.Pinned);
+                
+            // Copy bytes from the pinned array to an intermediate buffer, then to unmanaged memory
+            byte[] buffer = new byte[bytesWritten];
+            Marshal.Copy(h.AddrOfPinnedObject(), buffer, 0, bytesWritten);
+            h.Free();
+                
+            Marshal.Copy(buffer, 0, handle.memory, bytesWritten);
             
-            handle.length = arr.Length;
+            handle.length = (IntPtr)arr.Length;
             handle.free_cstr = p_my_free; 
 
             return handle;
