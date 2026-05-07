@@ -76,7 +76,6 @@ elseif ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
 
             src/Platform_Linux/TLS_Linux.h
             src/Platform_Linux/TLS_Linux.cpp
-            src/ErrorSystem.cpp
     )
 endif()
 
