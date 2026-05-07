@@ -80,7 +80,10 @@ elseif ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
     )
 endif()
 
-target_compile_options(JWCEssentials PUBLIC "-Wno-return-type-c-linkage")
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_compile_options(JWCEssentials PRIVATE "-Wno-return-type-c-linkage")
+endif()
+
 include( "${CMAKE_SOURCE_DIR}/src/Random/Random.cmake")
 
 include( "${CMAKE_SOURCE_DIR}/src/Hasher/Hasher.cmake")
@@ -113,7 +116,7 @@ if (name STREQUAL "name-NOTFOUND")
     set(name "JWCEssentials")
 endif()
 
-isDebug(CrystalCatalystLibrary ISDEBUG)
+isDebug(JWCEssentials ISDEBUG)
 
 if (ISDEBUG)
     set(PTH "Debug")
