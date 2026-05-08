@@ -22,6 +22,12 @@ is_windows_shell() {
     esac
 }
 
+cmd_run() {
+    # Use /c with MSYS path conversion disabled for this process. This avoids
+    # the ambiguity of cmd //C while still keeping Windows paths intact.
+    MSYS2_ARG_CONV_EXCL='*' cmd /c "$*"
+}
+
 remove_existing_link_path() {
     local link="$1"
 
@@ -36,7 +42,7 @@ remove_existing_link_path() {
     if is_windows_shell && [ -d "$link" ]; then
         local link_win
         link_win="$(cygpath -w "$link")"
-        cmd //C "rmdir \"$link_win\"" >/dev/null 2>&1 && return
+        cmd_run "rmdir \"$link_win\"" >/dev/null 2>&1 && return
     fi
 }
 
@@ -54,26 +60,33 @@ create_symlink_windows() {
     fi
 
     if [ -d "$target_unix" ]; then
-        # Try directory symlink first.
-        if cmd //C "mklink /D \"$link_win\" \"$target_win\"" >/dev/null 2>&1; then
+        # Try directory symlink first. This may require Administrator privileges
+        # or Developer Mode on Windows.
+        if cmd_run "mklink /D \"$link_win\" \"$target_win\"" >/dev/null 2>&1; then
             return 0
         fi
 
         # Fall back to a directory junction. This usually works without
         # Administrator privileges and is sufficient for workspace registration.
-        if cmd //C "mklink /J \"$link_win\" \"$target_win\"" >/dev/null 2>&1; then
+        if cmd_run "mklink /J \"$link_win\" \"$target_win\"" >/dev/null 2>&1; then
             return 0
         fi
 
+        echo "create_symlink.sh: failed to create Windows directory link/junction" >&2
+        echo "  target: $target_win" >&2
+        echo "  link:   $link_win" >&2
         return 1
     fi
 
     # File symlinks usually require Administrator privileges or Developer Mode.
     # Callers that need ordinary file availability should copy files instead.
-    if cmd //C "mklink \"$link_win\" \"$target_win\"" >/dev/null 2>&1; then
+    if cmd_run "mklink \"$link_win\" \"$target_win\"" >/dev/null 2>&1; then
         return 0
     fi
 
+    echo "create_symlink.sh: failed to create Windows file symlink" >&2
+    echo "  target: $target_win" >&2
+    echo "  link:   $link_win" >&2
     return 1
 }
 
