@@ -16,13 +16,15 @@ create_symlink_windows() {
 
         # Try symlink first.
         if cmd //C "mklink /D \"$link\" \"$target\"" >/dev/null 2>&1; then
-            return
+            return 0
     	fi
 
         # Fall back to junction.
         if cmd //C "mklink /J \"$link\" \"$target\"" >/dev/null 2>&1; then
-            return
+            return 0
         fi
+
+	return 1
 
     else
         cmd /C <<<  "mklink \"$link\" \"$target\""
