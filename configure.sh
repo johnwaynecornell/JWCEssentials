@@ -191,6 +191,41 @@ link_or_register() {
     log "Registered: $link -> $target"
 }
 
+install_script_to_bin() {
+    local source="$1"
+    local destination="$2"
+
+    if [ ! -f "$source" ]; then
+        fail "Cannot install missing script: $source"
+    fi
+
+    mkdir -p "$(dirname "$destination")"
+
+    if [ -e "$destination" ] || [ -L "$destination" ]; then
+        if same_path "$source" "$destination"; then
+            log "Script already available: $destination"
+            return 0
+        fi
+
+        if path_is_link_like "$destination"; then
+            log "Replacing existing script link/junction: $destination"
+            remove_link_like_path "$destination"
+        elif [ -f "$destination" ]; then
+            log "Updating script copy: $destination"
+            rm "$destination"
+        else
+            fail "Refusing to replace non-file path in bin: $destination"
+        fi
+    fi
+
+    # On Windows, file symlinks normally require Administrator privileges or
+    # Developer Mode. For $NewAge/bin, copied scripts are safer and sufficient:
+    # post-build commands only need bash to locate the script on PATH.
+    cp "$source" "$destination"
+    chmod +x "$destination" 2>/dev/null || true
+    log "Installed script: $destination"
+}
+
 require_tool() {
     local tool="$1"
 
@@ -294,12 +329,12 @@ fi
 
 # Expose JWCEssentials Bash tools through $NewAge/bin.
 #
-# This makes commands such as create_symlink.sh, shuttle_to.sh, verbose.sh,
-# NewAge_stage.sh, etc. available from the shared workspace bin directory.
+# These are copied instead of linked. On Windows, file symlinks often require
+# elevation, and copied scripts are sufficient for PATH-based command lookup.
 if [ -d "$REPO_ROOT/Bash" ]; then
     while IFS= read -r script; do
         name="$(basename "$script")"
-        link_or_register "$script" "$NewAge/bin/$name" required
+        install_script_to_bin "$script" "$NewAge/bin/$name"
     done < <(find "$REPO_ROOT/Bash" -maxdepth 1 -type f -name '*.sh' | sort)
 else
     log "Skipping Bash tool exposure; Bash directory not found."
