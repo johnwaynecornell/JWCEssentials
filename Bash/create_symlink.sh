@@ -12,7 +12,18 @@ create_symlink_windows() {
 
     # Check if it's a directory or file
     if [ -d "$target" ]; then
-        cmd /C <<< "mklink /D \"$link\" \"$target\""
+
+
+        # Try symlink first.
+        if cmd //C "mklink /D \"$link\" \"$target\"" >/dev/null 2>&1; then
+            return
+    	fi
+
+        # Fall back to junction.
+        if cmd //C "mklink /J \"$link\" \"$target\"" >/dev/null 2>&1; then
+            return
+        fi
+
     else
         cmd /C <<<  "mklink \"$link\" \"$target\""
     fi
