@@ -52,10 +52,25 @@ fail() {
     exit 1
 }
 
+is_windows_shell() {
+    case "$(uname -s)" in
+        CYGWIN*|MINGW*|MSYS*) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
 to_unix_path() {
     # Git Bash/MSYS/MinGW can translate Windows-style paths to Unix paths.
     if command -v cygpath >/dev/null 2>&1; then
         cygpath -u "$1"
+    else
+        printf '%s\n' "$1"
+    fi
+}
+
+to_windows_path() {
+    if command -v cygpath >/dev/null 2>&1; then
+        cygpath -w "$1"
     else
         printf '%s\n' "$1"
     fi
@@ -104,9 +119,9 @@ path_is_link_like() {
     # Windows junctions/symlinks created by mklink usually show up as reparse
     # points. fsutil requires Windows paths and may fail when unavailable; this
     # helper is intentionally best-effort.
-    if command -v cygpath >/dev/null 2>&1 && command -v fsutil >/dev/null 2>&1; then
+    if is_windows_shell && command -v fsutil >/dev/null 2>&1; then
         local win_path
-        win_path="$(cygpath -w "$path")"
+        win_path="$(to_windows_path "$path")"
         if fsutil reparsepoint query "$win_path" >/dev/null 2>&1; then
             return 0
         fi
@@ -126,13 +141,38 @@ remove_link_like_path() {
     # Windows junctions must be removed with rmdir from cmd. Do not use rm -rf
     # here because we only want to remove the registration point, never the
     # target directory contents.
-    if command -v cygpath >/dev/null 2>&1; then
+    if is_windows_shell; then
         local win_path
-        win_path="$(cygpath -w "$path")"
-        cmd //C "rmdir \"$win_path\"" >/dev/null 2>&1 && return
+        win_path="$(to_windows_path "$path")"
+        cmd /c "rmdir \"$win_path\"" >/dev/null 2>&1 && return
     fi
 
     fail "Refusing to remove non-symlink/non-junction path: $path"
+}
+
+create_directory_registration() {
+    local target="$1"
+    local link="$2"
+
+    if is_windows_shell; then
+        local target_win
+        local link_win
+        target_win="$(to_windows_path "$target")"
+        link_win="$(to_windows_path "$link")"
+
+        # Directory symlinks may require Administrator privileges or Developer
+        # Mode. Junctions usually do not, and are sufficient for workspace
+        # registration directories.
+        if cmd /c "mklink /J \"$link_win\" \"$target_win\"" >/dev/null 2>&1; then
+            return 0
+        fi
+
+        warn "Windows junction creation failed. Proof command:"
+        warn "  cmd /c mklink /J \"$link_win\" \"$target_win\""
+        return 1
+    fi
+
+    ln -s "$target" "$link"
 }
 
 link_or_register() {
@@ -168,23 +208,31 @@ link_or_register() {
         fi
     fi
 
-    local create_symlink="$REPO_ROOT/Bash/create_symlink.sh"
-
-    if [ -f "$create_symlink" ]; then
-        if ! bash "$create_symlink" "$target" "$link"; then
+    if [ -d "$target" ]; then
+        if ! create_directory_registration "$target" "$link"; then
             if [ "$required" = "optional" ]; then
-                warn "Could not create optional registration: $link -> $target"
+                warn "Could not create optional directory registration: $link -> $target"
                 return 0
             fi
-            fail "Could not create registration: $link -> $target"
+            fail "Could not create directory registration: $link -> $target"
         fi
     else
-        if ! ln -s "$target" "$link"; then
+        # File registrations are not used for $NewAge/bin anymore. Keep this
+        # for completeness on non-Windows systems only.
+        if is_windows_shell; then
             if [ "$required" = "optional" ]; then
-                warn "Could not create optional registration: $link -> $target"
+                warn "Skipping optional Windows file symlink: $link -> $target"
                 return 0
             fi
-            fail "Could not create registration: $link -> $target"
+            fail "Windows file symlink requested for required registration: $link -> $target"
+        fi
+
+        if ! ln -s "$target" "$link"; then
+            if [ "$required" = "optional" ]; then
+                warn "Could not create optional file registration: $link -> $target"
+                return 0
+            fi
+            fail "Could not create file registration: $link -> $target"
         fi
     fi
 
