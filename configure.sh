@@ -43,6 +43,10 @@ log() {
     printf '[JWCEssentials configure] %s\n' "$*"
 }
 
+warn() {
+    printf '[JWCEssentials configure] WARNING: %s\n' "$*" >&2
+}
+
 fail() {
     printf '[JWCEssentials configure] ERROR: %s\n' "$*" >&2
     exit 1
@@ -57,40 +61,134 @@ to_unix_path() {
     fi
 }
 
-link_or_replace() {
+canonical_path() {
+    local path="$1"
+
+    if command -v cygpath >/dev/null 2>&1; then
+        cygpath -am "$path"
+        return
+    fi
+
+    if [ -d "$path" ]; then
+        (cd "$path" && pwd -P)
+        return
+    fi
+
+    local dir
+    local base
+    dir="$(dirname "$path")"
+    base="$(basename "$path")"
+
+    if [ -d "$dir" ]; then
+        printf '%s/%s\n' "$(cd "$dir" && pwd -P)" "$base"
+    else
+        printf '%s\n' "$path"
+    fi
+}
+
+same_path() {
+    local left="$1"
+    local right="$2"
+
+    [ "$(canonical_path "$left")" = "$(canonical_path "$right")" ]
+}
+
+path_is_link_like() {
+    local path="$1"
+
+    # Unix symlink / MSYS symlink.
+    if [ -L "$path" ]; then
+        return 0
+    fi
+
+    # Windows junctions/symlinks created by mklink usually show up as reparse
+    # points. fsutil requires Windows paths and may fail when unavailable; this
+    # helper is intentionally best-effort.
+    if command -v cygpath >/dev/null 2>&1 && command -v fsutil >/dev/null 2>&1; then
+        local win_path
+        win_path="$(cygpath -w "$path")"
+        if fsutil reparsepoint query "$win_path" >/dev/null 2>&1; then
+            return 0
+        fi
+    fi
+
+    return 1
+}
+
+remove_link_like_path() {
+    local path="$1"
+
+    if [ -L "$path" ]; then
+        rm "$path"
+        return
+    fi
+
+    # Windows junctions must be removed with rmdir from cmd. Do not use rm -rf
+    # here because we only want to remove the registration point, never the
+    # target directory contents.
+    if command -v cygpath >/dev/null 2>&1; then
+        local win_path
+        win_path="$(cygpath -w "$path")"
+        cmd //C "rmdir \"$win_path\"" >/dev/null 2>&1 && return
+    fi
+
+    fail "Refusing to remove non-symlink/non-junction path: $path"
+}
+
+link_or_register() {
     local target="$1"
     local link="$2"
+    local required="${3:-required}"
 
     if [ ! -e "$target" ] && [ ! -L "$target" ]; then
-        fail "Cannot link missing target: $target"
+        fail "Cannot register missing target: $target"
     fi
 
     mkdir -p "$(dirname "$link")"
 
     if [ -e "$link" ] || [ -L "$link" ]; then
-        # If it is already the correct symlink, leave it alone.
-        if [ -L "$link" ]; then
-            local existing
-            existing="$(readlink "$link" || true)"
-            if [ "$existing" = "$target" ]; then
-                log "Link already exists: $link -> $target"
-                return 0
-            fi
+        if same_path "$target" "$link"; then
+            log "Already registered: $link"
+            return 0
         fi
 
-        log "Replacing existing path: $link"
-        rm -rf "$link"
+        if path_is_link_like "$link"; then
+            log "Replacing existing link/junction: $link"
+            remove_link_like_path "$link"
+        else
+            local message="Path exists and is not a link/junction: $link"
+
+            if [ "$required" = "optional" ]; then
+                warn "$message"
+                warn "Skipping optional registration for: $link"
+                return 0
+            fi
+
+            fail "$message"
+        fi
     fi
 
     local create_symlink="$REPO_ROOT/Bash/create_symlink.sh"
 
     if [ -f "$create_symlink" ]; then
-        bash "$create_symlink" "$target" "$link"
+        if ! bash "$create_symlink" "$target" "$link"; then
+            if [ "$required" = "optional" ]; then
+                warn "Could not create optional registration: $link -> $target"
+                return 0
+            fi
+            fail "Could not create registration: $link -> $target"
+        fi
     else
-        ln -s "$target" "$link"
+        if ! ln -s "$target" "$link"; then
+            if [ "$required" = "optional" ]; then
+                warn "Could not create optional registration: $link -> $target"
+                return 0
+            fi
+            fail "Could not create registration: $link -> $target"
+        fi
     fi
 
-    log "Linked: $link -> $target"
+    log "Registered: $link -> $target"
 }
 
 require_tool() {
@@ -173,22 +271,23 @@ touch "$NewAge/Repos/.anchor"
 
 # Register this checkout in the recommended workspace repo location.
 #
-# This is a link, not a clone, so a user can run configure from any checkout
-# and still get the standard $NewAge/Repos/JWCEssentials path.
-link_or_replace "$REPO_ROOT" "$NewAge/Repos/JWCEssentials"
+# This is a link/junction, not a clone, so a user can run configure from any
+# checkout and still get the standard $NewAge/Repos/JWCEssentials path.
+link_or_register "$REPO_ROOT" "$NewAge/Repos/JWCEssentials" optional
 
 # Backward-compatible direct repo path.
 #
 # Existing NewAge scripts historically expected $NewAge/JWCEssentials.
-# Keep this as a compatibility link during the integration refactor.
-link_or_replace "$REPO_ROOT" "$NewAge/JWCEssentials"
+# Keep this as a compatibility registration during the integration refactor.
+# This is required unless the current checkout already lives at that path.
+link_or_register "$REPO_ROOT" "$NewAge/JWCEssentials" required
 
 # Expose public headers through the shared include directory.
-link_or_replace "$REPO_ROOT/include/JWCEssentials" "$NewAge/include/JWCEssentials"
+link_or_register "$REPO_ROOT/include/JWCEssentials" "$NewAge/include/JWCEssentials" required
 
 # Expose the managed project through the traditional NewAge .NET library area.
 if [ -d "$REPO_ROOT/Project/JWCEssentials.net" ]; then
-    link_or_replace "$REPO_ROOT/Project/JWCEssentials.net" "$NewAge/DotNet/Libs/JWCEssentials.net"
+    link_or_register "$REPO_ROOT/Project/JWCEssentials.net" "$NewAge/DotNet/Libs/JWCEssentials.net" required
 else
     log "Skipping .NET project link; Project/JWCEssentials.net not found."
 fi
@@ -200,7 +299,7 @@ fi
 if [ -d "$REPO_ROOT/Bash" ]; then
     while IFS= read -r script; do
         name="$(basename "$script")"
-        link_or_replace "$script" "$NewAge/bin/$name"
+        link_or_register "$script" "$NewAge/bin/$name" required
     done < <(find "$REPO_ROOT/Bash" -maxdepth 1 -type f -name '*.sh' | sort)
 else
     log "Skipping Bash tool exposure; Bash directory not found."
