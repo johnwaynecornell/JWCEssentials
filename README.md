@@ -47,7 +47,20 @@ The native component is built using CMake.
 *   Bash-compatible shell tooling
 *   Platform support currently differentiated for Linux and Windows
 
-### Configure and Build
+### Configure and Build for a NewAge Workspace
+
+JWCEssentials defines the foundational NewAge workspace layout. Running `configure.sh` creates the required workspace directories, exposes JWCEssentials headers through `$NewAge/include`, exposes Bash helper tools through `$NewAge/bin`, and registers the current checkout under the shared workspace.
+
+```
+export NewAge="$HOME/NewAge"
+./configure.sh
+```
+
+On Windows Git Bash:
+
+```
+./configure.sh --newage "/c/src/NewAge"
+```
 
 From the repository root:
 

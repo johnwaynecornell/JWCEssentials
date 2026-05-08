@@ -4,3 +4,5 @@ obj
 cmake-build-*
 *.kate-swp
 *DotSettings.user
+CMakeCache.txt
+CMakeFiles/
