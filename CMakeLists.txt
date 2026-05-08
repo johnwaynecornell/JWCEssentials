@@ -79,10 +79,6 @@ elseif ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
     )
 endif()
 
-if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    target_compile_options(JWCEssentials PRIVATE "-Wno-return-type-c-linkage")
-endif()
-
 include( "${CMAKE_SOURCE_DIR}/src/Random/Random.cmake")
 
 include( "${CMAKE_SOURCE_DIR}/src/Hasher/Hasher.cmake")

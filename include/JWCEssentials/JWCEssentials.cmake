@@ -82,7 +82,10 @@ function(shuttle target pool)
 
 endfunction()
 
-add_compile_options(-Wno-return-type-c-linkage)
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_compile_options(JWCEssentials PRIVATE "-Wno-return-type-c-linkage")
+endif()
+
 include_directories( "$ENV{NewAge}/include")
 
 if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
