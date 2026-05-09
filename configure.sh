@@ -163,6 +163,12 @@ remove_link_like_path() {
     fail "Refusing to remove non-symlink/non-junction path: $path"
 }
 
+cmd_run() {
+    # Use /c with MSYS path conversion disabled for this process. This avoids
+    # the ambiguity of cmd //C while still keeping Windows paths intact.
+    MSYS2_ARG_CONV_EXCL='*' cmd /c "$*"
+}
+
 create_directory_registration() {
     local target="$1"
     local link="$2"
@@ -179,7 +185,7 @@ create_directory_registration() {
         #
         # If this fails, the user likely needs Developer Mode, an elevated shell,
         # or a physical expected-path checkout depending on the registration.
-        if cmd /c "mklink /J \"$link_win\" \"$target_win\"" >/dev/null 2>&1; then
+        if cmd_run "mklink /J \"$link_win\" \"$target_win\"" >/dev/null 2>&1; then
             return 0
         fi
 

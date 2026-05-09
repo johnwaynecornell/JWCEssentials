@@ -23,9 +23,10 @@ is_windows_shell() {
 }
 
 cmd_run() {
-    # Use /c with MSYS path conversion disabled for this process. This avoids
-    # the ambiguity of cmd //C while still keeping Windows paths intact.
-    MSYS2_ARG_CONV_EXCL='*' cmd /c "$*"
+    # Use MSYS2_ARG_CONV_EXCL='*' to stop Bash from "fixing" our Windows flags.
+    # Passing arguments individually (not as a single string) is much safer.
+    MSYS2_ARG_CONV_EXCL='*' cmd /c "$@"
+    # MSYS2_ARG_CONV_EXCL='*' cmd /c "\"$@\""
 }
 
 remove_existing_link_path() {
@@ -52,25 +53,26 @@ create_symlink_windows() {
 
     local target_win
     local link_win
-    target_win="$(cygpath -w "$target_unix")"
-    link_win="$(cygpath -w "$link_unix")"
+    target_win="$(cygpath -aw "$target_unix")"
+    link_win="$(cygpath -aw "$link_unix")"
 
     if [ -e "$link_unix" ] || [ -L "$link_unix" ]; then
         remove_existing_link_path "$link_unix"
     fi
 
     if [ -d "$target_unix" ]; then
-        # Try directory symlink first. This may require Administrator privileges
-        # or Developer Mode on Windows.
-        if cmd_run "mklink /D \"$link_win\" \"$target_win\"" >/dev/null 2>&1; then
-            return 0
-        fi
-
         # Fall back to a directory junction. This usually works without
         # Administrator privileges and is sufficient for workspace registration.
-        if cmd_run "mklink /J \"$link_win\" \"$target_win\"" >/dev/null 2>&1; then
-            return 0
-        fi
+	if cmd_run mklink /J "$link_win" "$target_win" >/dev/null 2>&1; then
+	
+	    return 0
+	fi
+
+        # Try directory symlink first. This may require Administrator privileges
+        # or Developer Mode on Windows.
+	if cmd_run mklink /D "$link_win" "$target_win" >/dev/null 2>&1; then
+	    return 0
+	fi
 
         echo "create_symlink.sh: failed to create Windows directory link/junction" >&2
         echo "  target: $target_win" >&2
@@ -80,7 +82,7 @@ create_symlink_windows() {
 
     # File symlinks usually require Administrator privileges or Developer Mode.
     # Callers that need ordinary file availability should copy files instead.
-    if cmd_run "mklink \"$link_win\" \"$target_win\"" >/dev/null 2>&1; then
+    if cmd_run mklink /H "$link_win" "$target_win" >/dev/null 2>&1; then
         return 0
     fi
 
