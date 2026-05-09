@@ -34,6 +34,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$SCRIPT_DIR"
 REPO_NAME="JWCEssentials"
 REPO_REL_PATH="JWCEssentials"
+CREATE_SYMLINK="$REPO_ROOT/Bash/create_symlink.sh"
 
 usage() {
     cat <<'EOF'
@@ -163,38 +164,15 @@ remove_link_like_path() {
     fail "Refusing to remove non-symlink/non-junction path: $path"
 }
 
-cmd_run() {
-    # Use /c with MSYS path conversion disabled for this process. This avoids
-    # the ambiguity of cmd //C while still keeping Windows paths intact.
-    MSYS2_ARG_CONV_EXCL='*' cmd /c "$*"
-}
-
 create_directory_registration() {
     local target="$1"
     local link="$2"
 
-    if is_windows_shell; then
-        local target_win
-        local link_win
-
-        target_win="$(to_windows_path "$target")"
-        link_win="$(to_windows_path "$link")"
-
-        # Try a directory junction. On Windows this is the intended live
-        # directory-registration mechanism when symbolic links are unavailable.
-        #
-        # If this fails, the user likely needs Developer Mode, an elevated shell,
-        # or a physical expected-path checkout depending on the registration.
-        if cmd_run "mklink /J \"$link_win\" \"$target_win\"" >/dev/null 2>&1; then
-            return 0
-        fi
-
-        warn "Windows directory registration failed. Proof command:"
-        warn "  cmd /c mklink /J \"$link_win\" \"$target_win\""
-        return 1
+    if [ ! -f "$CREATE_SYMLINK" ]; then
+        fail "Missing required helper: $CREATE_SYMLINK"
     fi
 
-    ln -s "$target" "$link"
+    bash "$CREATE_SYMLINK" "$target" "$link"
 }
 
 link_or_register() {
@@ -386,9 +364,8 @@ add_repo_entry "$REPO_REL_PATH"
 #
 #   $NewAge/JWCEssentials
 #
-# If configure is run from elsewhere, we try to register that compatibility path.
-# On Windows this may require working junction support. If the user wants the
-# least surprising Windows path, clone directly into $NewAge/JWCEssentials.
+# If configure is run from elsewhere, we register that compatibility path using
+# the platform-aware create_symlink helper.
 if same_path "$REPO_ROOT" "$EXPECTED_REPO_ROOT"; then
     log "Repository is already at expected workspace path."
 elif [ -e "$EXPECTED_REPO_ROOT" ] || [ -L "$EXPECTED_REPO_ROOT" ]; then
