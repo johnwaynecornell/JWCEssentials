@@ -5,7 +5,7 @@ namespace JWCEssentials {
 
     extern "C"
     {
-        int testErrorSystem();
+        _EXPORT_ int testErrorSystem();
     }
 }
 
