@@ -119,16 +119,33 @@ else()
     set(PTH "Release")
 endif()
 
-set(PTH "${PTH}/${CMAKE_SYSTEM_NAME}/${CMAKE_SYSTEM_PROCESSOR}")
+if (MSVC)
+    set(NEWAGE_NATIVE_TOOLCHAIN "msvc")
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    if (WIN32)
+        set(NEWAGE_NATIVE_TOOLCHAIN "clang-cl")
+    else()
+        set(NEWAGE_NATIVE_TOOLCHAIN "clang")
+    endif()
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+    set(NEWAGE_NATIVE_TOOLCHAIN "gcc")
+else()
+    set(NEWAGE_NATIVE_TOOLCHAIN "${CMAKE_CXX_COMPILER_ID}")
+endif()
+
+string(TOLOWER "${NEWAGE_NATIVE_TOOLCHAIN}" NEWAGE_NATIVE_TOOLCHAIN)
+
+set(PTH "${PTH}/${CMAKE_SYSTEM_NAME}/${CMAKE_SYSTEM_PROCESSOR}/${NEWAGE_NATIVE_TOOLCHAIN}")
+
 
 #add_executable(feffect src/Utils/feffect.cpp)
 #add_executable(rand_identifier src/Utils/rand_identifier.cpp)
 #add_executable(split_arg src/Utils/split_arg.cpp)
 
 add_custom_command(TARGET split_arg POST_BUILD
-        COMMAND bash verbose.sh shuttle_to.sh bin "${CMAKE_CURRENT_BINARY_DIR}" "split_arg" "${PTH}" "${CMAKE_CURRENT_BINARY_DIR}/split_arg"
-        COMMAND bash verbose.sh shuttle_to.sh lib "${CMAKE_CURRENT_BINARY_DIR}" "JWCEssentials" "${PTH}" "${CMAKE_CURRENT_BINARY_DIR}/split_arg"
-        
-        COMMAND bash verbose.sh shuttle_to.sh bin "${CMAKE_CURRENT_BINARY_DIR}" "feffect" "${PTH}"
-        COMMAND bash verbose.sh shuttle_to.sh bin "${CMAKE_CURRENT_BINARY_DIR}" "rand_identifier" "${PTH}"
+        COMMAND bash verbose.sh shuttle_to.sh bin "$<TARGET_FILE_DIR:split_arg>" "split_arg" "${PTH}" "$<TARGET_FILE:split_arg>"
+        COMMAND bash verbose.sh shuttle_to.sh lib "$<TARGET_FILE_DIR:JWCEssentials>" "JWCEssentials" "${PTH}" "$<TARGET_FILE:split_arg>"
+
+        COMMAND bash verbose.sh shuttle_to.sh bin "$<TARGET_FILE_DIR:feffect>" "feffect" "${PTH}" "$<TARGET_FILE:split_arg>"
+        COMMAND bash verbose.sh shuttle_to.sh bin "$<TARGET_FILE_DIR:rand_identifier>" "rand_identifier" "${PTH}" "$<TARGET_FILE:split_arg>"
 )
