@@ -164,6 +164,42 @@ remove_link_like_path() {
     fail "Refusing to remove non-symlink/non-junction path: $path"
 }
 
+path_contains_dir() {
+    local needle="$1"
+    local needle_canon
+
+    needle_canon="$(canonical_path "$needle")"
+
+    IFS=':' read -r -a path_parts <<< "${PATH:-}"
+
+    local part
+    for part in "${path_parts[@]}"; do
+        [ -z "$part" ] && continue
+
+        if [ -d "$part" ]; then
+            if [ "$(canonical_path "$part")" = "$needle_canon" ]; then
+                return 0
+            fi
+        fi
+    done
+
+    return 1
+}
+
+warn_if_newage_bin_not_on_path() {
+    if ! path_contains_dir "$NewAge/bin"; then
+        warn "\$NewAge/bin is not currently on PATH."
+        warn "Post-build commands may fail to find NewAge helper scripts."
+        warn "For this shell session:"
+        warn "  export PATH=\"\$PATH:$NewAge/bin\""
+        warn ""
+        warn "For Windows user PATH, add:"
+        warn "  $(to_windows_path "$NewAge/bin")"
+    else
+        log "\$NewAge/bin is on PATH."
+    fi
+}
+
 create_directory_registration() {
     local target="$1"
     local link="$2"
@@ -403,6 +439,42 @@ if [ -d "$REPO_ROOT/Bash" ]; then
 else
     log "Skipping Bash tool exposure; Bash directory not found."
 fi
+
+path_contains_dir() {
+    local needle="$1"
+    local needle_canon
+
+    needle_canon="$(canonical_path "$needle")"
+
+    IFS=':' read -r -a path_parts <<< "${PATH:-}"
+
+    local part
+    for part in "${path_parts[@]}"; do
+        [ -z "$part" ] && continue
+
+        if [ -d "$part" ]; then
+            if [ "$(canonical_path "$part")" = "$needle_canon" ]; then
+                return 0
+            fi
+        fi
+    done
+
+    return 1
+}
+
+warn_if_newage_bin_not_on_path() {
+    if ! path_contains_dir "$NewAge/bin"; then
+        warn "\$NewAge/bin is not currently on PATH."
+        warn "Post-build commands may fail to find NewAge helper scripts."
+        warn "For this shell session:"
+        warn "  export PATH=\"\$PATH:$NewAge/bin\""
+        warn ""
+        warn "For Windows user PATH, add:"
+        warn "  $(to_windows_path "$NewAge/bin")"
+    else
+        log "\$NewAge/bin is on PATH."
+    fi
+}
 
 log "Workspace setup complete."
 
