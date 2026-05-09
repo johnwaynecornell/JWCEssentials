@@ -7,6 +7,20 @@ set -euo pipefail
 #   Establish the minimal NewAge workspace layout and register JWCEssentials
 #   into that workspace.
 #
+# Current doctrine:
+#   - $NewAge is the workspace root.
+#   - Repositories live physically under $NewAge, for example:
+#       $NewAge/JWCEssentials
+#       $NewAge/JWCCommandSpawn
+#       $NewAge/CrystalCatalystLibrary
+#       $NewAge/NewAge
+#   - $NewAge/include is part of the build contract.
+#   - $NewAge/include/JWCEssentials is required.
+#   - $NewAge/bin receives copied command scripts.
+#   - $NewAge/DotNet/Libs/lib remains the managed artifact staging area.
+#   - $NewAge/DotNet/Libs/JWCEssentials.net is no longer required.
+#   - $NewAge/NewAgeRepo.lst is a simple list of repo paths relative to $NewAge.
+#
 # Usage:
 #   ./configure.sh
 #   ./configure.sh --newage /path/to/NewAge
@@ -18,6 +32,8 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$SCRIPT_DIR"
+REPO_NAME="JWCEssentials"
+REPO_REL_PATH="JWCEssentials"
 
 usage() {
     cat <<'EOF'
@@ -60,7 +76,6 @@ is_windows_shell() {
 }
 
 to_unix_path() {
-    # Git Bash/MSYS/MinGW can translate Windows-style paths to Unix paths.
     if command -v cygpath >/dev/null 2>&1; then
         cygpath -u "$1"
     else
@@ -91,6 +106,7 @@ canonical_path() {
 
     local dir
     local base
+
     dir="$(dirname "$path")"
     base="$(basename "$path")"
 
@@ -111,17 +127,14 @@ same_path() {
 path_is_link_like() {
     local path="$1"
 
-    # Unix symlink / MSYS symlink.
     if [ -L "$path" ]; then
         return 0
     fi
 
-    # Windows junctions/symlinks created by mklink usually show up as reparse
-    # points. fsutil requires Windows paths and may fail when unavailable; this
-    # helper is intentionally best-effort.
     if is_windows_shell && command -v fsutil >/dev/null 2>&1; then
         local win_path
         win_path="$(to_windows_path "$path")"
+
         if fsutil reparsepoint query "$win_path" >/dev/null 2>&1; then
             return 0
         fi
@@ -138,12 +151,12 @@ remove_link_like_path() {
         return
     fi
 
-    # Windows junctions must be removed with rmdir from cmd. Do not use rm -rf
-    # here because we only want to remove the registration point, never the
-    # target directory contents.
     if is_windows_shell; then
         local win_path
         win_path="$(to_windows_path "$path")"
+
+        # Junctions/reparse points should be removed with rmdir so only the
+        # registration point is removed, not target contents.
         cmd /c "rmdir \"$win_path\"" >/dev/null 2>&1 && return
     fi
 
@@ -157,17 +170,20 @@ create_directory_registration() {
     if is_windows_shell; then
         local target_win
         local link_win
+
         target_win="$(to_windows_path "$target")"
         link_win="$(to_windows_path "$link")"
 
-        # Directory symlinks may require Administrator privileges or Developer
-        # Mode. Junctions usually do not, and are sufficient for workspace
-        # registration directories.
+        # Try a directory junction. On Windows this is the intended live
+        # directory-registration mechanism when symbolic links are unavailable.
+        #
+        # If this fails, the user likely needs Developer Mode, an elevated shell,
+        # or a physical expected-path checkout depending on the registration.
         if cmd /c "mklink /J \"$link_win\" \"$target_win\"" >/dev/null 2>&1; then
             return 0
         fi
 
-        warn "Windows junction creation failed. Proof command:"
+        warn "Windows directory registration failed. Proof command:"
         warn "  cmd /c mklink /J \"$link_win\" \"$target_win\""
         return 1
     fi
@@ -208,32 +224,13 @@ link_or_register() {
         fi
     fi
 
-    if [ -d "$target" ]; then
-        if ! create_directory_registration "$target" "$link"; then
-            if [ "$required" = "optional" ]; then
-                warn "Could not create optional directory registration: $link -> $target"
-                return 0
-            fi
-            fail "Could not create directory registration: $link -> $target"
-        fi
-    else
-        # File registrations are not used for $NewAge/bin anymore. Keep this
-        # for completeness on non-Windows systems only.
-        if is_windows_shell; then
-            if [ "$required" = "optional" ]; then
-                warn "Skipping optional Windows file symlink: $link -> $target"
-                return 0
-            fi
-            fail "Windows file symlink requested for required registration: $link -> $target"
+    if ! create_directory_registration "$target" "$link"; then
+        if [ "$required" = "optional" ]; then
+            warn "Could not create optional directory registration: $link -> $target"
+            return 0
         fi
 
-        if ! ln -s "$target" "$link"; then
-            if [ "$required" = "optional" ]; then
-                warn "Could not create optional file registration: $link -> $target"
-                return 0
-            fi
-            fail "Could not create file registration: $link -> $target"
-        fi
+        fail "Could not create required directory registration: $link -> $target"
     fi
 
     log "Registered: $link -> $target"
@@ -266,12 +263,32 @@ install_script_to_bin() {
         fi
     fi
 
-    # On Windows, file symlinks normally require Administrator privileges or
-    # Developer Mode. For $NewAge/bin, copied scripts are safer and sufficient:
-    # post-build commands only need bash to locate the script on PATH.
     cp "$source" "$destination"
     chmod +x "$destination" 2>/dev/null || true
+
     log "Installed script: $destination"
+}
+
+add_repo_entry() {
+    local rel_path="$1"
+    local list_file="$NewAge/NewAgeRepo.lst"
+
+    mkdir -p "$(dirname "$list_file")"
+
+    if [ ! -f "$list_file" ]; then
+        {
+            echo "# NewAgeRepo.lst"
+            echo "# Relative repository paths under \$NewAge."
+            echo
+        } > "$list_file"
+    fi
+
+    if ! grep -Fxq "$rel_path" "$list_file"; then
+        echo "$rel_path" >> "$list_file"
+        log "Added repo entry: $rel_path"
+    else
+        log "Repo entry already present: $rel_path"
+    fi
 }
 
 require_tool() {
@@ -316,7 +333,7 @@ Set NewAge to the shared workspace root, for example:
     export NewAge="$HOME/NewAge"
 
   Windows PowerShell:
-    [Environment]::SetEnvironmentVariable("NewAge", "C:\src\NewAge", "User")
+    [Environment]::SetEnvironmentVariable("NewAge", "C:\Users\vboxuser\NewAge", "User")
 
 Or run:
 
@@ -328,57 +345,73 @@ fi
 NewAge="$(to_unix_path "$NewAge")"
 export NewAge
 
+EXPECTED_REPO_ROOT="$NewAge/$REPO_REL_PATH"
+
 log "Repository root: $REPO_ROOT"
 log "NewAge workspace: $NewAge"
+log "Expected repo root: $EXPECTED_REPO_ROOT"
 
 require_tool bash
 
-# Create the foundational workspace directories.
-#
-# $NewAge/include is intentionally first-class. Other repositories should be
-# able to depend on this directory existing after JWCEssentials configure runs.
+# Create foundational workspace directories.
 mkdir -p "$NewAge"
 mkdir -p "$NewAge/include"
 mkdir -p "$NewAge/bin"
 mkdir -p "$NewAge/lib"
-mkdir -p "$NewAge/DotNet/Libs"
 mkdir -p "$NewAge/DotNet/Libs/lib"
-mkdir -p "$NewAge/Repos"
 
-# Anchor otherwise-empty directories for visibility and repo/tool friendliness.
+# Native artifact lane roots. The toolchain lane is selected by CMake/build
+# configuration later.
+mkdir -p "$NewAge/lib/Debug"
+mkdir -p "$NewAge/lib/Release"
+mkdir -p "$NewAge/bin/Debug"
+mkdir -p "$NewAge/bin/Release"
+
+# Anchor otherwise-empty directories for visibility and tooling friendliness.
 touch "$NewAge/include/.anchor"
 touch "$NewAge/bin/.anchor"
 touch "$NewAge/lib/.anchor"
 touch "$NewAge/DotNet/Libs/lib/.anchor"
-touch "$NewAge/Repos/.anchor"
 
-# Register this checkout in the recommended workspace repo location.
+# Record this repository as a simple relative workspace entry.
+add_repo_entry "$REPO_REL_PATH"
+
+# The preferred decentralized layout is a physical checkout at:
 #
-# This is a link/junction, not a clone, so a user can run configure from any
-# checkout and still get the standard $NewAge/Repos/JWCEssentials path.
-link_or_register "$REPO_ROOT" "$NewAge/Repos/JWCEssentials" optional
-
-# Backward-compatible direct repo path.
+#   $NewAge/JWCEssentials
 #
-# Existing NewAge scripts historically expected $NewAge/JWCEssentials.
-# Keep this as a compatibility registration during the integration refactor.
-# This is required unless the current checkout already lives at that path.
-link_or_register "$REPO_ROOT" "$NewAge/JWCEssentials" required
+# If configure is run from elsewhere, we try to register that compatibility path.
+# On Windows this may require working junction support. If the user wants the
+# least surprising Windows path, clone directly into $NewAge/JWCEssentials.
+if same_path "$REPO_ROOT" "$EXPECTED_REPO_ROOT"; then
+    log "Repository is already at expected workspace path."
+elif [ -e "$EXPECTED_REPO_ROOT" ] || [ -L "$EXPECTED_REPO_ROOT" ]; then
+    if same_path "$REPO_ROOT" "$EXPECTED_REPO_ROOT"; then
+        log "Repository is already registered at expected workspace path."
+    else
+        fail "Expected repo path already exists and points elsewhere: $EXPECTED_REPO_ROOT"
+    fi
+else
+    warn "Repository is not physically located at the expected workspace path."
+    warn "Attempting registration: $EXPECTED_REPO_ROOT -> $REPO_ROOT"
+    link_or_register "$REPO_ROOT" "$EXPECTED_REPO_ROOT" required
+fi
 
-# Expose public headers through the shared include directory.
+# $NewAge/include/JWCEssentials is part of the build contract.
+# Do not silently copy this directory; it must be live-registered or physically
+# present as the correct source directory.
 link_or_register "$REPO_ROOT/include/JWCEssentials" "$NewAge/include/JWCEssentials" required
 
-# Expose the managed project through the traditional NewAge .NET library area.
-if [ -d "$REPO_ROOT/Project/JWCEssentials.net" ]; then
-    link_or_register "$REPO_ROOT/Project/JWCEssentials.net" "$NewAge/DotNet/Libs/JWCEssentials.net" required
-else
-    log "Skipping .NET project link; Project/JWCEssentials.net not found."
-fi
+# $NewAge/DotNet/Libs/JWCEssentials.net is intentionally no longer registered.
+# Repositories now live directly under $NewAge, while $NewAge/DotNet/Libs/lib
+# remains the managed artifact staging area.
+log "Managed project location: $REPO_ROOT/Project/JWCEssentials.net"
+log "Managed artifact staging: $NewAge/DotNet/Libs/lib"
 
 # Expose JWCEssentials Bash tools through $NewAge/bin.
 #
-# These are copied instead of linked. On Windows, file symlinks often require
-# elevation, and copied scripts are sufficient for PATH-based command lookup.
+# These are copied instead of linked. Command scripts are artifacts/helpers, not
+# live source-directory registrations.
 if [ -d "$REPO_ROOT/Bash" ]; then
     while IFS= read -r script; do
         name="$(basename "$script")"
@@ -388,31 +421,25 @@ else
     log "Skipping Bash tool exposure; Bash directory not found."
 fi
 
-# Create native artifact lane roots.
-#
-# The exact toolchain lane is selected by CMake/build configuration later.
-# These roots prevent older scripts from failing before a lane exists.
-mkdir -p "$NewAge/lib/Debug"
-mkdir -p "$NewAge/lib/Release"
-mkdir -p "$NewAge/bin/Debug"
-mkdir -p "$NewAge/bin/Release"
-
 log "Workspace setup complete."
 
 cat <<EOF
 
-JWCEssentials is registered with the NewAge workspace.
+JWCEssentials is configured for the NewAge workspace.
 
 NewAge:
   $NewAge
 
+Repository:
+  $REPO_ROOT
+
 Important paths:
+  $NewAge/NewAgeRepo.lst
   $NewAge/include
   $NewAge/include/JWCEssentials
   $NewAge/bin
   $NewAge/lib
-  $NewAge/DotNet/Libs
-  $NewAge/Repos/JWCEssentials
+  $NewAge/DotNet/Libs/lib
 
 For this shell session:
   export NewAge="$NewAge"
@@ -420,6 +447,7 @@ For this shell session:
 
 Suggested verification:
   echo "\$NewAge"
+  cat "$NewAge/NewAgeRepo.lst"
   bash --version
   ls "$NewAge/include"
   ls "$NewAge/bin"
