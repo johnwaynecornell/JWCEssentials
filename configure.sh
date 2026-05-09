@@ -319,6 +319,85 @@ require_tool() {
     fi
 }
 
+detect_newage_default_os() {
+    if is_windows_shell; then
+        echo "Windows"
+        return
+    fi
+
+    uname -s
+}
+
+detect_newage_default_arch() {
+    if is_windows_shell; then
+        # Matches the MSVC/CMake lane observed in the Windows VM:
+        # Debug/Windows/AMD64/msvc
+        echo "AMD64"
+        return
+    fi
+
+    uname -m
+}
+
+print_runtime_lane_path_advice() {
+    local config="${NEWAGE_CONFIG:-Debug}"
+    local os_name="${NEWAGE_OS:-$(detect_newage_default_os)}"
+    local arch="${NEWAGE_ARCH:-$(detect_newage_default_arch)}"
+    local toolchain="${NEWAGE_NATIVE_TOOLCHAIN:-}"
+
+    if is_windows_shell; then
+        toolchain="${toolchain:-msvc}"
+
+        local staged_bin="$NewAge/bin/$config/$os_name/$arch/$toolchain"
+        local staged_lib="$NewAge/lib/$config/$os_name/$arch/$toolchain"
+
+        cat <<EOF
+
+Runtime path advice for this shell session:
+
+  export PATH="\$PATH:$NewAge/bin"
+  export PATH="\$PATH:$staged_bin"
+  export PATH="\$PATH:$staged_lib"
+
+Windows note:
+  Executables may need both the staged bin lane and staged lib lane on PATH
+  so dependent DLLs such as JWCEssentials.dll can be found at runtime.
+
+Expected Windows native lane:
+  $config/$os_name/$arch/$toolchain
+
+EOF
+        return
+    fi
+
+    toolchain="${toolchain:-gcc}"
+
+    local staged_bin="$NewAge/bin/$config/$os_name/$arch/$toolchain"
+    local staged_lib="$NewAge/lib/$config/$os_name/$arch/$toolchain"
+
+    cat <<EOF
+
+Runtime path advice for this shell session:
+
+  export PATH="\$PATH:$NewAge/bin"
+  export PATH="\$PATH:$staged_bin"
+  export LD_LIBRARY_PATH="$staged_lib:\${LD_LIBRARY_PATH:-}"
+
+Linux note:
+  PATH finds staged command executables.
+  LD_LIBRARY_PATH lets the dynamic loader find staged shared libraries.
+
+Expected Linux native lane:
+  $config/$os_name/$arch/$toolchain
+
+If building with clang instead of gcc:
+
+  export NEWAGE_NATIVE_TOOLCHAIN=clang
+  export LD_LIBRARY_PATH="$NewAge/lib/$config/$os_name/$arch/clang:\${LD_LIBRARY_PATH:-}"
+
+EOF
+}
+
 NEWAGE_ARG=""
 
 while [ "$#" -gt 0 ]; do
@@ -475,6 +554,8 @@ warn_if_newage_bin_not_on_path() {
         log "\$NewAge/bin is on PATH."
     fi
 }
+
+print_runtime_lane_path_advice
 
 log "Workspace setup complete."
 
