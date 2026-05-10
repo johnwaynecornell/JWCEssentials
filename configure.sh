@@ -330,9 +330,8 @@ detect_newage_default_os() {
 
 detect_newage_default_arch() {
     if is_windows_shell; then
-        # Matches the MSVC/CMake lane observed in the Windows VM:
-        # Debug/Windows/AMD64/msvc
-        echo "AMD64"
+        # Debug/Windows/x86_64/msvc
+        echo "x86_64"
         return
     fi
 
@@ -346,29 +345,72 @@ print_runtime_lane_path_advice() {
     local toolchain="${NEWAGE_NATIVE_TOOLCHAIN:-}"
 
     if is_windows_shell; then
-        toolchain="${toolchain:-msvc}"
+    toolchain="${toolchain:-msvc}"
 
-        local staged_bin="$NewAge/bin/$config/$os_name/$arch/$toolchain"
-        local staged_lib="$NewAge/lib/$config/$os_name/$arch/$toolchain"
+    local staged_bin="$NewAge/bin/$config/$os_name/$arch/$toolchain"
+    local staged_lib="$NewAge/lib/$config/$os_name/$arch/$toolchain"
 
-        cat <<EOF
+    local newage_win
+    local newage_bin_win
+    local staged_bin_win
+    local staged_lib_win
 
-Runtime path advice for this shell session:
+    newage_win="$(to_windows_path "$NewAge")"
+    newage_bin_win="$(to_windows_path "$NewAge/bin")"
+    staged_bin_win="$(to_windows_path "$staged_bin")"
+    staged_lib_win="$(to_windows_path "$staged_lib")"
 
+    cat <<EOF
+
+Runtime path advice for Windows:
+
+Git Bash, current shell session:
+
+  export NewAge="$NewAge"
   export PATH="\$PATH:$NewAge/bin"
   export PATH="\$PATH:$staged_bin"
   export PATH="\$PATH:$staged_lib"
 
+PowerShell, current shell session:
+
+  \$env:NewAge = "$newage_win"
+  \$env:Path += ";$newage_bin_win"
+  \$env:Path += ";$staged_bin_win"
+  \$env:Path += ";$staged_lib_win"
+
+PowerShell, persist for the current user:
+
+  [Environment]::SetEnvironmentVariable("NewAge", "$newage_win", "User")
+
+  \$userPath = [Environment]::GetEnvironmentVariable("Path", "User")
+  \$add = @(
+      "$newage_bin_win",
+      "$staged_bin_win",
+      "$staged_lib_win"
+  )
+
+  foreach (\$p in \$add) {
+      if ((\$userPath -split ';') -notcontains \$p) {
+          \$userPath = "\$userPath;\$p"
+      }
+  }
+
+  [Environment]::SetEnvironmentVariable("Path", \$userPath, "User")
+
 Windows note:
-  Executables may need both the staged bin lane and staged lib lane on PATH
+  Executables may need both the staged bin lane and staged lib lane on Path
   so dependent DLLs such as JWCEssentials.dll can be found at runtime.
 
 Expected Windows native lane:
   $config/$os_name/$arch/$toolchain
 
+After changing the persistent user environment:
+  restart PowerShell, Git Bash, VS Code, Visual Studio, Rider, CLion, or any
+  terminal/IDE that should inherit the updated environment.
+
 EOF
-        return
-    fi
+    return
+fi
 
     toolchain="${toolchain:-gcc}"
 
