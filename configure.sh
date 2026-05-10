@@ -519,6 +519,15 @@ else
     log "Skipping Bash tool exposure; Bash directory not found."
 fi
 
+case "$(uname -s)" in
+    CYGWIN*|MINGW*|MSYS*)
+        ;;
+    *)
+     #       create_symlink_linux "$link" "$target"
+        install_script_to_bin "$REPO_ROOT/cygpath.sh.linux" "$NewAge/bin/cygpath"
+        ;;
+esac
+
 path_contains_dir() {
     local needle="$1"
     local needle_canon
