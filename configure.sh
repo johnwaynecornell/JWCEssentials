@@ -375,28 +375,28 @@ EOF
     local staged_bin="\$NewAge/bin/$config/$os_name/$arch/$toolchain"
     local staged_lib="\$NewAge/lib/$config/$os_name/$arch/$toolchain"
 
-    cat <<EOF
+   cat <<EOF
 
-    Runtime path advice for this shell session:
+   Runtime path advice for this shell session:
 
-      export PATH="\$PATH:\$NewAge/bin"
-      export PATH="\$PATH:$staged_bin"
-      export LD_LIBRARY_PATH="$staged_lib:\${LD_LIBRARY_PATH:-}"
+     export PATH="\$PATH:\$NewAge/bin"
+     export PATH="\$PATH:$staged_bin"
+     export LD_LIBRARY_PATH="$staged_lib:\${LD_LIBRARY_PATH:-}"
 
-    Linux note:
-      PATH finds staged command executables.
-      LD_LIBRARY_PATH lets the dynamic loader find staged shared libraries.
+   Linux note:
+     PATH finds staged command executables.
+     LD_LIBRARY_PATH lets the dynamic loader find staged shared libraries.
 
-    Expected Linux native lane:
-      $config/$os_name/$arch/$toolchain
+   Expected Linux native lane:
+     $config/$os_name/$arch/$toolchain
 
-    If building with clang instead of gcc:
+   If building with clang instead of gcc:
 
-      export NEWAGE_NATIVE_TOOLCHAIN=clang
-      export PATH="\$PATH:\$NewAge/bin/$config/$os_name/$arch/clang"
-      export LD_LIBRARY_PATH="\$NewAge/lib/$config/$os_name/$arch/clang:\${LD_LIBRARY_PATH:-}"
+     export NEWAGE_NATIVE_TOOLCHAIN=clang
+     export PATH="\$PATH:\$NewAge/bin/$config/$os_name/$arch/clang"
+     export LD_LIBRARY_PATH="\$NewAge/lib/$config/$os_name/$arch/clang:\${LD_LIBRARY_PATH:-}"
 
-    EOF
+EOF
 }
 
 NEWAGE_ARG=""
