@@ -331,7 +331,7 @@ detect_newage_default_os() {
 detect_newage_default_arch() {
     if is_windows_shell; then
         # Debug/Windows/x86_64/msvc
-        echo "x86_64"
+        echo "AMD64"
         return
     fi
 
