@@ -1,2 +1,14 @@
-#!/bin/bash
-echo "$@"
+#!/usr/bin/env bash
+
+last=""
+for arg in "$@"; do
+    case "$arg" in
+        -u|-w|-a|-m|-aw|-wa|-am|-ma)
+            ;;
+        *)
+            last="$arg"
+            ;;
+    esac
+done
+
+printf '%s\n' "$last"

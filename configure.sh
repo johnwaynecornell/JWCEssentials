@@ -77,7 +77,7 @@ is_windows_shell() {
 }
 
 to_unix_path() {
-    if command -v cygpath >/dev/null 2>&1; then
+    if is_windows_shell && command -v cygpath >/dev/null 2>&1; then
         cygpath -u "$1"
     else
         printf '%s\n' "$1"
@@ -85,7 +85,7 @@ to_unix_path() {
 }
 
 to_windows_path() {
-    if command -v cygpath >/dev/null 2>&1; then
+    if is_windows_shell && command -v cygpath >/dev/null 2>&1; then
         cygpath -w "$1"
     else
         printf '%s\n' "$1"
@@ -95,7 +95,7 @@ to_windows_path() {
 canonical_path() {
     local path="$1"
 
-    if command -v cygpath >/dev/null 2>&1; then
+    if is_windows_shell && command -v cygpath >/dev/null 2>&1; then
         cygpath -am "$path"
         return
     fi
