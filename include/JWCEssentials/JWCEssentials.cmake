@@ -57,29 +57,81 @@ function(isDebug target_name result_var)
     endif()
 endfunction()
 
-function(shuttle target pool)
+function(newage_native_toolchain result_var)
+    if (MSVC)
+        set(toolchain "msvc")
+    elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        if (WIN32)
+            set(toolchain "clang-cl")
+        else()
+            set(toolchain "clang")
+        endif()
+    elseif (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+        set(toolchain "gcc")
+    else()
+        set(toolchain "${CMAKE_CXX_COMPILER_ID}")
+        string(TOLOWER "${toolchain}" toolchain)
+    endif()
+
+    set(${result_var} "${toolchain}" PARENT_SCOPE)
+endfunction()
+
+function(newage_config_for_target target result_var)
     isDebug(${target} ISDEBUG)
 
     if (ISDEBUG)
-        set(PTH "Debug")
+        set(config "Debug")
     else()
-        set(PTH "Release")
+        set(config "Release")
     endif()
 
-    set(PTH "${PTH}/${CMAKE_SYSTEM_NAME}/${CMAKE_SYSTEM_PROCESSOR}")
+    set(${result_var} "${config}" PARENT_SCOPE)
+endfunction()
 
-    # set(TARGET_OUTPUT_NAME "${target_name}.${TARGET_VERSION}")
+function(newage_native_lane_for_target target result_var)
+    newage_config_for_target(${target} config)
+    newage_native_toolchain(toolchain)
+
+    set(lane "${config}/${CMAKE_SYSTEM_NAME}/${CMAKE_SYSTEM_PROCESSOR}/${toolchain}")
+    set(${result_var} "${lane}" PARENT_SCOPE)
+endfunction()
+
+function(newage_native_lib_path_for_target target result_var)
+    newage_native_lane_for_target(${target} lane)
+    set(${result_var} "$ENV{NewAge}/lib/${lane}" PARENT_SCOPE)
+endfunction()
+
+function(newage_native_bin_path_for_target target result_var)
+    newage_native_lane_for_target(${target} lane)
+    set(${result_var} "$ENV{NewAge}/bin/${lane}" PARENT_SCOPE)
+endfunction()
+
+function(newage_configure_native_paths target)
+    newage_native_lib_path_for_target(${target} newage_lib_path)
+
+    link_directories("${newage_lib_path}")
+    list(APPEND CMAKE_LIBRARY_PATH "${newage_lib_path}")
+    set(CMAKE_LIBRARY_PATH "${CMAKE_LIBRARY_PATH}" PARENT_SCOPE)
+
+    message(STATUS "NewAge native lib path: ${newage_lib_path}")
+endfunction()
+
+function(shuttle target pool)
+    newage_native_lane_for_target(${target} PTH)
+
     get_target_property(name ${target} OUTPUT_NAME)
 
-    if(${name} STREQUAL "name-NOTFOUND")
+    if("${name}" STREQUAL "name-NOTFOUND")
         set(name "${target}")
     endif()
 
-    set(COMMAND "verbose.sh shuttle_to.sh \"${pool}\" \"${CMAKE_CURRENT_BINARY_DIR}\" \"${name}\" \"${PTH}\"")
     add_custom_command(TARGET ${target} POST_BUILD
-            COMMAND bash -c "${COMMAND}"
+            COMMAND bash verbose.sh shuttle_to.sh
+            "${pool}"
+            "$<TARGET_FILE_DIR:${target}>"
+            "${name}"
+            "${PTH}"
     )
-
 endfunction()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -88,9 +140,3 @@ endif()
 
 include_directories( "$ENV{NewAge}/include")
 
-if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
-    link_directories('$ENV{NewAge}/lib/Debug/Windows/AMD64')
-    # set(CMAKE_LIBRARY_PATH '$ENV{LD_LIBRARY_PATH}')
-    set(CMAKE_LIBRARY_PATH '$ENV{NewAge}/lib/Debug/Windows/AMD64')
-    message(STATUS "on windows")
-endif()
