@@ -15,23 +15,43 @@ fi
 
 #pwd
 
-if [ -d "$pool" ]; then
+path=""
+
+# Prefer the configured NewAge workspace.
+if [ -n "${NewAge:-}" ] && [ -d "$NewAge/$pool" ]; then
+    path="$(realpath "$NewAge/$pool")"
+fi
+
+# Fallback: if the requested pool exists relative to the current directory.
+if [ -z "$path" ] && [ -d "$pool" ]; then
     path="$(realpath "$pool")"
 fi
 
-acum="."
+# Legacy fallback: walk upward looking for an anchored pool directory.
+if [ -z "$path" ]; then
+    acum="."
 
-while [ $(realpath "$acum/..") != "/" ]; do
-    acum="$acum/.."
+    while [ "$(realpath "$acum/..")" != "/" ]; do
+        acum="$acum/.."
 
-    if [ -d "$acum/$pool" ]; then
-        path="$(realpath "$acum/$pool")"
+        if [ -d "$acum/$pool" ]; then
+            candidate="$(realpath "$acum/$pool")"
 
-        if [ -f "$path/.anchor" ]; then
-            break
+            if [ -f "$candidate/.anchor" ]; then
+                path="$candidate"
+                break
+            fi
         fi
-    fi
-done
+    done
+fi
+
+if [ -z "$path" ]; then
+    echo "shuttle_to.sh: could not locate staging pool: $pool" >&2
+    echo "shuttle_to.sh: NewAge=${NewAge:-<unset>}" >&2
+    exit 1
+fi
+
+cd "$path"
 
 #echo "$path"
 cd "$path"
