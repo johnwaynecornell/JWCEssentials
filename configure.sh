@@ -95,13 +95,47 @@ to_windows_path() {
 canonical_path() {
     local path="$1"
 
-    if is_windows_shell && command -v cygpath >/dev/null 2>&1; then
-        cygpath -am "$path"
+    # Resolve existing directories through the filesystem first.
+    # This lets symlinks/junctions collapse to their target when the shell can
+    # resolve them.
+    if [ -d "$path" ]; then
+        local resolved
+        resolved="$(cd "$path" && pwd -P)"
+
+        if is_windows_shell && command -v cygpath >/dev/null 2>&1; then
+            cygpath -am "$resolved"
+        else
+            printf '%s\n' "$resolved"
+        fi
+
         return
     fi
 
-    if [ -d "$path" ]; then
-        (cd "$path" && pwd -P)
+    # Resolve existing files by resolving their containing directory.
+    if [ -f "$path" ] || [ -L "$path" ]; then
+        local dir
+        local base
+        local resolved_dir
+
+        dir="$(dirname "$path")"
+        base="$(basename "$path")"
+
+        if [ -d "$dir" ]; then
+            resolved_dir="$(cd "$dir" && pwd -P)"
+
+            if is_windows_shell && command -v cygpath >/dev/null 2>&1; then
+                cygpath -am "$resolved_dir/$base"
+            else
+                printf '%s/%s\n' "$resolved_dir" "$base"
+            fi
+
+            return
+        fi
+    fi
+
+    # For paths that do not exist yet, normalize spelling only.
+    if is_windows_shell && command -v cygpath >/dev/null 2>&1; then
+        cygpath -am "$path"
         return
     fi
 
