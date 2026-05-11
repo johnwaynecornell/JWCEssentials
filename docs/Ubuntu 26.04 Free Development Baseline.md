@@ -91,6 +91,33 @@ gh auth status
 
 This keeps the reusable **Ubuntu 26.04 - Dev tools** image free of user credentials.
 
+## Install optional development GUI
+
+```
+sudo apt update
+sudo apt install -y wget gpg apt-transport-https
+
+wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg
+sudo install -D -o root -g root -m 644 packages.microsoft.gpg /etc/apt/keyrings/packages.microsoft.gpg
+rm packages.microsoft.gpg
+
+echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main" |
+  sudo tee /etc/apt/sources.list.d/vscode.list >/dev/null
+
+sudo apt update
+sudo apt install -y code
+
+#Then install the useful extensions without signing in:
+
+code --install-extension ms-vscode.cpptools
+code --install-extension ms-vscode.cmake-tools
+code --install-extension ms-dotnettools.csharp
+code --install-extension ms-dotnettools.csdevkit
+code --install-extension GitHub.vscode-github-actions
+
+
+```
+
 ## NewAge Workspace Quickstart
 
 The following sequence was validated on a fresh Ubuntu 26.04 repo-test VM.
@@ -125,6 +152,34 @@ export LD_LIBRARY_PATH="$NewAge/lib/Debug/Linux/x86_64/gcc:${LD_LIBRARY_PATH:-}"
 ```
 
 After editing `~/.profile`, restart the desktop session or open a fresh login shell before testing builds that depend on the updated environment.
+
+## Linux Runtime Library Path
+
+Native executables and managed projects that load native libraries need the staged native library lane to be visible to the Linux dynamic loader.
+
+For terminal-only testing, `LD_LIBRARY_PATH` is sufficient:
+
+```
+export LD_LIBRARY_PATH="$NewAge/lib/Debug/Linux/x86_64/gcc:${LD_LIBRARY_PATH:-}"
+```
+
+For IDEs and desktop-launched tools, a system loader configuration is often more reliable:
+
+```
+sudo tee /etc/ld.so.conf.d/newage.conf >/dev/null <<EOF
+$HOME/NewAge/lib/Debug/Linux/x86_64/gcc
+EOF
+
+sudo ldconfig
+```
+
+Verify that the staged library is visible:
+
+```
+ldconfig -p | grep JWCEssentials
+```
+
+If switching native lanes, such as from `gcc` to `clang`, update `/etc/ld.so.conf.d/newage.conf` and rerun `sudo ldconfig`.
 
 ## Native Build Verification
 
