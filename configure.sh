@@ -451,10 +451,13 @@ fi
     local staged_bin="\$NewAge/bin/$config/$os_name/$arch/$toolchain"
     local staged_lib="\$NewAge/lib/$config/$os_name/$arch/$toolchain"
 
+    local eof="EOF"
+
    cat <<EOF
 
    Runtime path advice for this shell session:
 
+     export NewAge="$NewAge"
      export PATH="\$PATH:\$NewAge/bin"
      export PATH="\$PATH:$staged_bin"
      export LD_LIBRARY_PATH="$staged_lib:\${LD_LIBRARY_PATH:-}"
@@ -471,6 +474,15 @@ fi
      export NEWAGE_NATIVE_TOOLCHAIN=clang
      export PATH="\$PATH:\$NewAge/bin/$config/$os_name/$arch/clang"
      export LD_LIBRARY_PATH="\$NewAge/lib/$config/$os_name/$arch/clang:\${LD_LIBRARY_PATH:-}"
+
+   For use on a development system this helps find native libraries as oposed to a deployment
+   where native/managed live side by side
+        
+    sudo tee /etc/ld.so.conf.d/newage.conf >/dev/null <<EOF
+    $NewAge/lib/$config/$os_name/$arch/$toolchain
+$eof
+
+    sudo ldconfig
 
 EOF
 }

@@ -123,7 +123,7 @@ else()
     set(PTH "Release")
 endif()
 
-newage_native_lane_for_target(split_arg, PTH)
+newage_native_lane_for_target(split_arg PTH)
 
 add_custom_command(TARGET split_arg POST_BUILD
         COMMAND bash verbose.sh shuttle_to.sh bin "$<TARGET_FILE_DIR:split_arg>" "split_arg" "${PTH}" "$<TARGET_FILE:split_arg>"
