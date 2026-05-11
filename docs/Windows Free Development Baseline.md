@@ -118,6 +118,38 @@ Verify from a new terminal:
 
 After setting environment variables such as `NewAge` and `Path`, restart PowerShell, Git Bash, VS Code, and any build terminals before testing.
 
+## Native Build Verification
+
+From the JWCEssentials repository root:
+
+```
+cd "$NewAge/JWCEssentials"
+
+cmake CMakeLists.txt
+cmake --build .
+```
+
+A successful native pass should build JWCEssentials and stage native artifacts into the configured native lane.
+
+```
+$NewAge/bin/Debug/Windows/AMD64/msvc
+$NewAge/lib/Debug/Debug/Windows/AMD64/msvc
+```
+
+## Managed Build Verification
+
+From the JWCEssentials repository root:
+
+```
+dotnet build Project/JWCEssentials.net/
+```
+
+Run the managed test output:
+
+```
+Project/JWCEssentials.net/test/bin/Debug/net10.0/test
+```
+
 ## Verification Commands
 
 ```
