@@ -353,7 +353,7 @@ fi
 
 # Bootstrap source before $NewAge/JWCEssentials exists.
 NEWAGE_CONFIGURE_SCOPE="JWCEssentials configure"
-. "$NewAge/JWCEssentials/Dev/NewAge.dev.sh"
+. "$REPO_ROOT/JWCEssentials/Dev/NewAge.dev.sh"
 
 NewAge="$(newage_to_unix_path "$NewAge")"
 export NewAge
@@ -394,7 +394,7 @@ for script in "$REPO_ROOT"/Bash/*; do
 done
 
 if ! newage_is_windows_shell; then
-        newage_install_script_to_swatination "$REPO_ROOT/cygpath.sh.linux" "$NewAge/bin/cygpath"
+        newage_install_script_to_destination "$REPO_ROOT/cygpath.sh.linux" "$NewAge/bin/cygpath"
 fi
 
 
