@@ -370,7 +370,7 @@ fi
 
 # Bootstrap source before $NewAge/JWCEssentials exists.
 NEWAGE_CONFIGURE_SCOPE="JWCEssentials configure"
-. "$REPO_ROOT/JWCEssentials/Dev/NewAge.dev.sh"
+. "$REPO_ROOT/Dev/NewAge.dev.sh"
 
 NewAge="$(newage_to_unix_path "$NewAge")"
 export NewAge
@@ -380,12 +380,6 @@ EXPECTED_REPO_ROOT="$NewAge/$REPO_REL_PATH"
 newage_log "Repository root: $REPO_ROOT"
 newage_log "NewAge workspace: $NewAge"
 newage_log "Expected repo root: $EXPECTED_REPO_ROOT"
-
-if ! newage_same_path "$REPO_ROOT" "$EXPECTED_REPO_ROOT"; then
-        newage_warn "Repository is not at NewAge expected workspace path \"$EXPECTED_REPO_ROOT\"."
-        newage_warn "You have 10 seconds to break (ctrl-c). Otherwise links will be created"
-        sleep 10s
-fi
 
 require_tool bash
 
