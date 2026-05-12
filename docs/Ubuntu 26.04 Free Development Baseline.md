@@ -166,10 +166,7 @@ export LD_LIBRARY_PATH="$NewAge/lib/Debug/Linux/x86_64/gcc:${LD_LIBRARY_PATH:-}"
 For IDEs and desktop-launched tools, a system loader configuration is often more reliable:
 
 ```
-sudo tee /etc/ld.so.conf.d/newage.conf >/dev/null <<EOF
-$HOME/NewAge/lib/Debug/Linux/x86_64/gcc
-EOF
-
+sudo bash -c "echo \"$NewAge/lib/Debug/Linux/x86_64/gcc\" > /etc/ld.so.conf.d/newage.conf"    
 sudo ldconfig
 ```
 
