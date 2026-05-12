@@ -282,7 +282,30 @@ newage_register_repo_root() {
         return 1
     fi
 
-    newage_warn "Repository is not physically located at expected workspace path."
-    newage_warn "Attempting registration: $expected_repo_root -> $repo_root"
+    newage_warn "Repository is not physically located at expected NewAge workspace path."
+    newage_warn "  expected: $expected_repo_root"
+    newage_warn "  actual:   $repo_root"
+
+    if [ "${NEWAGE_REGISTER_REPO_ROOT:-0}" != "1" ]; then
+        newage_fail "Detached repo-root registration requires explicit opt-in with --register-repo-root.
+
+Preferred option:
+  clone this repository directly at:
+    $expected_repo_root
+
+Intentional detached checkout option:
+  rerun configure with:
+    ./configure.sh --register-repo-root
+
+What this does:
+  creates a live workspace registration:
+    $expected_repo_root -> $repo_root"
+        return 1
+    fi
+
+    newage_warn "Explicit opt-in received."
+    newage_warn "Creating live workspace registration:"
+    newage_warn "  $expected_repo_root -> $repo_root"
+
     newage_register_directory "$repo_root" "$expected_repo_root" required
 }

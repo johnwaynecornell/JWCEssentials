@@ -307,6 +307,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$SCRIPT_DIR"
 REPO_REL_PATH="JWCEssentials"
 
+REGISTER_REPO_ROOT="0"
 NEWAGE_ARG=""
 
 while [ "$#" -gt 0 ]; do
@@ -316,8 +317,23 @@ while [ "$#" -gt 0 ]; do
             [ "$#" -gt 0 ] || { echo "--newage requires a path" >&2; exit 1; }
             NEWAGE_ARG="$1"
             ;;
+        --register-repo-root)
+            REGISTER_REPO_ROOT="1"
+            ;;
         -h|--help)
-            echo "Usage: ./configure.sh [--newage PATH]"
+            cat <<EOF
+Usage:
+  ./configure.sh [--newage PATH] [--register-repo-root]
+
+Options:
+  --newage PATH
+      Use PATH as the NewAge workspace for this configure run.
+
+  --register-repo-root
+      Allow configure to create a live registration from:
+        \$NewAge/JWCEssentials
+      to this checkout when this checkout is not physically located there.
+EOF
             exit 0
             ;;
         *)
@@ -332,6 +348,7 @@ if [ -n "$NEWAGE_ARG" ]; then
     export NewAge="$NEWAGE_ARG"
 fi
 
+export NEWAGE_REGISTER_REPO_ROOT="$REGISTER_REPO_ROOT"
 if [ -z "${NewAge:-}" ]; then
     cat >&2 <<'EOF'
 [JWCEssentials configure] ERROR: NewAge is not set.
@@ -363,6 +380,12 @@ EXPECTED_REPO_ROOT="$NewAge/$REPO_REL_PATH"
 newage_log "Repository root: $REPO_ROOT"
 newage_log "NewAge workspace: $NewAge"
 newage_log "Expected repo root: $EXPECTED_REPO_ROOT"
+
+if ! newage_same_path "$REPO_ROOT" "$EXPECTED_REPO_ROOT"; then
+        newage_warn "Repository is not at NewAge expected workspace path \"$EXPECTED_REPO_ROOT\"."
+        newage_warn "You have 10 seconds to break (ctrl-c). Otherwise links will be created"
+        sleep 10s
+fi
 
 require_tool bash
 
@@ -396,29 +419,6 @@ done
 if ! newage_is_windows_shell; then
         newage_install_script_to_destination "$REPO_ROOT/cygpath.sh.linux" "$NewAge/bin/cygpath"
 fi
-
-
-path_contains_dir() {
-    local needle="$1"
-    local needle_canon
-
-    needle_canon="$(newage_canonical_path "$needle")"
-
-    IFS=':' read -r -a path_parts <<< "${PATH:-}"
-
-    local part
-    for part in "${path_parts[@]}"; do
-        [ -z "$part" ] && continue
-
-        if [ -d "$part" ]; then
-            if [ "$(newage_canonical_path "$part")" = "$needle_canon" ]; then
-                return 0
-            fi
-        fi
-    done
-
-    return 1
-}
 
 warn_if_newage_bin_not_on_path
 print_runtime_lane_path_advice
