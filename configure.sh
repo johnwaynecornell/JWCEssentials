@@ -56,6 +56,32 @@ Examples:
 EOF
 }
 
+install_newage_root_context_wrapper() {
+    local wrapper="$NewAge/in_this_context.sh"
+
+    cat > "$wrapper" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+NEWAGE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -L)"
+export NewAge="$NEWAGE_ROOT"
+
+RUNNER="$NewAge/JWCEssentials/Dev/in_this_context.sh"
+
+if [ ! -x "$RUNNER" ]; then
+    echo "[in_this_context] ERROR: Expected runner not found or not executable:" >&2
+    echo "[in_this_context]   $RUNNER" >&2
+    echo "[in_this_context] Run JWCEssentials/configure.sh first." >&2
+    exit 1
+fi
+
+exec "$RUNNER" "$@"
+EOF
+
+    chmod +x "$wrapper"
+    newage_log "Installed root context wrapper: $wrapper"
+}
+
 ensure_new_age() {
     if [ -z "${NewAge:-}" ]; then
         newage_fail "NewAge is not set.
@@ -88,6 +114,8 @@ Set NewAge to the shared workspace root, for example:
     touch "$NewAge/bin/.anchor"
     touch "$NewAge/lib/.anchor"
     touch "$NewAge/DotNet/Libs/lib/.anchor"
+
+    install_newage_root_context_wrapper
 
     return 0
 }
