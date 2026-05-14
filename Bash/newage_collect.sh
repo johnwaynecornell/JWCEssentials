@@ -129,7 +129,7 @@ install_newage_root_context_wrapper_from_source() {
     cp "$source" "$wrapper"
     chmod +x "$wrapper"
 
-    newage_log "Installed root context wrapper: $wrapper"
+    log "Installed root context wrapper: $wrapper"
 }
 
 ensure_package_newage_shape() {
