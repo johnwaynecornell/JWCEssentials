@@ -1,0 +1,107 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+NEWAGE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -L)"
+export NewAge="$NEWAGE_ROOT"
+cd $NewAge
+
+usage() {
+    cat <<EOF
+Usage:
+  ./in_this_context.sh CONTEXT -- COMMAND [ARG...]
+
+Context:
+  NewAge, Base
+      Use the base NewAge package/workspace environment.
+
+  Debug
+      Use the Debug native lane.
+
+  Release
+      Use the Release native lane.
+
+Examples:
+  ./in_this_context.sh NewAge -- bash -c 'echo "$NewAge"'
+
+  ./in_this_context.sh Debug -- bash -c 'echo "$PATH"'
+
+  ./in_this_context.sh Debug -- dotnet JWCCommandSpawn/Project/JWCCommandSpawn.net/TestCommandSpawn/bin/Debug/net10.0/TestCommandSpawn.dll
+EOF
+}
+
+newage_is_windows_shell() {
+    case "$(uname -s)" in
+        CYGWIN*|MINGW*|MSYS*) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+newage_lane_for_context() {
+    local context="$1"
+
+    case "$context" in
+        NewAge|newage|Base|base)
+            printf '%s\n' ""
+            ;;
+
+        Debug|debug)
+            if newage_is_windows_shell; then
+                printf '%s\n' "Debug/Windows/AMD64/msvc"
+            else
+                printf '%s\n' "Debug/Linux/x86_64/gcc"
+            fi
+            ;;
+
+        Release|release)
+            if newage_is_windows_shell; then
+                printf '%s\n' "Release/Windows/AMD64/msvc"
+            else
+                printf '%s\n' "Release/Linux/x86_64/gcc"
+            fi
+            ;;
+
+        *)
+            echo "[in_this_context] ERROR: Unknown context: $context" >&2
+            usage >&2
+            exit 1
+            ;;
+    esac
+}
+
+if [ "$#" -eq 0 ]; then
+    usage >&2
+    exit 1
+fi
+
+CONTEXT="$1"
+shift
+
+if [ "${1:-}" != "--" ]; then
+    echo "[in_this_context] ERROR: Expected -- after context." >&2
+    usage >&2
+    exit 1
+fi
+
+shift
+
+if [ "$#" -eq 0 ]; then
+    echo "[in_this_context] ERROR: COMMAND is required after --." >&2
+    usage >&2
+    exit 1
+fi
+
+lane="$(newage_lane_for_context "$CONTEXT")"
+
+export PATH="$NewAge/bin:$PATH"
+
+if [ -n "$lane" ]; then
+    export PATH="$NewAge/bin/$lane:$PATH"
+
+    if newage_is_windows_shell; then
+        export PATH="$NewAge/lib/$lane:$PATH"
+    else
+        export LD_LIBRARY_PATH="$NewAge/lib/$lane:${LD_LIBRARY_PATH:-}"
+    fi
+fi
+
+exec "$@"
