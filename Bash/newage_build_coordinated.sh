@@ -129,18 +129,8 @@ if [ -f "Dev/build_coordinated.sh" ]; then
   exit $?
 fi
 
-for config in "${BUILD_CONFIGS[@]}"; do
-    echo
-    echo "[newage_build_coordinated] Building configuration: $config"
-    echo
-
-    set_lane_environment "$config"
-    
-    cd "$NewAge/$REPO_DIR"
-
-    Dev/build_native.sh "$config" "${EXTRA_ARGS[@]}"
-    Dev/build_managed.sh "$config" "${EXTRA_ARGS[@]}"
-done
+verbose.sh "newage_build_native.sh" "$REPO_DIR" "${BUILD_MODE}" "${EXTRA_ARGS[@]}"
+verbose.sh "newage_build_managed.sh" "$REPO_DIR" "${BUILD_MODE}" "${EXTRA_ARGS[@]}"
 
 echo
 echo "[newage_build_coordinated] Complete."

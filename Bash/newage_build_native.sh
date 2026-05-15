@@ -129,8 +129,13 @@ for config in "${BUILD_CONFIGS[@]}"; do
     EXTRA_ARGS=()
     [ "$FRESH" = "1" ] && EXTRA_ARGS+=(--fresh)
     [ "$CLEAN" = "1" ] && EXTRA_ARGS+=(--clean)
-    
-    Dev/build_native.sh "$config" "${EXTRA_ARGS[@]}"
+
+    if [ -f "Dev/build_native.sh" ]; then
+      Dev/build_native.sh "$config" "${EXTRA_ARGS[@]}"
+    else
+      echo $REPO_DIR has no build_native
+    fi
+
 done
 
 echo

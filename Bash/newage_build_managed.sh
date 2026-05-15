@@ -133,7 +133,11 @@ for config in "${BUILD_CONFIGS[@]}"; do
     [ "$FRESH" = "1" ] && EXTRA_ARGS+=(--fresh)
     [ "$CLEAN" = "1" ] && EXTRA_ARGS+=(--clean)
 
-    Dev/build_managed.sh "$config" "${EXTRA_ARGS[@]}"
+    if [ -f "Dev/build_managed.sh" ]; then
+      Dev/build_managed.sh "$config" "${EXTRA_ARGS[@]}"
+    else
+      echo $REPO_DIR has no build_managed
+    fi
 done
 
 echo
