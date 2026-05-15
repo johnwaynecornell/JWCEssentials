@@ -10,7 +10,35 @@
 #
 # This file should not exit the shell directly unless a caller explicitly wants
 # fail-fast behavior through helper functions.
+#
 
+# NewAge workspace/package doctrine
+#
+# Development workspace:
+#   A NewAge workspace is an enter-able dependency supplier for NewAge-family
+#   repositories. JWCEssentials owns the bootstrap helpers and establishes the
+#   workspace floor.
+#
+# Package root:
+#   A collected package may use the same NewAge-shaped layout without being a
+#   Git checkout. It should be enter-able through in_this_context.sh and should
+#   resolve native dependencies from its own staged lanes before any system
+#   loader configuration.
+#
+# Native lanes:
+#   Native artifacts are staged by:
+#
+#     bin/<Config>/<OS>/<Arch>/<Toolchain>
+#     lib/<Config>/<OS>/<Arch>/<Toolchain>
+#
+# Managed outputs:
+#   Managed project outputs preserve repo-relative project paths inside the
+#   package root to avoid collisions.
+#
+# Application wrappers:
+#   App-specific launchers such as main.sh/main.bat are optional and should be
+#   generated only when an application needs a front door. The package root
+#   itself is a substrate, not necessarily the final app shape.
 newage_log() {
     local scope="${NEWAGE_CONFIGURE_SCOPE:-NewAge}"
     printf '[%s] %s\n' "$scope" "$*"
