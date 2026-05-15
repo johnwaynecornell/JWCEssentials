@@ -137,8 +137,6 @@ newage_same_path() {
     [ "$(newage_canonical_path "$1")" = "$(newage_canonical_path "$2")" ]
 }
 
-
-
 newage_add_repo_entry() {
     local rel_path="$1"
     local list_file="$NewAge/NewAgeRepo.lst"
@@ -336,4 +334,18 @@ What this does:
     newage_warn "  $expected_repo_root -> $repo_root"
 
     newage_register_directory "$repo_root" "$expected_repo_root" required
+}
+
+set_lane_environment() {
+    local config="$1"
+
+    if newage_is_windows_shell; then
+        lane="$config/Windows/AMD64/msvc"
+        export PATH="$NewAge/lib/$lane:$PATH"
+    else
+        lane="$config/Linux/x86_64/gcc"
+        export LD_LIBRARY_PATH="$NewAge/lib/$lane:${LD_LIBRARY_PATH:-}"
+    fi
+
+    export PATH="$NewAge/bin/$lane:$NewAge/bin:$PATH"
 }
