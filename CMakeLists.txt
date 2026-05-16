@@ -17,6 +17,8 @@ project(JWCEssentials)
 
 include( "${CMAKE_SOURCE_DIR}/include/JWCEssentials/JWCEssentials.cmake")
 
+add_executable(split_arg src/Utils/split_arg.cpp)
+
 if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
     add_library(JWCEssentials SHARED
             include/JWCEssentials/JWCEssentials.h
@@ -101,7 +103,6 @@ target_link_libraries(test PUBLIC JWCEssentials)
 
 add_executable(feffect src/Utils/feffect.cpp)
 add_executable(rand_identifier src/Utils/rand_identifier.cpp)
-add_executable(split_arg src/Utils/split_arg.cpp)
 
 target_link_libraries(feffect PUBLIC JWCEssentials)
 target_link_libraries(rand_identifier PUBLIC JWCEssentials)

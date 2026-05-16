@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# This shell file is installed to the root of a collected workspace.
+#   so that the result of newage_collect.sh is enterable as a supplier
+#   of NewAge dependancies
+
 NEWAGE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -L)"
 export NewAge="$NEWAGE_ROOT"
 cd $NewAge
