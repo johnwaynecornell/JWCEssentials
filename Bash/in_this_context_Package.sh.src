@@ -27,7 +27,9 @@ Context:
 Examples:
   ./in_this_context.sh NewAge -- bash -c 'echo "$NewAge"'
 
-  ./in_this_context.sh Debug -- bash -c 'echo "\$(pwd)"'
+  ./in_this_context.sh Debug -- bash -c 'echo "$(pwd)"'
+
+  ./in_this_context.sh Debug -- bash -c 'echo "$PATH"'
 
   ./in_this_context.sh Debug -- dotnet JWCCommandSpawn/Project/JWCCommandSpawn.net/TestCommandSpawn/bin/Debug/net10.0/TestCommandSpawn.dll
 EOF
