@@ -71,6 +71,8 @@ if [ ! -e "$DESTINATION" ]; then
     git clone "$GIT_URL" "$DESTINATION"
     echo "[newage_get] Switching to branch $BRANCH..."
     git -C "$DESTINATION" switch "$BRANCH" || git -C "$DESTINATION" checkout -b "$BRANCH" "origin/$BRANCH" 2>/dev/null || git -C "$DESTINATION" checkout "$BRANCH"
+    echo "$REPO_NAME" >> "$NewAge/NewAgeRepo.lst"
+    newage_add_repo_entry "$REPO_NAME"
 elif [ -d "$DESTINATION/.git" ]; then
     echo "[newage_get] Destination exists and is a git repo. Updating..."
     git -C "$DESTINATION" fetch origin
