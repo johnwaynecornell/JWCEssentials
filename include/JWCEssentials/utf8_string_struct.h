@@ -53,6 +53,11 @@ namespace JWCEssentials {
 
         _CLASSEXPORT_ utf8_string_struct &operator=(utf8_string_struct &other);
 
+        explicit operator std::string() const {
+            // Constructs a std::string from the internal char pointer and length
+
+            return std::string(c_str, length);
+        }
         _CLASSEXPORT_ utf8_string_struct &operator=(utf8_string_struct &&other) noexcept;
 
         _CLASSEXPORT_ utf8_string_struct &operator=(const char *c_str);
@@ -72,5 +77,8 @@ namespace JWCEssentials {
 }
 
 _CLASSEXPORT_ JWCEssentials::utf8_string_struct operator+(const JWCEssentials::utf8_string_struct &A, const JWCEssentials::utf8_string_struct &B);
+
+
+
 
 #endif //UTF8_STRING_HANDLE_H
