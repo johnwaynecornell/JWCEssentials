@@ -112,7 +112,7 @@ esac
 
 if [ ! -f "$NewAge/JWCEssentials/Dev/NewAge.dev.sh" ]; then
   echo "Expected run from NewAge workspace root" >&2
-  return 1
+  exit 1
 fi
 
 . $NewAge/JWCEssentials/Dev/NewAge.dev.sh

@@ -115,7 +115,7 @@ esac
 
 if [ ! -f "$NewAge/JWCEssentials/Dev/NewAge.dev.sh" ]; then
   echo "Expected run from NewAge workspace root" >&2
-  return 1
+  exit 1
 fi
 
 . $NewAge/JWCEssentials/Dev/NewAge.dev.sh
@@ -134,9 +134,9 @@ for config in "${BUILD_CONFIGS[@]}"; do
     [ "$CLEAN" = "1" ] && EXTRA_ARGS+=(--clean)
 
     if [ -f "Dev/build_managed.sh" ]; then
-      Dev/build_managed.sh "$config" "${EXTRA_ARGS[@]}"
+      verbose.sh "Dev/build_managed.sh" "$config" "${EXTRA_ARGS[@]}"
     else
-      echo $REPO_DIR has no build_managed
+      echo "[newage_build_managed] Skip: $REPO_DIR (no Dev/build_managed.sh)"
     fi
 done
 
