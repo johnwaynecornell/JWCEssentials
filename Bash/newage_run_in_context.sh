@@ -168,4 +168,12 @@ if [ -n "$lane" ]; then
     fi
 fi
 
+# Ensure a command was actually passed after the directory
+if [ $# -eq 0 ]; then
+    echo "[$NEWAGE_CONFIGURE_SCOPE] ERROR: No command provided to execute" >&2
+    exit 1
+fi
+
+exec "$@"
+
 exec "$@"

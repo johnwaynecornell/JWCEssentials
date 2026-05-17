@@ -9,6 +9,12 @@ supports_color() {
     fi
 }
 
+# Ensure a command was actually passed after the directory
+if [ $# -eq 0 ]; then
+    echo "[verbose.sh] ERROR: No command provided to execute" >&2
+    exit 1
+fi
+
 if supports_color; then
     if [ -z "${COLOR_GREEN+x}" ]; then
         # Try to find colors.sh relative to the script
