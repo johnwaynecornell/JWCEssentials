@@ -50,7 +50,7 @@ newage_repo_list.sh [REPO_LIST_FILE]
 ```
 
 *   **Usage**: Can be used to filter `newage_dep_sort.sh` output or run independently.
-*   **Example**: `newage_repo_list.sh | xargs -I{} in_dir.sh "{}" git pull`
+*   **Example**: `newage_repo_list.sh | xargs -I{} in_dir.sh "$NewAge/{}" git pull`
 
 ## Orchestration Commands
 
