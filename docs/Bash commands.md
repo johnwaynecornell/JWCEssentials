@@ -41,6 +41,17 @@ newage_get_deps.sh [REPO_LIST_FILE]
 
 *   **Logic**: Uses `newage_dep_sort.sh` to find dependencies and `newage_get.sh` to acquire them.
 
+### newage_repo_list.sh
+
+Lists all repository relative paths (names) in the workspace in dependency order.
+
+```bash
+newage_repo_list.sh [REPO_LIST_FILE]
+```
+
+*   **Usage**: Can be used to filter `newage_dep_sort.sh` output or run independently.
+*   **Example**: `newage_repo_list.sh | xargs -I{} in_dir.sh "{}" git pull`
+
 ## Orchestration Commands
 
 ### newage_all_configure.sh
