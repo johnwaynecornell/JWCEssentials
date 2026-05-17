@@ -121,7 +121,7 @@ install_newage_root_context_wrapper_from_source() {
     local wrapper="$root/in_this_context.sh"
 
     if [ ! -f "$source" ]; then
-        newage_fail "Missing context wrapper source: $source"
+        fail "Missing context wrapper source: $source"
         return 1
     fi
 

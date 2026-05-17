@@ -41,10 +41,10 @@ while IFS= read -r record || [ -n "$record" ]; do
     if [ -f "$CONFIG_SCRIPT" ]; then
         echo "[newage_all_configure] Configuring $REPO_NAME..."
         if [ -x "$CONFIG_SCRIPT" ]; then
-            "$CONFIG_SCRIPT" --newage "$NewAge"
+            "$CONFIG_SCRIPT" --newage "$NewAge" || exit 1
         else
             echo "[newage_all_configure] WARNING: $CONFIG_SCRIPT is not executable. Running via bash."
-            bash "$CONFIG_SCRIPT" --newage "$NewAge"
+            bash "$CONFIG_SCRIPT" --newage "$NewAge" || exit 1
         fi
     else
         echo "[newage_all_configure] Skipping $REPO_NAME (no configure.sh found)"

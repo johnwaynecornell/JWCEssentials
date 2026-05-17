@@ -51,7 +51,7 @@ while IFS= read -r record || [ -n "$record" ]; do
     
     if [ -n "$GIT_URL" ]; then
         echo "[newage_get_deps] Processing $REPO_NAME..."
-        bash "$GET_REPO" "$record"
+        bash "$GET_REPO" "$record" || exit 1
     else
         echo "[newage_get_deps] Skipping $REPO_NAME (no GitUrl provided in record)"
     fi

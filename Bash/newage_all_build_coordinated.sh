@@ -42,7 +42,7 @@ while IFS= read -r record || [ -n "$record" ]; do
     
     if [ -f "$BUILD_SCRIPT" ]; then
         echo "[newage_all_build_coordinated] Building $REPO_NAME..."
-        bash "$BUILD_SCRIPT" "$REPO_NAME" "$@"
+        bash "$BUILD_SCRIPT" "$REPO_NAME" "$@" || exit 1
     else
         echo "[newage_all_build_coordinated] Skipping $REPO_NAME (no Bash/newage_build_coordinated.sh found)"
     fi
