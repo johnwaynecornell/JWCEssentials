@@ -90,10 +90,20 @@ if [ -z "$REPO_DIR" ]; then
 fi
 
 if [ -z "$BUILD_MODE" ]; then
-    if [ -n "${NewAge_Lane:-}" ]; then
-        # Infer from NewAge_Lane (Config/OS/Arch/Toolchain)
-        BUILD_MODE="${NewAge_Lane%%/*}"
-        echo "[newage_build_coordinated] Inferred BUILD_MODE from NewAge_Lane: $BUILD_MODE"
+    if [ -n "${NewAge_Config:-}" ]; then
+        BUILD_MODE="$NewAge_Config"
+        echo "[newage_build_coordinated] Inferred BUILD_MODE from NewAge_Config: $BUILD_MODE"
+    elif [ -n "${NewAge_Lane:-}" ]; then
+        # Check if NewAge_Lane still contains config (legacy)
+        case "${NewAge_Lane%%/*}" in
+            Debug|debug|Release|release)
+                BUILD_MODE="${NewAge_Lane%%/*}"
+                echo "[newage_build_coordinated] Inferred BUILD_MODE from legacy NewAge_Lane: $BUILD_MODE"
+                ;;
+            *)
+                BUILD_MODE="Debug"
+                ;;
+        esac
     else
         BUILD_MODE="Debug"
     fi

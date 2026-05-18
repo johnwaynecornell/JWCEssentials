@@ -196,16 +196,14 @@ require_tool() {
 
 print_runtime_lane_path_advice() {
     local config="${NEWAGE_CONFIG:-Debug}"
-    local os_name="${NEWAGE_OS:-$(newage_detect_os)}"
-    local arch="${NEWAGE_ARCH:-$(newage_detect_arch)}"
-    local toolchain="${NEWAGE_NATIVE_TOOLCHAIN:-$(newage_detect_toolchain)}"
+    local platform_lane
+    platform_lane="$(newage_resolve_platform_lane "${NEWAGE_NATIVE_TOOLCHAIN:-}")"
 
-    local lane
-    lane="$(newage_resolve_lane "$config" "$toolchain")"
+    local full_lane="$config/$platform_lane"
 
     if newage_is_windows_shell; then
-    local staged_bin="$NewAge/bin/$lane"
-    local staged_lib="$NewAge/lib/$lane"
+    local staged_bin="$NewAge/bin/$full_lane"
+    local staged_lib="$NewAge/lib/$full_lane"
 
     local newage_win
     local newage_bin_win
@@ -224,12 +222,13 @@ Runtime path advice for Windows:
 Recommended: Use the context wrapper to enter a lane environment:
 
   cd "$NewAge"
-  ./in_this_context.sh $config $toolchain -- bash
+  ./in_this_context.sh $config $platform_lane -- bash
 
 Alternatively, for the current Git Bash shell session:
 
   export NewAge="$NewAge"
-  export NewAge_Lane="$lane"
+  export NewAge_Config="$config"
+  export NewAge_Lane="$platform_lane"
   export PATH="\$PATH:$NewAge/bin"
   export PATH="\$PATH:$staged_bin"
   export PATH="\$PATH:$staged_lib"
@@ -237,7 +236,8 @@ Alternatively, for the current Git Bash shell session:
 PowerShell, current shell session:
 
   \$env:NewAge = "$newage_win"
-  \$env:NewAge_Lane = "$lane"
+  \$env:NewAge_Config = "$config"
+  \$env:NewAge_Lane = "$platform_lane"
   \$env:Path += ";$newage_bin_win"
   \$env:Path += ";$staged_bin_win"
   \$env:Path += ";$staged_lib_win"
@@ -245,6 +245,8 @@ PowerShell, current shell session:
 PowerShell, persist for the current user:
 
   [Environment]::SetEnvironmentVariable("NewAge", "$newage_win", "User")
+  [Environment]::SetEnvironmentVariable("NewAge_Config", "$config", "User")
+  [Environment]::SetEnvironmentVariable("NewAge_Lane", "$platform_lane", "User")
 
   \$userPath = [Environment]::GetEnvironmentVariable("Path", "User")
   \$add = @(
@@ -266,7 +268,7 @@ Windows note:
   so dependent DLLs such as JWCEssentials.dll can be found at runtime.
 
 Expected Windows native lane:
-  $config/$os_name/$arch/$toolchain
+  $full_lane
 
 After changing the persistent user environment:
   restart PowerShell, Git Bash, VS Code, Visual Studio, Rider, CLion, or any
@@ -276,8 +278,8 @@ EOF
     return
 fi
 
-    local staged_bin="$NewAge/bin/$lane"
-    local staged_lib="$NewAge/lib/$lane"
+    local staged_bin="$NewAge/bin/$full_lane"
+    local staged_lib="$NewAge/lib/$full_lane"
 
    cat <<EOF
 
@@ -286,12 +288,13 @@ fi
    Recommended: Use the context wrapper to enter a lane environment:
 
      cd "$NewAge"
-     ./in_this_context.sh $config $toolchain -- bash
+     ./in_this_context.sh $config $platform_lane -- bash
 
    Alternatively, for this shell session:
 
      export NewAge="$NewAge"
-     export NewAge_Lane="$lane"
+     export NewAge_Config="$config"
+     export NewAge_Lane="$platform_lane"
      export PATH="\$PATH:\$NewAge/bin"
      export PATH="\$PATH:$staged_bin"
      export LD_LIBRARY_PATH="$staged_lib:\${LD_LIBRARY_PATH:-}"
@@ -301,7 +304,7 @@ fi
      LD_LIBRARY_PATH lets the dynamic loader find staged shared libraries.
 
    Expected Linux native lane:
-     $lane
+     $full_lane
 
    If building with clang instead of gcc:
 
@@ -310,7 +313,7 @@ fi
    For use on a development system this helps find native libraries as oposed to a deployment
    where native/managed live side by side
 
-    sudo bash -c "echo \"$NewAge/lib/$config/$os_name/$arch/$toolchain\" > /etc/ld.so.conf.d/newage.conf"
+    sudo bash -c "echo \"$NewAge/lib/$full_lane\" > /etc/ld.so.conf.d/newage.conf"
 
     sudo ldconfig
     #varying by system this may need to be called after native builds within this system

@@ -166,25 +166,30 @@ newage_detect_toolchain() {
     echo "gcc"
 }
 
-newage_resolve_lane() {
-    local input_1="${1:-}"
-    local input_2="${2:-}"
+newage_resolve_platform_lane() {
+    local input="${1:-}"
 
-    # If input_1 contains slashes, assume it is a full or partial lane starting from Config
-    if [[ "$input_1" == */* ]]; then
-        echo "$input_1"
-        return
+    # Normalize backslashes to forward slashes for cross-platform consistency
+    input="${input//\\//}"
+
+    # If input contains slashes, check if it is a full lane (starts with Config)
+    # or just a platform lane.
+    if [[ "$input" == */* ]]; then
+        case "${input%%/*}" in
+            Debug|debug|Release|release)
+                # It's a full lane, return just the platform part
+                echo "${input#*/}"
+                return
+                ;;
+            *)
+                # It's already a platform lane (or custom layout)
+                echo "$input"
+                return
+                ;;
+        esac
     fi
 
-    local config="${input_1:-Debug}"
-    local toolchain="${input_2:-$(newage_detect_toolchain)}"
-
-    # If input_2 contains slashes, assume it is the rest of the lane (OS/Arch/Toolchain)
-    if [[ "$toolchain" == */* ]]; then
-        echo "$config/$toolchain"
-        return
-    fi
-
+    local toolchain="${input:-$(newage_detect_toolchain)}"
     local os_name="$(newage_detect_os)"
     local arch="$(newage_detect_arch)"
 
@@ -193,7 +198,40 @@ newage_resolve_lane() {
         toolchain="clang-cl"
     fi
 
-    echo "$config/$os_name/$arch/$toolchain"
+    echo "$os_name/$arch/$toolchain"
+}
+
+newage_resolve_lane() {
+    local input_1="${1:-}"
+    local input_2="${2:-}"
+
+    # Normalize input_1 backslashes
+    input_1="${input_1//\\//}"
+
+    # If input_1 starts with a config, it might be a full lane
+    case "${input_1%%/*}" in
+        Debug|debug|Release|release)
+            local config="${input_1%%/*}"
+            [[ "$config" == "debug" ]] && config="Debug"
+            [[ "$config" == "release" ]] && config="Release"
+
+            if [[ "$input_1" == */* ]]; then
+                # It was a full lane
+                echo "$config/${input_1#*/}"
+            else
+                # It was just the config part, use input_2 as platform/toolchain
+                local platform
+                platform="$(newage_resolve_platform_lane "$input_2")"
+                echo "$config/$platform"
+            fi
+            return
+            ;;
+    esac
+
+    # Otherwise, default to Debug and treat input_1 as platform/toolchain
+    local platform
+    platform="$(newage_resolve_platform_lane "$input_1")"
+    echo "Debug/$platform"
 }
 
 newage_set_cc_cxx() {
@@ -419,27 +457,68 @@ What this does:
 }
 
 set_lane_environment() {
-    local config_or_lane="$1"
-    local toolchain="${2:-}"
+    local arg1="${1:-}"
+    local arg2="${2:-}"
 
-    local lane
-    lane="$(newage_resolve_lane "$config_or_lane" "$toolchain")"
+    local config="Debug"
+    local platform_lane=""
 
-    export NewAge_Lane="$lane"
+    # Normalize backslashes in both arguments
+    arg1="${arg1//\\//}"
+    arg2="${arg2//\\//}"
+
+    case "$arg1" in
+        Debug|debug|Release|release)
+            config="$arg1"
+            [[ "$config" == "debug" ]] && config="Debug"
+            [[ "$config" == "release" ]] && config="Release"
+            platform_lane="$(newage_resolve_platform_lane "$arg2")"
+            ;;
+        */*)
+            # arg1 contains slashes. Check if it's a full lane.
+            case "${arg1%%/*}" in
+                Debug|debug|Release|release)
+                    config="${arg1%%/*}"
+                    [[ "$config" == "debug" ]] && config="Debug"
+                    [[ "$config" == "release" ]] && config="Release"
+                    platform_lane="${arg1#*/}"
+                    ;;
+                *)
+                    # It's a platform lane, use existing config or default
+                    config="${NewAge_Config:-Debug}"
+                    platform_lane="$arg1"
+                    ;;
+            esac
+            ;;
+        *)
+            # arg1 is empty or a toolchain. Use existing config.
+            config="${NewAge_Config:-Debug}"
+            if [[ -n "$arg1" ]]; then
+                platform_lane="$(newage_resolve_platform_lane "$arg1")"
+            else
+                platform_lane="$(newage_resolve_platform_lane "${arg2:-}")"
+            fi
+            ;;
+    esac
+
+    export NewAge_Config="$config"
+    export NewAge_Lane="$platform_lane"
+
+    local full_lane="$config/$platform_lane"
 
     # Extract toolchain from lane for CC/CXX setting
-    # Lane format: Config/OS/Arch/Toolchain
-    local lane_toolchain="${lane##*/}"
+    # Platform lane format: OS/Arch/Toolchain
+    local lane_toolchain="${platform_lane##*/}"
     newage_set_cc_cxx "$lane_toolchain"
 
     if newage_is_windows_shell; then
-        export PATH="$NewAge/lib/$lane:$PATH"
+        export PATH="$NewAge/lib/$full_lane:$PATH"
     else
-        export LD_LIBRARY_PATH="$NewAge/lib/$lane:${LD_LIBRARY_PATH:-}"
+        export LD_LIBRARY_PATH="$NewAge/lib/$full_lane:${LD_LIBRARY_PATH:-}"
     fi
 
-    export PATH="$NewAge/bin/$lane:$NewAge/bin:$PATH"
+    export PATH="$NewAge/bin/$full_lane:$NewAge/bin:$PATH"
 
-    newage_log "Lane environment set: $NewAge_Lane"
+    newage_log "Lane environment set: $NewAge_Config / $NewAge_Lane"
     [ -n "${CC:-}" ] && newage_log "Compiler: CC=$CC, CXX=$CXX"
 }

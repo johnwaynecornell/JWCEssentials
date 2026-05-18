@@ -5,7 +5,7 @@ set -euo pipefail
 #         The working directory will be set to the repo root. In the context of a NewAge workspace, The script enablea repo level granular build control such as intertwining native and managed builds.
 
 REPO_DIR="$(pwd)"
-BUILD_MODE="Debug"
+BUILD_MODE=""
 FRESH="0"
 CLEAN="0"
 
@@ -51,6 +51,26 @@ if [ -z "$REPO_DIR" ]; then
     echo "[newage_build_coordinated] ERROR: REPO_DIR is required." >&2
     usage >&2
     exit 1
+fi
+
+if [ -z "$BUILD_MODE" ]; then
+    if [ -n "${NewAge_Config:-}" ]; then
+        BUILD_MODE="$NewAge_Config"
+        echo "[newage_build_coordinated] Inferred BUILD_MODE from NewAge_Config: $BUILD_MODE"
+    elif [ -n "${NewAge_Lane:-}" ]; then
+        # Check if NewAge_Lane still contains config (legacy)
+        case "${NewAge_Lane%%/*}" in
+            Debug|debug|Release|release)
+                BUILD_MODE="${NewAge_Lane%%/*}"
+                echo "[newage_build_coordinated] Inferred BUILD_MODE from legacy NewAge_Lane: $BUILD_MODE"
+                ;;
+            *)
+                BUILD_MODE="Debug"
+                ;;
+        esac
+    else
+        BUILD_MODE="Debug"
+    fi
 fi
 
 case "$BUILD_MODE" in
@@ -122,12 +142,13 @@ for config in "${BUILD_CONFIGS[@]}"; do
     echo "[newage_build_coordinated] Building configuration: $config"
     echo
 
-    toolchain=""
+    lane_to_preserve=""
     if [ -n "${NewAge_Lane:-}" ]; then
-        toolchain="${NewAge_Lane##*/}"
+        # Preserve existing lane (platform part)
+        lane_to_preserve="${NewAge_Lane}"
     fi
 
-    set_lane_environment "$config" "$toolchain"
+    set_lane_environment "$config" "$lane_to_preserve"
 
     cd "$REPO_DIR"
 

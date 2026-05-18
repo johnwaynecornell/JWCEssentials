@@ -90,10 +90,20 @@ if [ -z "$REPO_DIR" ]; then
 fi
 
 if [ -z "$BUILD_MODE" ]; then
-    if [ -n "${NewAge_Lane:-}" ]; then
-        # Infer from NewAge_Lane (Config/OS/Arch/Toolchain)
-        BUILD_MODE="${NewAge_Lane%%/*}"
-        echo "[newage_build_native] Inferred BUILD_MODE from NewAge_Lane: $BUILD_MODE"
+    if [ -n "${NewAge_Config:-}" ]; then
+        BUILD_MODE="$NewAge_Config"
+        echo "[newage_build_native] Inferred BUILD_MODE from NewAge_Config: $BUILD_MODE"
+    elif [ -n "${NewAge_Lane:-}" ]; then
+        # Check if NewAge_Lane still contains config (legacy)
+        case "${NewAge_Lane%%/*}" in
+            Debug|debug|Release|release)
+                BUILD_MODE="${NewAge_Lane%%/*}"
+                echo "[newage_build_native] Inferred BUILD_MODE from legacy NewAge_Lane: $BUILD_MODE"
+                ;;
+            *)
+                BUILD_MODE="Debug"
+                ;;
+        esac
     else
         BUILD_MODE="Debug"
     fi
@@ -132,13 +142,13 @@ for config in "${BUILD_CONFIGS[@]}"; do
     echo "[newage_build_native] Building configuration: $config"
     echo
 
-    toolchain=""
+    lane_to_preserve=""
     if [ -n "${NewAge_Lane:-}" ]; then
-        # Preserve toolchain from existing lane if present
-        toolchain="${NewAge_Lane##*/}"
+        # Preserve existing lane (platform part)
+        lane_to_preserve="${NewAge_Lane}"
     fi
 
-    set_lane_environment "$config" "$toolchain"
+    set_lane_environment "$config" "$lane_to_preserve"
     
     cd "$NewAge/$REPO_DIR"
 
