@@ -60,6 +60,13 @@ newage_resolve_lane() {
 
     local config="${input_1:-Debug}"
     local toolchain="${input_2:-$(newage_detect_toolchain)}"
+
+    # If input_2 contains slashes, assume it is the rest of the lane (OS/Arch/Toolchain)
+    if [[ "$toolchain" == */* ]]; then
+        echo "$config/$toolchain"
+        return
+    fi
+
     local os_name="$(newage_detect_os)"
     local arch="$(newage_detect_arch)"
 
