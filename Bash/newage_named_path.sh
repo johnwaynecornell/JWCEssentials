@@ -9,16 +9,27 @@ if [ -z "${NewAge:-}" ]; then
 fi
 
 TYPE="${1:-}"
+ARG="${2:-}"
 
 case "$TYPE" in
     lib|bin|build)
         ;;
     *)
-        echo "Usage: $0 {lib|bin|build} [repo_path]" >&2
-        echo "  [repo_path] defaults to current directory for 'build'." >&2
+        echo "Usage: $0 {lib|bin}" >&2
+        echo "       $0 build <repo_path>" >&2
         exit 1
         ;;
 esac
+
+if [ -n "$ARG" ] && [ "$TYPE" != "build" ]; then
+    echo "[newage_named_path] ERROR: Extra argument '$ARG' is only supported for 'build'." >&2
+    exit 1
+fi
+
+if [ "$TYPE" = "build" ] && [ -z "$ARG" ]; then
+    echo "[newage_named_path] ERROR: 'build' command requires a <repo_path> argument." >&2
+    exit 1
+fi
 
 # Ensure Config and Lane are set
 if [ -z "${NewAge_Config:-}" ] || [ -z "${NewAge_Lane:-}" ]; then
@@ -59,7 +70,7 @@ case "$TYPE" in
         echo "$NewAge/bin/$NewAge_Config/$NewAge_Lane"
         ;;
     build)
-        REPO="${2:-.}"
+        REPO="$ARG"
         # If REPO is not a directory, try $NewAge/$REPO
         if [ ! -d "$REPO" ] && [ -d "$NewAge/$REPO" ]; then
             REPO="$NewAge/$REPO"
