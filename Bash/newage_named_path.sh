@@ -14,7 +14,8 @@ case "$TYPE" in
     lib|bin|build)
         ;;
     *)
-        echo "Usage: $0 {lib|bin|build} [source_dir_for_build]" >&2
+        echo "Usage: $0 {lib|bin|build} [repo_path]" >&2
+        echo "  [repo_path] defaults to current directory for 'build'." >&2
         exit 1
         ;;
 esac
@@ -25,6 +26,8 @@ if [ -z "${NewAge_Config:-}" ] || [ -z "${NewAge_Lane:-}" ]; then
     DEV_SH=""
     if [ -f "$NewAge/JWCEssentials/Dev/NewAge.dev.sh" ]; then
         DEV_SH="$NewAge/JWCEssentials/Dev/NewAge.dev.sh"
+    elif [ -f "Dev/NewAge.dev.sh" ]; then
+        DEV_SH="Dev/NewAge.dev.sh"
     fi
 
     if [ -n "$DEV_SH" ]; then
@@ -56,13 +59,18 @@ case "$TYPE" in
         echo "$NewAge/bin/$NewAge_Config/$NewAge_Lane"
         ;;
     build)
-        SRC_DIR="${2:-.}"
+        REPO="${2:-.}"
+        # If REPO is not a directory, try $NewAge/$REPO
+        if [ ! -d "$REPO" ] && [ -d "$NewAge/$REPO" ]; then
+            REPO="$NewAge/$REPO"
+        fi
+
         # Try to get absolute path for source directory
-        if [ -d "$SRC_DIR" ]; then
-            ABS_SRC="$(cd "$SRC_DIR" && pwd -P)"
-            echo "$ABS_SRC/build/$NewAge_Config/$NewAge_Lane"
+        if [ -d "$REPO" ]; then
+            ABS_REPO="$(cd "$REPO" && pwd -P)"
+            echo "$ABS_REPO/build/$NewAge_Config/$NewAge_Lane"
         else
-            echo "$SRC_DIR/build/$NewAge_Config/$NewAge_Lane"
+            echo "$REPO/build/$NewAge_Config/$NewAge_Lane"
         fi
         ;;
 esac
