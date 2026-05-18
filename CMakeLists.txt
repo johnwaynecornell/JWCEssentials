@@ -106,7 +106,6 @@ add_executable(rand_identifier src/Utils/rand_identifier.cpp)
 
 target_link_libraries(feffect PUBLIC JWCEssentials)
 target_link_libraries(rand_identifier PUBLIC JWCEssentials)
-target_link_libraries(split_arg PUBLIC JWCEssentials)
 
 target_link_libraries(JWCEssentials PUBLIC FromSMHasher)
 

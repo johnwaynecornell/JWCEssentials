@@ -171,7 +171,7 @@ namespace JWCEssentials {
         struct_array_struct<ErrorLogEntry> R;
         R.Alloc(count);
 
-        int index;
+        int index=0;
 
         for (std::list<ErrorLogEntry>::iterator i = errorLog.begin(); i != errorLog.end(); i++) {
             R[index++] = *i;
