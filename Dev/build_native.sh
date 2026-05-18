@@ -85,9 +85,9 @@ build_directory()
   cd "$build_dir"
 
   if [ "$FRESH" = "1" ]; then
-    verbose.sh cmake "$source_dir" -DCMAKE_BUILD_TYPE="$NewAge_Config" --fresh
+    verbose.sh cmake -S "$source_dir" -B . -DCMAKE_BUILD_TYPE="$NewAge_Config" --fresh
   else
-    verbose.sh cmake "$source_dir" -DCMAKE_BUILD_TYPE="$NewAge_Config"
+    verbose.sh cmake -S "$source_dir" -B . -DCMAKE_BUILD_TYPE="$NewAge_Config"
   fi
 
   if [ "$CLEAN" = "1" ]; then
