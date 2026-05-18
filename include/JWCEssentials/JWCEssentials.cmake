@@ -141,13 +141,19 @@ function(shuttle target pool)
         set(name "${target}")
     endif()
 
+    if(TARGET split_arg)
+        set(split_tool "$<TARGET_FILE:split_arg>")
+    else()
+        set(split_tool "$ENV{NewAge}/bin/${PTH}/split_arg")
+    endif()
+
     add_custom_command(TARGET ${target} POST_BUILD
             COMMAND bash verbose.sh shuttle_to.sh
             "${pool}"
             "$<TARGET_FILE_DIR:${target}>"
             "${name}"
             "${PTH}"
-            "$ENV{NewAge}/bin/${PTH}/split_arg"
+            "${split_tool}"
     )
 endfunction()
 

@@ -109,26 +109,7 @@ target_link_libraries(rand_identifier PUBLIC JWCEssentials)
 
 target_link_libraries(JWCEssentials PUBLIC FromSMHasher)
 
-get_target_property(name JWCEssentials OUTPUT_NAME)
-
-if (name STREQUAL "name-NOTFOUND")
-    set(name "JWCEssentials")
-endif()
-
-isDebug(JWCEssentials ISDEBUG)
-
-if (ISDEBUG)
-    set(PTH "Debug")
-else()
-    set(PTH "Release")
-endif()
-
-newage_native_lane_for_target(split_arg PTH)
-
-add_custom_command(TARGET split_arg POST_BUILD
-        COMMAND bash verbose.sh shuttle_to.sh bin "$<TARGET_FILE_DIR:split_arg>" "split_arg" "${PTH}" "$<TARGET_FILE:split_arg>"
-)
-
+shuttle(split_arg bin)
 shuttle(JWCEssentials lib)
 shuttle(feffect bin)
 shuttle(rand_identifier bin)
