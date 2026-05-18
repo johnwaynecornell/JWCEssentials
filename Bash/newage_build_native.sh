@@ -139,7 +139,7 @@ fi
 
 for config in "${BUILD_CONFIGS[@]}"; do
     echo
-    echo "[newage_build_native] Building configuration: $config"
+    echo "[newage_build_native] [$REPO_DIR] Building configuration: $config"
     echo
 
     lane_to_preserve=""
@@ -149,7 +149,7 @@ for config in "${BUILD_CONFIGS[@]}"; do
     fi
 
     set_lane_environment "$config" "$lane_to_preserve"
-    
+
     cd "$NewAge/$REPO_DIR"
 
     EXTRA_ARGS=()
