@@ -89,10 +89,14 @@ function(newage_config_for_target target result_var)
 endfunction()
 
 function(newage_native_lane_for_target target result_var)
-    newage_config_for_target(${target} config)
-    newage_native_toolchain(toolchain)
+    if(DEFINED ENV{NewAge_Lane})
+        set(lane "$ENV{NewAge_Lane}")
+    else()
+        newage_config_for_target(${target} config)
+        newage_native_toolchain(toolchain)
 
-    set(lane "${config}/${CMAKE_SYSTEM_NAME}/${CMAKE_SYSTEM_PROCESSOR}/${toolchain}")
+        set(lane "${config}/${CMAKE_SYSTEM_NAME}/${CMAKE_SYSTEM_PROCESSOR}/${toolchain}")
+    endif()
     set(${result_var} "${lane}" PARENT_SCOPE)
 endfunction()
 

@@ -193,36 +193,19 @@ require_tool() {
     fi
 }
 
-detect_newage_default_os() {
-    if newage_is_windows_shell; then
-        echo "Windows"
-        return
-    fi
-
-    uname -s
-}
-
-detect_newage_default_arch() {
-    if newage_is_windows_shell; then
-        # Debug/Windows/x86_64/msvc
-        echo "AMD64"
-        return
-    fi
-
-    uname -m
-}
 
 print_runtime_lane_path_advice() {
     local config="${NEWAGE_CONFIG:-Debug}"
-    local os_name="${NEWAGE_OS:-$(detect_newage_default_os)}"
-    local arch="${NEWAGE_ARCH:-$(detect_newage_default_arch)}"
-    local toolchain="${NEWAGE_NATIVE_TOOLCHAIN:-}"
+    local os_name="${NEWAGE_OS:-$(newage_detect_os)}"
+    local arch="${NEWAGE_ARCH:-$(newage_detect_arch)}"
+    local toolchain="${NEWAGE_NATIVE_TOOLCHAIN:-$(newage_detect_toolchain)}"
+
+    local lane
+    lane="$(newage_resolve_lane "$config" "$toolchain")"
 
     if newage_is_windows_shell; then
-    toolchain="${toolchain:-msvc}"
-
-    local staged_bin="$NewAge/bin/$config/$os_name/$arch/$toolchain"
-    local staged_lib="$NewAge/lib/$config/$os_name/$arch/$toolchain"
+    local staged_bin="$NewAge/bin/$lane"
+    local staged_lib="$NewAge/lib/$lane"
 
     local newage_win
     local newage_bin_win
@@ -238,9 +221,15 @@ print_runtime_lane_path_advice() {
 
 Runtime path advice for Windows:
 
-Git Bash, current shell session:
+Recommended: Use the context wrapper to enter a lane environment:
+
+  cd "$NewAge"
+  ./in_this_context.sh $config $toolchain -- bash
+
+Alternatively, for the current Git Bash shell session:
 
   export NewAge="$NewAge"
+  export NewAge_Lane="$lane"
   export PATH="\$PATH:$NewAge/bin"
   export PATH="\$PATH:$staged_bin"
   export PATH="\$PATH:$staged_lib"
@@ -248,6 +237,7 @@ Git Bash, current shell session:
 PowerShell, current shell session:
 
   \$env:NewAge = "$newage_win"
+  \$env:NewAge_Lane = "$lane"
   \$env:Path += ";$newage_bin_win"
   \$env:Path += ";$staged_bin_win"
   \$env:Path += ";$staged_lib_win"
@@ -286,16 +276,22 @@ EOF
     return
 fi
 
-    toolchain="${toolchain:-gcc}"
-
-    local staged_bin="\$NewAge/bin/$config/$os_name/$arch/$toolchain"
-    local staged_lib="\$NewAge/lib/$config/$os_name/$arch/$toolchain"
+    local staged_bin="$NewAge/bin/$lane"
+    local staged_lib="$NewAge/lib/$lane"
 
    cat <<EOF
 
    Runtime path advice for this shell session:
 
+   Recommended: Use the context wrapper to enter a lane environment:
+
+     cd "$NewAge"
+     ./in_this_context.sh $config $toolchain -- bash
+
+   Alternatively, for this shell session:
+
      export NewAge="$NewAge"
+     export NewAge_Lane="$lane"
      export PATH="\$PATH:\$NewAge/bin"
      export PATH="\$PATH:$staged_bin"
      export LD_LIBRARY_PATH="$staged_lib:\${LD_LIBRARY_PATH:-}"
@@ -305,13 +301,11 @@ fi
      LD_LIBRARY_PATH lets the dynamic loader find staged shared libraries.
 
    Expected Linux native lane:
-     $config/$os_name/$arch/$toolchain
+     $lane
 
    If building with clang instead of gcc:
 
-     export NEWAGE_NATIVE_TOOLCHAIN=clang
-     export PATH="\$PATH:\$NewAge/bin/$config/$os_name/$arch/clang"
-     export LD_LIBRARY_PATH="\$NewAge/lib/$config/$os_name/$arch/clang:\${LD_LIBRARY_PATH:-}"
+     ./in_this_context.sh $config clang -- bash
 
    For use on a development system this helps find native libraries as oposed to a deployment
    where native/managed live side by side

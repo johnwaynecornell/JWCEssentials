@@ -1,38 +1,20 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# This shell file is installed to the root of a collected workspace.
-#   so that the result of newage_collect.sh is enterable as a supplier
-#   of NewAge dependancies
+# This shell file is installed to the root of a NewAge workspace.
+# It allows executing commands within a specific native lane context.
+#
+# This script is designed to be independent of the JWCEssentials repository
+# structure, as it may be installed into a collected package root.
 
 NEWAGE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -L)"
 export NewAge="$NEWAGE_ROOT"
-cd $NewAge
+cd "$NewAge"
 
-usage() {
-    cat <<EOF
-Usage:
-  ./in_this_context.sh CONTEXT -- COMMAND [ARG...]
+# --- Inlined NewAge helpers (duplicated from Dev/NewAge.dev.sh for independence) ---
 
-Context:
-  NewAge, Base
-      Use the base NewAge package/workspace environment.
-
-  Debug
-      Use the Debug native lane.
-
-  Release
-      Use the Release native lane.
-
-Examples:
-  ./in_this_context.sh NewAge -- bash -c 'echo "\$NewAge"'
-
-  ./in_this_context.sh Debug -- bash -c 'echo "\$(pwd)"'
-
-  ./in_this_context.sh Debug -- bash -c 'echo "\$PATH"'
-
-  ./in_this_context.sh Debug -- dotnet JWCCommandSpawn/Project/JWCCommandSpawn.net/TestCommandSpawn/bin/Debug/net10.0/TestCommandSpawn.dll
-EOF
+newage_log() {
+    printf '[in_this_context] %s\n' "$*"
 }
 
 newage_is_windows_shell() {
@@ -42,53 +24,128 @@ newage_is_windows_shell() {
     esac
 }
 
-newage_lane_for_context() {
-    local context="$1"
+newage_detect_os() {
+    if newage_is_windows_shell; then
+        echo "Windows"
+        return
+    fi
+    uname -s
+}
 
-    case "$context" in
-        NewAge|newage|Base|base)
-            printf '%s\n' ""
+newage_detect_arch() {
+    if newage_is_windows_shell; then
+        echo "AMD64"
+        return
+    fi
+    uname -m
+}
+
+newage_detect_toolchain() {
+    if newage_is_windows_shell; then
+        echo "msvc"
+        return
+    fi
+    echo "gcc"
+}
+
+newage_resolve_lane() {
+    local input_1="${1:-}"
+    local input_2="${2:-}"
+
+    # If input_1 contains slashes, assume it is a full or partial lane starting from Config
+    if [[ "$input_1" == */* ]]; then
+        echo "$input_1"
+        return
+    fi
+
+    local config="${input_1:-Debug}"
+    local toolchain="${input_2:-$(newage_detect_toolchain)}"
+    local os_name="$(newage_detect_os)"
+    local arch="$(newage_detect_arch)"
+
+    # Normalize toolchain for the platform
+    if [ "$toolchain" = "clang" ] && [ "$os_name" = "Windows" ]; then
+        toolchain="clang-cl"
+    fi
+
+    echo "$config/$os_name/$arch/$toolchain"
+}
+
+newage_set_cc_cxx() {
+    local toolchain="$1"
+
+    case "$toolchain" in
+        msvc)
+            export CC=cl
+            export CXX=cl
             ;;
-
-        Debug|debug)
-            if newage_is_windows_shell; then
-                printf '%s\n' "Debug/Windows/AMD64/msvc"
-            else
-                printf '%s\n' "Debug/Linux/x86_64/gcc"
-            fi
+        clang-cl)
+            export CC=clang-cl
+            export CXX=clang-cl
             ;;
-
-        Release|release)
-            if newage_is_windows_shell; then
-                printf '%s\n' "Release/Windows/AMD64/msvc"
-            else
-                printf '%s\n' "Release/Linux/x86_64/gcc"
-            fi
+        clang)
+            export CC=clang
+            export CXX=clang++
             ;;
-
-        *)
-            echo "[in_this_context] ERROR: Unknown context: $context" >&2
-            usage >&2
-            exit 1
+        gcc)
+            export CC=gcc
+            export CXX=g++
             ;;
     esac
 }
 
-if [ "$#" -eq 0 ]; then
-    usage >&2
-    exit 1
-fi
+set_lane_environment() {
+    local config_or_lane="$1"
+    local toolchain="${2:-}"
 
-CONTEXT="$1"
-shift
+    local lane
+    lane="$(newage_resolve_lane "$config_or_lane" "$toolchain")"
 
-if [ "${1:-}" != "--" ]; then
-    echo "[in_this_context] ERROR: Expected -- after context." >&2
-    usage >&2
-    exit 1
-fi
+    export NewAge_Lane="$lane"
 
-shift
+    # Extract toolchain from lane for CC/CXX setting
+    # Lane format: Config/OS/Arch/Toolchain
+    local lane_toolchain="${lane##*/}"
+    newage_set_cc_cxx "$lane_toolchain"
+
+    if newage_is_windows_shell; then
+        export PATH="$NewAge/lib/$lane:$PATH"
+    else
+        export LD_LIBRARY_PATH="$NewAge/lib/$lane:${LD_LIBRARY_PATH:-}"
+    fi
+
+    export PATH="$NewAge/bin/$lane:$NewAge/bin:$PATH"
+
+    newage_log "Lane environment set: $NewAge_Lane"
+    [ -n "${CC:-}" ] && newage_log "Compiler: CC=$CC, CXX=$CXX"
+}
+
+# --- End of Inlined Helpers ---
+
+usage() {
+    cat <<EOF
+Usage:
+  ./in_this_context.sh [CONFIG] [TOOLCHAIN] -- COMMAND [ARG...]
+
+Examples:
+  ./in_this_context.sh Debug -- bash
+  ./in_this_context.sh Debug clang -- bash
+  ./in_this_context.sh Debug/Windows/AMD64/msvc -- bash
+
+  ./in_this_context.sh Debug -- bash -c 'echo "\$NewAge_Lane"'
+EOF
+}
+
+# Parse arguments before --
+LANE_ARGS=()
+while [ "$#" -gt 0 ]; do
+    if [ "$1" = "--" ]; then
+        shift
+        break
+    fi
+    LANE_ARGS+=("$1")
+    shift
+done
 
 if [ "$#" -eq 0 ]; then
     echo "[in_this_context] ERROR: COMMAND is required after --." >&2
@@ -96,24 +153,11 @@ if [ "$#" -eq 0 ]; then
     exit 1
 fi
 
-lane="$(newage_lane_for_context "$CONTEXT")"
+# Apply the lane environment
+# set_lane_environment handles:
+#   1 arg:  config (e.g. Debug) or full lane (e.g. Debug/Linux/x86_64/gcc)
+#   2 args: config and toolchain (e.g. Debug clang)
+set_lane_environment "${LANE_ARGS[@]}"
 
-export PATH="$NewAge/bin:$PATH"
-
-if [ -n "$lane" ]; then
-    export PATH="$NewAge/bin/$lane:$PATH"
-
-    if newage_is_windows_shell; then
-        export PATH="$NewAge/lib/$lane:$PATH"
-    else
-        export LD_LIBRARY_PATH="$NewAge/lib/$lane:${LD_LIBRARY_PATH:-}"
-    fi
-fi
-
-# Ensure a command was actually passed after the directory
-if [ $# -eq 0 ]; then
-    echo "[in_this_context] ERROR: No command provided to execute" >&2
-    exit 1
-fi
-
+# Execute the command
 exec "$@"

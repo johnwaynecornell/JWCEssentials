@@ -137,6 +137,81 @@ newage_same_path() {
     [ "$(newage_canonical_path "$1")" = "$(newage_canonical_path "$2")" ]
 }
 
+newage_detect_os() {
+    if newage_is_windows_shell; then
+        echo "Windows"
+        return
+    fi
+
+    uname -s
+}
+
+newage_detect_arch() {
+    if newage_is_windows_shell; then
+        # On Windows/MSVC we often target AMD64 even if running on something else,
+        # but let's stick to a sane default.
+        echo "AMD64"
+        return
+    fi
+
+    uname -m
+}
+
+newage_detect_toolchain() {
+    if newage_is_windows_shell; then
+        echo "msvc"
+        return
+    fi
+
+    echo "gcc"
+}
+
+newage_resolve_lane() {
+    local input_1="${1:-}"
+    local input_2="${2:-}"
+
+    # If input_1 contains slashes, assume it is a full or partial lane starting from Config
+    if [[ "$input_1" == */* ]]; then
+        echo "$input_1"
+        return
+    fi
+
+    local config="${input_1:-Debug}"
+    local toolchain="${input_2:-$(newage_detect_toolchain)}"
+    local os_name="$(newage_detect_os)"
+    local arch="$(newage_detect_arch)"
+
+    # Normalize toolchain for the platform
+    if [ "$toolchain" = "clang" ] && [ "$os_name" = "Windows" ]; then
+        toolchain="clang-cl"
+    fi
+
+    echo "$config/$os_name/$arch/$toolchain"
+}
+
+newage_set_cc_cxx() {
+    local toolchain="$1"
+
+    case "$toolchain" in
+        msvc)
+            export CC=cl
+            export CXX=cl
+            ;;
+        clang-cl)
+            export CC=clang-cl
+            export CXX=clang-cl
+            ;;
+        clang)
+            export CC=clang
+            export CXX=clang++
+            ;;
+        gcc)
+            export CC=gcc
+            export CXX=g++
+            ;;
+    esac
+}
+
 newage_add_repo_entry() {
     local rel_path="$1"
     local list_file="$NewAge/NewAgeRepo.lst"
@@ -337,15 +412,27 @@ What this does:
 }
 
 set_lane_environment() {
-    local config="$1"
+    local config_or_lane="$1"
+    local toolchain="${2:-}"
+
+    local lane
+    lane="$(newage_resolve_lane "$config_or_lane" "$toolchain")"
+
+    export NewAge_Lane="$lane"
+
+    # Extract toolchain from lane for CC/CXX setting
+    # Lane format: Config/OS/Arch/Toolchain
+    local lane_toolchain="${lane##*/}"
+    newage_set_cc_cxx "$lane_toolchain"
 
     if newage_is_windows_shell; then
-        lane="$config/Windows/AMD64/msvc"
         export PATH="$NewAge/lib/$lane:$PATH"
     else
-        lane="$config/Linux/x86_64/gcc"
         export LD_LIBRARY_PATH="$NewAge/lib/$lane:${LD_LIBRARY_PATH:-}"
     fi
 
     export PATH="$NewAge/bin/$lane:$NewAge/bin:$PATH"
+
+    newage_log "Lane environment set: $NewAge_Lane"
+    [ -n "${CC:-}" ] && newage_log "Compiler: CC=$CC, CXX=$CXX"
 }
