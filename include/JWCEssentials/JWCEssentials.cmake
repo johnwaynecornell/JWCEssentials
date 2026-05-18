@@ -147,7 +147,6 @@ function(shuttle target pool)
             "$<TARGET_FILE_DIR:${target}>"
             "${name}"
             "${PTH}"
-            "$<TARGET_FILE:split_arg>"
     )
 endfunction()
 
