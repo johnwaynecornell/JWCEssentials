@@ -41,7 +41,7 @@ EOF
 }
 
 REPO_DIR=""
-BUILD_MODE="Debug"
+BUILD_MODE=""
 FRESH="0"
 CLEAN="0"
 
@@ -89,6 +89,16 @@ if [ -z "$REPO_DIR" ]; then
     exit 1
 fi
 
+if [ -z "$BUILD_MODE" ]; then
+    if [ -n "${NewAge_Lane:-}" ]; then
+        # Infer from NewAge_Lane (Config/OS/Arch/Toolchain)
+        BUILD_MODE="${NewAge_Lane%%/*}"
+        echo "[newage_build_native] Inferred BUILD_MODE from NewAge_Lane: $BUILD_MODE"
+    else
+        BUILD_MODE="Debug"
+    fi
+fi
+
 case "$BUILD_MODE" in
     Debug|debug)
         BUILD_CONFIGS=("Debug")
@@ -122,7 +132,13 @@ for config in "${BUILD_CONFIGS[@]}"; do
     echo "[newage_build_native] Building configuration: $config"
     echo
 
-    set_lane_environment "$config"
+    toolchain=""
+    if [ -n "${NewAge_Lane:-}" ]; then
+        # Preserve toolchain from existing lane if present
+        toolchain="${NewAge_Lane##*/}"
+    fi
+
+    set_lane_environment "$config" "$toolchain"
     
     cd "$NewAge/$REPO_DIR"
 

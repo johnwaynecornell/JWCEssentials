@@ -122,7 +122,12 @@ for config in "${BUILD_CONFIGS[@]}"; do
     echo "[newage_build_coordinated] Building configuration: $config"
     echo
 
-    set_lane_environment "$config"
+    toolchain=""
+    if [ -n "${NewAge_Lane:-}" ]; then
+        toolchain="${NewAge_Lane##*/}"
+    fi
+
+    set_lane_environment "$config" "$toolchain"
 
     cd "$REPO_DIR"
 

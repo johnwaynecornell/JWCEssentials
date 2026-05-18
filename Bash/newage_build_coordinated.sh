@@ -41,7 +41,7 @@ EOF
 }
 
 REPO_DIR=""
-BUILD_MODE="Debug"
+BUILD_MODE=""
 FRESH="0"
 CLEAN="0"
 
@@ -87,6 +87,16 @@ if [ -z "$REPO_DIR" ]; then
     echo "[newage_build_coordinated] ERROR: REPO_DIR is required." >&2
     usage >&2
     exit 1
+fi
+
+if [ -z "$BUILD_MODE" ]; then
+    if [ -n "${NewAge_Lane:-}" ]; then
+        # Infer from NewAge_Lane (Config/OS/Arch/Toolchain)
+        BUILD_MODE="${NewAge_Lane%%/*}"
+        echo "[newage_build_coordinated] Inferred BUILD_MODE from NewAge_Lane: $BUILD_MODE"
+    else
+        BUILD_MODE="Debug"
+    fi
 fi
 
 case "$BUILD_MODE" in
