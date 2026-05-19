@@ -462,7 +462,7 @@ For this shell session:
   export LD_LIBRARY_PATH="\$NewAge/lib/Debug/\$NewAge_Lane:\${LD_LIBRARY_PATH:-}"
 
   # adjust NewAge_Lane for your chosen NewAge Lane.
-  #  ./in_this_context Debug clang -- bash -c 'echo $NewAge_Lane'
+  #  ./in_this_context Debug clang -- bash -c 'echo \$NewAge_Lane'
   #end NewAge tweeks
 
 Suggested verification:
