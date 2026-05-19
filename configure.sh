@@ -196,8 +196,7 @@ require_tool() {
 
 print_runtime_lane_path_advice() {
     local config="${NEWAGE_CONFIG:-Debug}"
-    local platform_lane
-    platform_lane="$(newage_resolve_platform_lane "${NEWAGE_NATIVE_TOOLCHAIN:-}")"
+    export platform_lane="$(newage_resolve_platform_lane "${NEWAGE_NATIVE_TOOLCHAIN:-}")"
 
     local full_lane="$config/$platform_lane"
 
@@ -228,7 +227,7 @@ Alternatively, for the current Git Bash shell session:
 
   export NewAge="$NewAge"
   export NewAge_Config="$config"
-  export NewAge_Lane="$platform_lane"
+  export NewAge_Lane="$NewAge_Lane"
   export PATH="\$PATH:$NewAge/bin"
   export PATH="\$PATH:$staged_bin"
   export PATH="\$PATH:$staged_lib"
@@ -457,10 +456,13 @@ Important paths:
 For this shell session:
   #NewAge tweeks
   export NewAge="$NewAge"
-  export NewAge_Lane="Linux/x86_64/clang"
+  export NewAge_Lane="$platform_lane"
   export PATH="\$NewAge/bin:\$PATH"
   export PATH="\$NewAge/bin/Debug/\$NewAge_Lane:\$PATH"
   export LD_LIBRARY_PATH="\$NewAge/lib/Debug/\$NewAge_Lane:\${LD_LIBRARY_PATH:-}"
+
+  # adjust NewAge_Lane for your chosen NewAge Lane.
+  #  ./in_this_context Debug clang -- bash -c 'echo $NewAge_Lane'
   #end NewAge tweeks
 
 Suggested verification:
