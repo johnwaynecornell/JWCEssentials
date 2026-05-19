@@ -458,8 +458,8 @@ For this shell session:
   #NewAge tweeks
   export NewAge="$NewAge"
   export NewAge_Lane="Linux/x86_64/clang"
-  export PATH="\$PATH:\$NewAge/bin"
-  export PATH="\$PATH:\$NewAge/bin/Debug/\$NewAge_Lane"
+  export PATH="\$NewAge/bin:\$PATH"
+  export PATH="\$NewAge/bin/Debug/\$NewAge_Lane:\$PATH"
   export LD_LIBRARY_PATH="\$NewAge/lib/Debug/\$NewAge_Lane:\${LD_LIBRARY_PATH:-}"
   #end NewAge tweeks
 
