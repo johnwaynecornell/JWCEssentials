@@ -6,7 +6,7 @@ This document is intended to be validated by a fresh Windows dry run, a reposito
 
 ## Relationship to the NewAge Environment
 
-This document describes the Windows toolchain baseline. Shared workspace assumptions such as the `NewAge` environment variable, staged library paths, and Bash-based staging scripts are described in `NewAgeEnvironment.md`.
+This document describes the Windows toolchain baseline. Shared workspace assumptions such as the `NewAge` environment variable, `NewAge_Lane`, staged library paths, and Bash-based staging scripts are described in `NewAgeEnvironment.md`.
 
 ## Native Build Environment
 
@@ -131,9 +131,17 @@ cmake --build .
 
 A successful native pass should build JWCEssentials and stage native artifacts into the configured native lane.
 
+The preferred way to run native artifacts is through the context wrapper:
+
+```bash
+./in_this_context.sh Debug -- bin/Debug/Windows/AMD64/msvc/JWCEssentialsTest.exe
+```
+
+Staged lane example:
+
 ```
 $NewAge/bin/Debug/Windows/AMD64/msvc
-$NewAge/lib/Debug/Debug/Windows/AMD64/msvc
+$NewAge/lib/Debug/Windows/AMD64/msvc
 ```
 
 ## Managed Build Verification

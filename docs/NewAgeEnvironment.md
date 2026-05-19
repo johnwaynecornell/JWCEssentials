@@ -17,7 +17,7 @@ Individual repositories may have their own build instructions, but they should a
 
 ## Required Environment Variable
 
-The primary shared variable is `NewAge`.
+The primary shared variables are `NewAge`, `NewAge_Config`, and `NewAge_Lane`.
 
 It should point to the root of the main NewAge workspace.
 
@@ -149,13 +149,22 @@ Scripts may be copied into `$NewAge/bin` because they are command utilities, not
 export PATH="$PATH:$NewAge/bin"
 ```
 
+## Lane Environment Variables
+
+While `NewAge` defines the workspace root, the specific build and runtime environment is managed through lane-specific variables.
+
+*   **`NewAge_Config`** — The build configuration (e.g., `Debug`, `Release`).
+*   **`NewAge_Lane`** — The platform-specific native lane (e.g., `Linux/x86_64/gcc`, `Windows/AMD64/msvc`).
+
+These variables are used to construct the paths to staged native artifacts.
+
 ## Native Artifact Lanes
 
-Native build outputs are staged by configuration, operating system, architecture, and toolchain.
+Native build outputs are staged by configuration and the platform lane.
 
 ```
-$NewAge/bin/<Configuration>/<OS>/<Architecture>/<Toolchain>
-$NewAge/lib/<Configuration>/<OS>/<Architecture>/<Toolchain>
+$NewAge/bin/<NewAge_Config>/<NewAge_Lane>
+$NewAge/lib/<NewAge_Config>/<NewAge_Lane>
 ```
 
 Examples:
@@ -171,21 +180,44 @@ $NewAge/lib/Debug/Linux/x86_64/clang
 
 A standalone repository may support multiple native toolchains. A full NewAge suite build should consume one selected native lane consistently.
 
+## Context Management
+
+The preferred way to work within a specific lane is to use a context wrapper script. These scripts set `NewAge_Config`, `NewAge_Lane`, `PATH`, and `LD_LIBRARY_PATH` (on Linux) correctly for the chosen context.
+
+### in_this_context.sh
+
+A self-contained script installed to the root of the `$NewAge` workspace.
+
+```bash
+cd "$NewAge"
+./in_this_context.sh Debug -- bash
+```
+
+### newage_run_in_context.sh
+
+A global helper installed to `$NewAge/bin`, which should be on your `PATH`.
+
+```bash
+newage_run_in_context.sh Release -- dotnet build ...
+```
+
 ## Runtime Path Notes
+
+Manual path configuration is possible but discouraged in favor of the context wrappers.
 
 On Windows, native executables may need both the staged bin lane and staged lib lane on `PATH` so dependent DLLs can be found.
 
 ```
-export PATH="$PATH:$NewAge/bin"
-export PATH="$PATH:$NewAge/bin/Debug/Windows/AMD64/msvc"
-export PATH="$PATH:$NewAge/lib/Debug/Windows/AMD64/msvc"
+export PATH="$NewAge/bin:$PATH"
+export PATH="$NewAge/bin/Debug/Windows/AMD64/msvc:$PATH"
+export PATH="$$NewAge/lib/Debug/Windows/AMD64/msvc:$PATH"
 ```
 
 On Linux, staged command executables belong on `PATH`, while staged shared libraries may need `LD_LIBRARY_PATH`, an `ld.so.conf.d` entry, or a later rpath/RUNPATH policy.
 
 ```
-export PATH="$PATH:$NewAge/bin"
-export PATH="$PATH:$NewAge/bin/Debug/Linux/x86_64/gcc"
+export PATH="$NewAge/bin:$PATH"
+export PATH="$NewAge/bin/Debug/Linux/x86_64/gcc:$PATH"
 export LD_LIBRARY_PATH="$NewAge/lib/Debug/Linux/x86_64/gcc:${LD_LIBRARY_PATH:-}"
 ```
 

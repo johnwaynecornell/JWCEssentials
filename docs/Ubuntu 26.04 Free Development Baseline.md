@@ -6,7 +6,7 @@ This document is intended to be validated by a fresh Ubuntu dry run, a repositor
 
 ## Relationship to the NewAge Environment
 
-This document describes the Ubuntu toolchain baseline. Shared workspace assumptions such as the `NewAge` environment variable, `$NewAge/include`, staged native artifact lanes, staged managed libraries, and Bash-based staging scripts are described by the NewAge environment contract.
+This document describes the Ubuntu toolchain baseline. Shared workspace assumptions such as the `NewAge` environment variable, `$NewAge/include`, `NewAge_Lane`, staged native artifact lanes, staged managed libraries, and Bash-based staging scripts are described by the NewAge environment contract.
 
 ## Core Tools
 
@@ -145,10 +145,16 @@ Example for `~/.profile`:
 
 ```
 export NewAge="$HOME/NewAge"
-
 export PATH="$PATH:$NewAge/bin"
-export PATH="$PATH:$NewAge/bin/Debug/Linux/x86_64/gcc"
-export LD_LIBRARY_PATH="$NewAge/lib/Debug/Linux/x86_64/gcc:${LD_LIBRARY_PATH:-}"
+```
+
+### Lane Selection
+
+To work in a specific native lane, use the context wrapper. This sets `NewAge_Config`, `NewAge_Lane`, and updates `PATH` and `LD_LIBRARY_PATH` for the session.
+
+```bash
+cd "$NewAge"
+./in_this_context.sh Debug -- bash
 ```
 
 After editing `~/.profile`, restart the desktop session or open a fresh login shell before testing builds that depend on the updated environment.
@@ -157,10 +163,12 @@ After editing `~/.profile`, restart the desktop session or open a fresh login sh
 
 Native executables and managed projects that load native libraries need the staged native library lane to be visible to the Linux dynamic loader.
 
-For terminal-only testing, `LD_LIBRARY_PATH` is sufficient:
+For terminal-only testing, using the context wrapper is recommended. If manual configuration is required:
 
 ```
-export LD_LIBRARY_PATH="$NewAge/lib/Debug/Linux/x86_64/gcc:${LD_LIBRARY_PATH:-}"
+export NewAge_Config="Debug"
+export NewAge_Lane="Linux/x86_64/gcc"
+export LD_LIBRARY_PATH="$NewAge/lib/$NewAge_Config/$NewAge_Lane:${LD_LIBRARY_PATH:-}"
 ```
 
 For IDEs and desktop-launched tools, a system loader configuration is often more reliable:
@@ -168,6 +176,12 @@ For IDEs and desktop-launched tools, a system loader configuration is often more
 ```
 sudo bash -c "echo \"$NewAge/lib/Debug/Linux/x86_64/gcc\" > /etc/ld.so.conf.d/newage.conf"    
 sudo ldconfig
+```
+
+Alternatively, use the `in_this_context.sh` script to avoid system-wide changes:
+
+```bash
+./in_this_context.sh Debug -- COMMAND
 ```
 
 Verify that the staged library is visible:

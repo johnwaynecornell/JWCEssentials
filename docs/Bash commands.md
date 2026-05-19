@@ -50,7 +50,7 @@ newage_repo_list.sh [REPO_LIST_FILE]
 ```
 
 *   **Usage**: Can be used to filter `newage_dep_sort.sh` output or run independently.
-*   **Example**: `newage_repo_list.sh | xargs -I{} in_dir.sh "$NewAge/{}" git pull`
+  *   **Example**: `newage_repo_list.sh | xargs -I{} in_dir.sh "$NewAge/{}" git pull`
 
 ## Orchestration Commands
 
@@ -109,21 +109,24 @@ A project-level helper typically called during post-build steps to stage managed
 
 ### newage_run_in_context.sh
 
-Executes a command within a specific configuration context (Debug/Release).
+Executes a command within a specific NewAge lane environment.
 
 ```bash
-newage_run_in_context.sh [--newage PATH] CONTEXT -- COMMAND [ARG...]
+newage_run_in_context.sh [--newage PATH] [CONFIG] [TOOLCHAIN] -- COMMAND [ARG...]
 ```
 
-*   **Logic**: Sources development helpers and sets up the native lane environment before execution.
+*   **Logic**: Sources development helpers and uses `set_lane_environment` to configure the native lane. This sets the `NewAge_Config` and `NewAge_Lane` environment variables and updates `PATH`, `LD_LIBRARY_PATH`, `CC`, and `CXX` before execution.
+*   **Availability**: Installed to `$NewAge/bin` and typically available on the shell `PATH`.
 
 ### in_this_context.sh
 
-A root-level alias for `newage_run_in_context.sh`, installed to the root of the `$NewAge` workspace for convenience.
+A workspace-root convenience script that allows executing commands within a specific lane environment.
 
 ```bash
-./in_this_context.sh CONTEXT -- COMMAND [ARG...]
+./in_this_context.sh [CONFIG] [TOOLCHAIN] -- COMMAND [ARG...]
 ```
+
+*   **Logic**: A self-contained version of the context wrapper installed to the root of the `$NewAge` workspace. It is functionally similar to `newage_run_in_context.sh` but designed to be independent of the `JWCEssentials` repository structure.
 
 ## Repository Front Doors
 

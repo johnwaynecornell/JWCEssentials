@@ -120,20 +120,27 @@ This ensures that consumers build against the intended target framework rather t
 Environment Variables
 ---------------------
 
-### `NewAge`
+### `NewAge`, `NewAge_Config`, and `NewAge_Lane`
 
-JWCEssentials expects an environment variable named `NewAge` in some build paths.
+JWCEssentials expects `NewAge` to be set, and prefers that `NewAge_Config` and `NewAge_Lane` are managed through context wrappers.
 
-This variable should point to the root of the broader NewAge workspace layout.
+*   **`NewAge`**: Root of the broader NewAge workspace.
+*   **`NewAge_Config`**: Build configuration (e.g., `Debug`, `Release`).
+*   **`NewAge_Lane`**: Native platform lane (e.g., `Linux/x86_64/gcc`).
 
-Example on Linux or macOS:
+### Context Wrappers
 
-    export NewAge=/path/to/NewAge
+The preferred way to work within the workspace is to use a context wrapper script, which sets these variables and updates your `PATH` automatically.
 
+**Workspace root:**
+```bash
+./in_this_context.sh Debug -- bash
+```
 
-Example on Windows PowerShell:
-
-    $env:NewAge = "C:\Path\To\NewAge"
+**Global (from `$NewAge/bin`):**
+```bash
+newage_run_in_context.sh Release -- COMMAND
+```
 
 
 The .NET project uses this variable to construct `MyReferencePath`.

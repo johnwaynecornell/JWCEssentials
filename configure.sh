@@ -227,7 +227,7 @@ Alternatively, for the current Git Bash shell session:
 
   export NewAge="$NewAge"
   export NewAge_Config="$config"
-  export NewAge_Lane="$NewAge_Lane"
+  export NewAge_Lane="$platform_lane"
   export PATH="\$PATH:$NewAge/bin"
   export PATH="\$PATH:$staged_bin"
   export PATH="\$PATH:$staged_lib"
