@@ -202,20 +202,20 @@ print_runtime_lane_path_advice() {
     local full_lane="$config/$platform_lane"
 
     if newage_is_windows_shell; then
-    local staged_bin="$NewAge/bin/$full_lane"
-    local staged_lib="$NewAge/lib/$full_lane"
+      local staged_bin="$NewAge/bin/$full_lane"
+      local staged_lib="$NewAge/lib/$full_lane"
 
-    local newage_win
-    local newage_bin_win
-    local staged_bin_win
-    local staged_lib_win
+      local newage_win
+      local newage_bin_win
+      local staged_bin_win
+      local staged_lib_win
 
-    newage_win="$(newage_to_windows_path "$NewAge")"
-    newage_bin_win="$(newage_to_windows_path "$NewAge/bin")"
-    staged_bin_win="$(newage_to_windows_path "$staged_bin")"
-    staged_lib_win="$(newage_to_windows_path "$staged_lib")"
+      newage_win="$(newage_to_windows_path "$NewAge")"
+      newage_bin_win="$(newage_to_windows_path "$NewAge/bin")"
+      staged_bin_win="$(newage_to_windows_path "$staged_bin")"
+      staged_lib_win="$(newage_to_windows_path "$staged_lib")"
 
-    cat <<EOF
+      cat <<EOF
 
 Runtime path advice for Windows:
 
@@ -455,8 +455,13 @@ Important paths:
   $NewAge/DotNet/Libs/lib
 
 For this shell session:
+  #NewAge tweeks
   export NewAge="$NewAge"
-  export PATH="\$PATH:$NewAge/bin"
+  export NewAge_Lane="Linux/x86_64/clang"
+  export PATH="\$PATH:\$NewAge/bin"
+  export PATH="\$PATH:\$NewAge/bin/Debug/\$NewAge_Lane"
+  export LD_LIBRARY_PATH="\$NewAge/lib/Debug/\$NewAge_Lane:\${LD_LIBRARY_PATH:-}"
+  #end NewAge tweeks
 
 Suggested verification:
   echo "\$NewAge"
