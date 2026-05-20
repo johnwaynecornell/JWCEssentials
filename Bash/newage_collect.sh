@@ -5,7 +5,7 @@ set -euo pipefail
 # and removal of dotnet platform specific executables in
 # collect_managed_bins_from_repo_list
 
-SCRIPT_NAME="newage_collect"
+SCRIPT_NAME="newage_collect.sh"
 
 usage() {
     cat <<EOF
@@ -22,21 +22,21 @@ Options:
       NewAgeRepo.lst. These are copied to PACKAGE_ROOT/repo_path/include.
 
   --no-include
-      Skip collecting the staged include surface ($NewAge/include).
+      Skip collecting the staged include surface (\$NewAge/include).
 
   --no-native
-      Skip collecting native artifact lanes ($NewAge/bin and $NewAge/lib).
+      Skip collecting native artifact lanes (\$NewAge/bin and \$NewAge/lib).
 
   --no-managed
       Skip collecting managed project bin directories from repositories.
 
   --no-dotnet-libs
-      Skip collecting staged DotNet libraries ($NewAge/DotNet/Libs/lib).
+      Skip collecting staged DotNet libraries (\$NewAge/DotNet/Libs/lib).
 
 Examples:
-  $SCRIPT_NAME "$NewAge" /tmp/CommandSpawnPackage
-  $SCRIPT_NAME --clone "$NewAge" /tmp/CommandSpawnPackage Debug Release
-  $SCRIPT_NAME --repo-includes "$NewAge" /tmp/MyPackage Debug
+  $SCRIPT_NAME "\$NewAge" /tmp/MyEnterableDependencies.NewAge
+  $SCRIPT_NAME --clone "\$NewAge" /tmp/CommandSpawnPackage.NewAge Debug Release
+  $SCRIPT_NAME --repo-includes "\$NewAge" /tmp/MyPackage.NewAge Debug
 
 Arguments:
   SOURCE_NEWAGE
