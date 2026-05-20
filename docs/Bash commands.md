@@ -96,10 +96,14 @@ newage_all_build_coordinated.sh [BuildArgs...]
 Collects built artifacts from a workspace into a standalone, portable package root.
 
 ```bash
-newage_collect.sh SOURCE_NEWAGE PACKAGE_ROOT [Config...]
+newage_collect.sh [Options] SOURCE_NEWAGE PACKAGE_ROOT [Config...]
 ```
 
 *   **Behavior**: Creates a NewAge-shaped directory structure and populates it with headers, bins, and libs.
+*   **Options**:
+    *   `--clone`: Dereference symlinks to create a self-contained package (replaces symlinks with real copies).
+    *   `--repo-includes`: Also collect the `include` directory from each repository.
+    *   `--no-include`, `--no-native`, `--no-managed`, `--no-dotnet-libs`: Skip specific collection surfaces.
 
 ### NewAge_stage.sh
 

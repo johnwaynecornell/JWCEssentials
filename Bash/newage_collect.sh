@@ -10,12 +10,33 @@ SCRIPT_NAME="newage_collect"
 usage() {
     cat <<EOF
 Usage:
-  $SCRIPT_NAME SOURCE_NEWAGE PACKAGE_ROOT [Config...]
+  $SCRIPT_NAME [Options] SOURCE_NEWAGE PACKAGE_ROOT [Config...]
+
+Options:
+  --clone
+      Dereference symlinks when copying (create real copies instead of symlinks).
+      Useful for making the package self-contained.
+
+  --repo-includes
+      Also collect the include directory from each repository listed in
+      NewAgeRepo.lst. These are copied to PACKAGE_ROOT/repo_path/include.
+
+  --no-include
+      Skip collecting the staged include surface ($NewAge/include).
+
+  --no-native
+      Skip collecting native artifact lanes ($NewAge/bin and $NewAge/lib).
+
+  --no-managed
+      Skip collecting managed project bin directories from repositories.
+
+  --no-dotnet-libs
+      Skip collecting staged DotNet libraries ($NewAge/DotNet/Libs/lib).
 
 Examples:
-  $SCRIPT_NAME "\$NewAge" /tmp/CommandSpawnPackage
-  $SCRIPT_NAME "\$NewAge" /tmp/CommandSpawnPackage Debug
-  $SCRIPT_NAME "\$NewAge" /tmp/CommandSpawnPackage Debug Release
+  $SCRIPT_NAME "$NewAge" /tmp/CommandSpawnPackage
+  $SCRIPT_NAME --clone "$NewAge" /tmp/CommandSpawnPackage Debug Release
+  $SCRIPT_NAME --repo-includes "$NewAge" /tmp/MyPackage Debug
 
 Arguments:
   SOURCE_NEWAGE
@@ -88,9 +109,14 @@ copy_dir_contents() {
 
     mkdir -p "$dest_dir"
 
-    # Use cp -a for the first simple version.
+    local cp_args="-a"
+    if [ "${CLONE_MODE:-0}" = "1" ]; then
+        cp_args="-aL"
+    fi
+
+    # Use cp -a (or -aL) for the first simple version.
     # The trailing '/.' copies contents into the existing destination directory.
-    cp -a "$source_dir/." "$dest_dir/"
+    cp $cp_args "$source_dir/." "$dest_dir/"
 
     log "Copied:"
     log "  $source_dir"
@@ -106,9 +132,14 @@ copy_dir_replace() {
         return 0
     fi
 
+    local cp_args="-a"
+    if [ "${CLONE_MODE:-0}" = "1" ]; then
+        cp_args="-aL"
+    fi
+
     rm -rf "$dest_dir"
     mkdir -p "$(dirname "$dest_dir")"
-    cp -a "$source_dir" "$dest_dir"
+    cp $cp_args "$source_dir" "$dest_dir"
 
     log "Copied:"
     log "  $source_dir"
@@ -243,6 +274,23 @@ transform_bin_dir() {
     log "  -> $dest_bin"
 }
 
+collect_repo_includes_for_repo() {
+    local source_newage="$1"
+    local package_root="$2"
+    local repo_rel="$3"
+
+    local repo_root="$source_newage/$repo_rel"
+    local source_include="$repo_root/include"
+
+    if [ ! -d "$source_include" ]; then
+        return 0
+    fi
+
+    local dest_include="$package_root/$repo_rel/include"
+
+    copy_dir_replace "$source_include" "$dest_include"
+}
+
 collect_managed_bins_for_repo() {
     local source_newage="$1"
     local package_root="$2"
@@ -284,7 +332,15 @@ collect_managed_bins_from_repo_list() {
             \#*) continue ;;
         esac
 
-        collect_managed_bins_for_repo "$source_newage" "$package_root" "$repo_rel"
+        add_package_repo_entry "$package_root" "$repo_rel"
+
+        if [ "${COLLECT_MANAGED:-1}" = "1" ]; then
+            collect_managed_bins_for_repo "$source_newage" "$package_root" "$repo_rel"
+        fi
+
+        if [ "${REPO_INCLUDES:-0}" = "1" ]; then
+            collect_repo_includes_for_repo "$source_newage" "$package_root" "$repo_rel"
+        fi
     done < "$repo_list"
 }
 
@@ -318,6 +374,51 @@ if [ "$#" -lt 2 ]; then
     exit 1
 fi
 
+CLONE_MODE=0
+REPO_INCLUDES=0
+COLLECT_INCLUDE=1
+COLLECT_NATIVE=1
+COLLECT_MANAGED=1
+COLLECT_DOTNET_LIBS=1
+
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        --clone)
+            CLONE_MODE=1
+            ;;
+        --repo-includes)
+            REPO_INCLUDES=1
+            ;;
+        --no-include)
+            COLLECT_INCLUDE=0
+            ;;
+        --no-native)
+            COLLECT_NATIVE=0
+            ;;
+        --no-managed)
+            COLLECT_MANAGED=0
+            ;;
+        --no-dotnet-libs)
+            COLLECT_DOTNET_LIBS=0
+            ;;
+        --*)
+            echo "[$SCRIPT_NAME] ERROR: Unknown option: $1" >&2
+            usage >&2
+            exit 1
+            ;;
+        *)
+            break
+            ;;
+    esac
+    shift
+done
+
+if [ "$#" -lt 2 ]; then
+    echo "[$SCRIPT_NAME] ERROR: SOURCE_NEWAGE and PACKAGE_ROOT are required." >&2
+    usage >&2
+    exit 1
+fi
+
 SOURCE_NEWAGE="$1"
 PACKAGE_ROOT="$2"
 shift 2
@@ -340,15 +441,25 @@ fi
 log "Source NewAge: $SOURCE_NEWAGE"
 log "Package root:  $PACKAGE_ROOT"
 log "Configurations: ${CONFIGS[*]}"
+log "Options: CLONE=$CLONE_MODE, REPO_INCLUDES=$REPO_INCLUDES, INCLUDE=$COLLECT_INCLUDE, NATIVE=$COLLECT_NATIVE, MANAGED=$COLLECT_MANAGED, DOTNET_LIBS=$COLLECT_DOTNET_LIBS"
 
 ensure_package_newage_shape "$PACKAGE_ROOT"
 install_newage_root_context_wrapper_from_source \
     "$SOURCE_NEWAGE/JWCEssentials/Bash/in_this_context_Package.sh.src" \
     "$PACKAGE_ROOT"
 
-collect_include_surface "$SOURCE_NEWAGE" "$PACKAGE_ROOT"
-collect_dotnet_lib_surface "$SOURCE_NEWAGE" "$PACKAGE_ROOT"
-collect_native_lanes "$SOURCE_NEWAGE" "$PACKAGE_ROOT" "${CONFIGS[@]}"
+if [ "$COLLECT_INCLUDE" = "1" ]; then
+    collect_include_surface "$SOURCE_NEWAGE" "$PACKAGE_ROOT"
+fi
+
+if [ "$COLLECT_DOTNET_LIBS" = "1" ]; then
+    collect_dotnet_lib_surface "$SOURCE_NEWAGE" "$PACKAGE_ROOT"
+fi
+
+if [ "$COLLECT_NATIVE" = "1" ]; then
+    collect_native_lanes "$SOURCE_NEWAGE" "$PACKAGE_ROOT" "${CONFIGS[@]}"
+fi
+
 collect_managed_bins_from_repo_list "$SOURCE_NEWAGE" "$PACKAGE_ROOT"
 
 write_package_note "$SOURCE_NEWAGE" "$PACKAGE_ROOT" "${CONFIGS[@]}"
