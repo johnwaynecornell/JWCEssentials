@@ -21,6 +21,10 @@ Options:
       Also collect the include directory from each repository listed in
       NewAgeRepo.lst. These are copied to PACKAGE_ROOT/repo_path/include.
 
+  --bash, --script, -bash, -script
+      Populate the package bin directory with scripts from \$SOURCE_NEWAGE/bin
+      that do not start with 'newage_' or 'dev_'.
+
   --no-include
       Skip collecting the staged include surface (\$NewAge/include).
 
@@ -211,6 +215,38 @@ collect_dotnet_lib_surface() {
     copy_dir_contents "$source_newage/DotNet/Libs/lib" "$package_root/DotNet/Libs/lib"
 }
 
+collect_bin_scripts() {
+    local source_newage="$1"
+    local package_root="$2"
+
+    local source_bin="$source_newage/bin"
+    local dest_bin="$package_root/bin"
+
+    if [ ! -d "$source_bin" ]; then
+        return 0
+    fi
+
+    local cp_args="-a"
+    if [ "${CLONE_MODE:-0}" = "1" ]; then
+        cp_args="-aL"
+    fi
+
+    local scripts=()
+    for item in "$source_bin"/*; do
+        [ -f "$item" ] || continue
+        local name="${item##*/}"
+        case "$name" in
+            newage_*|dev_*) continue ;;
+        esac
+        scripts+=("$item")
+    done
+
+    if [ ${#scripts[@]} -gt 0 ]; then
+        cp $cp_args "${scripts[@]}" "$dest_bin/"
+        log "Collected ${#scripts[@]} bin scripts to $dest_bin"
+    fi
+}
+
 collect_native_lanes() {
     local source_newage="$1"
     local package_root="$2"
@@ -376,6 +412,7 @@ fi
 
 CLONE_MODE=0
 REPO_INCLUDES=0
+COLLECT_SCRIPTS=0
 COLLECT_INCLUDE=1
 COLLECT_NATIVE=1
 COLLECT_MANAGED=1
@@ -388,6 +425,9 @@ while [ "$#" -gt 0 ]; do
             ;;
         --repo-includes)
             REPO_INCLUDES=1
+            ;;
+        --bash|--script|-bash|-script)
+            COLLECT_SCRIPTS=1
             ;;
         --no-include)
             COLLECT_INCLUDE=0
@@ -441,7 +481,7 @@ fi
 log "Source NewAge: $SOURCE_NEWAGE"
 log "Package root:  $PACKAGE_ROOT"
 log "Configurations: ${CONFIGS[*]}"
-log "Options: CLONE=$CLONE_MODE, REPO_INCLUDES=$REPO_INCLUDES, INCLUDE=$COLLECT_INCLUDE, NATIVE=$COLLECT_NATIVE, MANAGED=$COLLECT_MANAGED, DOTNET_LIBS=$COLLECT_DOTNET_LIBS"
+log "Options: CLONE=$CLONE_MODE, REPO_INCLUDES=$REPO_INCLUDES, SCRIPTS=$COLLECT_SCRIPTS, INCLUDE=$COLLECT_INCLUDE, NATIVE=$COLLECT_NATIVE, MANAGED=$COLLECT_MANAGED, DOTNET_LIBS=$COLLECT_DOTNET_LIBS"
 
 ensure_package_newage_shape "$PACKAGE_ROOT"
 install_newage_root_context_wrapper_from_source \
@@ -458,6 +498,10 @@ fi
 
 if [ "$COLLECT_NATIVE" = "1" ]; then
     collect_native_lanes "$SOURCE_NEWAGE" "$PACKAGE_ROOT" "${CONFIGS[@]}"
+fi
+
+if [ "$COLLECT_SCRIPTS" = "1" ]; then
+    collect_bin_scripts "$SOURCE_NEWAGE" "$PACKAGE_ROOT"
 fi
 
 collect_managed_bins_from_repo_list "$SOURCE_NEWAGE" "$PACKAGE_ROOT"

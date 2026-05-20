@@ -103,6 +103,7 @@ newage_collect.sh [Options] SOURCE_NEWAGE PACKAGE_ROOT [Config...]
 *   **Options**:
     *   `--clone`: Dereference symlinks to create a self-contained package (replaces symlinks with real copies).
     *   `--repo-includes`: Also collect the `include` directory from each repository.
+    *   `--bash`, `--script`, `-bash`, `-script`: Populate the package `bin` directory with scripts from `$SOURCE_NEWAGE/bin` (excluding `newage_` and `dev_` prefixed ones).
     *   `--no-include`, `--no-native`, `--no-managed`, `--no-dotnet-libs`: Skip specific collection surfaces.
 
 ### NewAge_stage.sh
