@@ -522,3 +522,59 @@ set_lane_environment() {
     newage_log "Lane environment set: $NewAge_Config / $NewAge_Lane"
     [ -n "${CC:-}" ] && newage_log "Compiler: CC=$CC, CXX=$CXX"
 }
+
+newage_native_build_directory() {
+    local rel_project_path="$1"
+
+    # Use environment variables for configuration and flags
+    local config="${NewAge_Config:-Debug}"
+    local lane="${NewAge_Lane:-$(newage_resolve_platform_lane)}"
+    local fresh="${NEWAGE_BUILD_FRESH:-0}"
+    local clean="${NEWAGE_BUILD_CLEAN:-0}"
+
+    local repo_dir
+    repo_dir="$(pwd)"
+
+    local source_dir="$repo_dir/$rel_project_path"
+    local build_dir="$source_dir/build/$config/$lane"
+
+    echo "[build_native] Using build directory: $build_dir"
+    mkdir -p "$build_dir"
+    cd "$build_dir"
+
+    if [ "$fresh" = "1" ]; then
+        verbose.sh cmake -S "$source_dir" -B . -DCMAKE_BUILD_TYPE="$config" --no-warn-unused-cli --fresh
+    else
+        verbose.sh cmake -S "$source_dir" -B . -DCMAKE_BUILD_TYPE="$config" --no-warn-unused-cli
+    fi
+
+    if [ "$clean" = "1" ]; then
+        verbose.sh cmake --build . --config "$config" --target clean
+    fi
+
+    verbose.sh cmake --build . --config "$config"
+}
+
+newage_managed_build_directory() {
+    local rel_project_path="$1"
+
+    # Use environment variables for configuration and flags
+    local config="${NewAge_Config:-Debug}"
+    local fresh="${NEWAGE_BUILD_FRESH:-0}"
+    local clean="${NEWAGE_BUILD_CLEAN:-0}"
+
+    local repo_dir
+    repo_dir="$(pwd)"
+
+    cd "$repo_dir/$rel_project_path"
+
+    if [ "$fresh" = "1" ]; then
+        verbose.sh dotnet build --no-restore
+    fi
+
+    if [ "$clean" = "1" ]; then
+        verbose.sh dotnet clean --configuration "$config"
+    fi
+
+    verbose.sh dotnet build --configuration "$config"
+}
