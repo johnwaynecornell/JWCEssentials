@@ -1,0 +1,2 @@
+add_executable(newage_shell_touch newage_shell_touch.cpp)
+shuttle(newage_shell_touch bin)

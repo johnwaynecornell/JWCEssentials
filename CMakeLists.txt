@@ -85,6 +85,8 @@ endif()
 #  later binary discovery is handled at the runtime level
 newage_configure_native_paths(JWCEssentials)
 
+add_subdirectory(src/newage_shell_touch)
+
 include( "${CMAKE_SOURCE_DIR}/src/Random/Random.cmake")
 
 include( "${CMAKE_SOURCE_DIR}/src/Hasher/Hasher.cmake")
