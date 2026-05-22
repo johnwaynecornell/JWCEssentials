@@ -6,3 +6,6 @@ cmake-build-*
 *DotSettings.user
 CMakeCache.txt
 CMakeFiles/
+/Dev/enabled_futures.lst
+*.cmake
+Makefile
