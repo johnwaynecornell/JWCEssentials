@@ -36,10 +36,28 @@ When a capability is enabled, the expansion tool looks for optional scripts in t
 
 Expansion scripts are repo-local endpoints. They are invoked with the current working directory set to the target repository root.
 
-## Execution Modes
+## Stateful Management (`newage_futures.sh`)
 
-- **Dry-run (`--dry-run`)**: The default mode. Analyzes the composition, identifies enabled capabilities, and prints the scripts that *would* be executed. No actions are taken.
-- **Apply (`--apply`)**: Executes the discovered scripts that exist on disk.
+The `newage_futures.sh` tool provides stateful management of futures.
+
+### Enabled Futures
+`Dev/enabled_futures.lst` records which futures are active for automatic build participation. This file contains just the capability names, one per line.
+
+### Available vs Enabled
+- A future is **available** when its dependency declaration in `Dev/futures.lst` is satisfied by the current repository composition.
+- A future is **enabled** when its capability name is present in `Dev/enabled_futures.lst`.
+- A future is **blocked** if its dependencies are not met.
+- A future is **stale-enabled** if it is enabled but no longer available or declared.
+
+### Build Rule
+`newage_futures.sh <repo> build all native` builds **enabled ∩ available** futures only. This is the default behavior when calling global build scripts.
+
+### Explicit Build
+A specific available future may be built even if it is not enabled:
+```bash
+newage_futures.sh JWCEssentials build has_cs native
+```
+If the future is blocked, the build will fail.
 
 ## Example
 

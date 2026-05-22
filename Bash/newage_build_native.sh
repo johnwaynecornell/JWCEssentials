@@ -92,13 +92,13 @@ fi
 if [ -z "$BUILD_MODE" ]; then
     if [ -n "${NewAge_Config:-}" ]; then
         BUILD_MODE="$NewAge_Config"
-        echo "[newage_build_native] Inferred BUILD_MODE from NewAge_Config: $BUILD_MODE"
+        echo "[newage_build_native] [$REPO_DIR] Inferred BUILD_MODE from NewAge_Config: $BUILD_MODE"
     elif [ -n "${NewAge_Lane:-}" ]; then
         # Check if NewAge_Lane still contains config (legacy)
         case "${NewAge_Lane%%/*}" in
             Debug|debug|Release|release)
                 BUILD_MODE="${NewAge_Lane%%/*}"
-                echo "[newage_build_native] Inferred BUILD_MODE from legacy NewAge_Lane: $BUILD_MODE"
+                echo "[newage_build_native] [$REPO_DIR] Inferred BUILD_MODE from legacy NewAge_Lane: $BUILD_MODE"
                 ;;
             *)
                 BUILD_MODE="Debug"
@@ -124,7 +124,7 @@ case "$BUILD_MODE" in
         FRESH="1"
         ;;
     *)
-        echo "[newage_build_native] ERROR: Unknown build mode: $BUILD_MODE" >&2
+        echo "[newage_build_native] [$REPO_DIR] ERROR: Unknown build mode: $BUILD_MODE" >&2
         usage >&2
         exit 1
         ;;
@@ -162,10 +162,12 @@ for config in "${BUILD_CONFIGS[@]}"; do
       echo $REPO_DIR has no build_native
     fi
 
+    newage_futures.sh "$REPO_DIR" build all native "$config" "${EXTRA_ARGS[@]}"
+
 done
 
 echo
-echo "[newage_build_native] Complete."
+echo "[newage_build_native] [$REPO_DIR] Complete."
 echo
 echo "NewAge:"
 echo "  $NewAge"

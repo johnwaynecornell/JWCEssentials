@@ -87,7 +87,7 @@ while [ "$#" -gt 0 ]; do
 done
 
 if [ -z "$REPO_DIR" ]; then
-    echo "[newage_build_managed] ERROR: REPO_DIR is required." >&2
+    echo "[newage_build_managed] [$REPO_DIR] ERROR: REPO_DIR is required." >&2
     usage >&2
     exit 1
 fi
@@ -95,13 +95,13 @@ fi
 if [ -z "$BUILD_MODE" ]; then
     if [ -n "${NewAge_Config:-}" ]; then
         BUILD_MODE="$NewAge_Config"
-        echo "[newage_build_managed] Inferred BUILD_MODE from NewAge_Config: $BUILD_MODE"
+        echo "[newage_build_managed] [$REPO_DIR] Inferred BUILD_MODE from NewAge_Config: $BUILD_MODE"
     elif [ -n "${NewAge_Lane:-}" ]; then
         # Check if NewAge_Lane still contains config (legacy)
         case "${NewAge_Lane%%/*}" in
             Debug|debug|Release|release)
                 BUILD_MODE="${NewAge_Lane%%/*}"
-                echo "[newage_build_managed] Inferred BUILD_MODE from legacy NewAge_Lane: $BUILD_MODE"
+                echo "[newage_build_managed] [$REPO_DIR] Inferred BUILD_MODE from legacy NewAge_Lane: $BUILD_MODE"
                 ;;
             *)
                 BUILD_MODE="Debug"
@@ -127,7 +127,7 @@ case "$BUILD_MODE" in
         FRESH="1"
         ;;
     *)
-        echo "[newage_build_managed] ERROR: Unknown build mode: $BUILD_MODE" >&2
+        echo "[newage_build_managed] [$REPO_DIR] ERROR: Unknown build mode: $BUILD_MODE" >&2
         usage >&2
         exit 1
         ;;
@@ -142,7 +142,7 @@ fi
 
 for config in "${BUILD_CONFIGS[@]}"; do
     echo
-    echo "[newage_build_managed] Building configuration: $config"
+    echo "[newage_build_managed] [$REPO_DIR] Building configuration: $config"
     echo
 
     lane_to_preserve=""
@@ -164,10 +164,12 @@ for config in "${BUILD_CONFIGS[@]}"; do
     else
       echo "[newage_build_managed] Skip: $REPO_DIR (no Dev/build_managed.sh)"
     fi
+
+    newage_futures.sh "$REPO_DIR" build all managed "$config" "${EXTRA_ARGS[@]}"
 done
 
 echo
-echo "[newage_build_managed] Complete."
+echo "[newage_build_managed] [$REPO_DIR] Complete."
 echo
 echo "NewAge:"
 echo "  $NewAge"
