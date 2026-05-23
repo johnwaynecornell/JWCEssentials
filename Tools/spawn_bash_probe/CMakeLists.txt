@@ -14,5 +14,5 @@ newage_configure_native_paths(spawn_bash_probe)
 find_library(LIBJWCEssentials JWCEssentials)
 find_library(LIBJWCCommandSpawn JWCCommandSpawn)
 
-target_link_libraries(spawn_bash_probe PUBLIC $(LIBJWCEssentials) $(LIBJWCCommandSpawn))
+target_link_libraries(spawn_bash_probe PUBLIC ${LIBJWCEssentials} ${LIBJWCCommandSpawn})
 shuttle(spawn_bash_probe bin)
