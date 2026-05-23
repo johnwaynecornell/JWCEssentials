@@ -2,6 +2,7 @@
 bin
 obj
 cmake-build-*
+/build/
 *.kate-swp
 *DotSettings.user
 CMakeCache.txt
