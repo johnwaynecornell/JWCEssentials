@@ -8,6 +8,19 @@ The NewAge substrate uses a set of standardized Bash scripts to maintain a coher
 
 ## Core Workspace Commands
 
+### newage_go.sh
+
+The primary entry point for bootstrapping or updating a NewAge workspace.
+
+```bash
+newage_go.sh <target-dir> [RepoName...] [--build [build args...]]
+```
+
+*   **Behavior**: Creates the target directory, clones `JWCEssentials`, runs `configure.sh`, and then acquires any specified repositories and their dependencies.
+*   **Update mode**: If run against an existing workspace, it ensures all repositories are up to date and re-configures the environment.
+*   **Build Integration**: The `--build` flag triggers a coordinated build of the entire workspace after acquisition.
+*   **Portability**: It remains usefull when copied outside the repository.
+
 ### newage_get.sh
 
 Acquires or updates a repository within the `$NewAge` workspace.

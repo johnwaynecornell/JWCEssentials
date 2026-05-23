@@ -47,7 +47,25 @@ The native component is built using CMake.
 *   Bash-compatible shell tooling
 *   Platform support currently differentiated for Linux and Windows
 
-### Configure and Build for a NewAge Workspace
+### Bootstrapping a NewAge Workspace
+
+The `newage_go.sh` script is the recommended way to bootstrap a new workspace or update an existing one. It handles cloning `JWCEssentials`, configuring the workspace, and optionally fetching and building other repositories.
+
+To bootstrap a new workspace in `~/NewAge` with `JWCCommandSpawn`:
+```bash
+./Bash/newage_go.sh ~/NewAge JWCCommandSpawn --build
+```
+
+This file remains usefull when copied out of the repo.
+
+This will:
+1. Create `~/NewAge` if it doesn't exist.
+2. Clone `JWCEssentials` into `~/NewAge/JWCEssentials`.
+3. Configure the workspace (installing tools to `~/NewAge/bin`).
+4. Clone `JWCCommandSpawn` into `~/NewAge/JWCCommandSpawn`.
+5. Run a coordinated build of the workspace.
+
+### Configure and Build for a NewAge Workspace (Manual)
 
 JWCEssentials defines the foundational NewAge workspace layout. Running `configure.sh` creates the required workspace directories, exposes JWCEssentials headers through `$NewAge/include`, exposes Bash helper tools through `$NewAge/bin`, and registers the current checkout under the shared workspace.
 

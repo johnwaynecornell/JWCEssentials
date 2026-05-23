@@ -240,6 +240,34 @@ This document defines only the shared environment. Repository-specific build ins
 *   `JWCCommandSpawn` should document process/pipe/runtime assumptions.
 *   `CrystalCatalystLibrary` should document native C++ builds, generated bindings, platform layers, and managed interop.
 
+## Bootstrapping a Workspace
+
+The `newage_go.sh` tool (located in `JWCEssentials/Bash/` and installed to `$NewAge/bin/`) is designed to simplify the creation and maintenance of a NewAge workspace.
+
+### Standard Bootstrap
+
+To create a new workspace and fetch core repositories:
+
+```bash
+./JWCEssentials/Bash/newage_go.sh ~/NewAge JWCCommandSpawn CrystalCatalystLibrary
+```
+
+This file remains useful when copied out of the repo.
+
+### Bootstrap and Build
+
+To bootstrap and immediately run a coordinated build:
+
+```bash
+./JWCEssentials/Bash/newage_go.sh ~/NewAge JWCCommandSpawn --build Debug
+```
+
+This command will:
+1. Ensure `JWCEssentials` is present and configured.
+2. Fetch specified repositories (and their dependencies).
+3. Run `newage_all_configure.sh` to set up all repositories.
+4. Run `newage_all_build_coordinated.sh` to build the entire suite.
+
 ## Fresh-System Verification
 
 A fresh machine or VM should verify the shared environment before attempting full builds.
