@@ -27,6 +27,7 @@ if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
             include/JWCEssentials/Escapes.h
             include/JWCEssentials/Paths.h
             include/JWCEssentials/BufferHelper.h
+            include/JWCEssentials/Terminal.h
 
             src/JWCEssentials.cpp
             src/utf8_string_struct.cpp
@@ -36,6 +37,7 @@ if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
             src/feffect.cpp
             src/BufferHelper.cpp
 
+            src/Platform_Windows/Terminal_Windows.cpp
             src/Platform_Windows/Paths_Windows.cpp
             include/JWCEssentials/feffect.h
 
@@ -57,6 +59,7 @@ elseif ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
             include/JWCEssentials/Escapes.h
             include/JWCEssentials/Paths.h
             include/JWCEssentials/BufferHelper.h
+            include/JWCEssentials/Terminal.h
 
             src/JWCEssentials.cpp
             src/utf8_string_struct.cpp
@@ -66,6 +69,7 @@ elseif ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
             src/feffect.cpp
             src/BufferHelper.cpp
 
+            src/Platform_Linux/Terminal_Linux.cpp
             src/Platform_Linux/Paths_Linux.cpp
 
             include/JWCEssentials/feffect.h

@@ -15,11 +15,16 @@ public class Essentials
          _EXPORT_ utf8_string_struct PlatformLineEnding();
      */
 
+    static Essentials()
+    {
+        Imports.JWCEssentials_EnableTerminalEffects();
+    }
+
     class Imports
     {
         [DllImport("JWCEssentials")]
         public static extern utf8_string_struct escapeStringForCommandLine(ref utf8_string_struct text);
-        
+
         [DllImport("JWCEssentials")]
         public static extern struct_array_struct<utf8_string_struct> feffect_list();
         [DllImport("JWCEssentials")]
@@ -28,6 +33,10 @@ public class Essentials
                 public static extern utf8_string_struct feffect_name(ref utf8_string_struct code);
         [DllImport("JWCEssentials")]
         public static extern utf8_string_struct feffect(ref utf8_string_struct command, ref utf8_string_struct escape);
+
+        [DllImport("JWCEssentials")]
+        public static extern void JWCEssentials_EnableTerminalEffects();
+
         [DllImport("JWCEssentials")]
         public static extern utf8_string_struct PlatformLineEnding();
         

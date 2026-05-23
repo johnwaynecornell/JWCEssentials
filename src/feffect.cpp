@@ -193,6 +193,8 @@ namespace JWCEssentials {
     utf8_string_struct feffect_processor::process(utf8_string_struct command, utf8_string_struct escape) {
         pstack.push_back({});
 
+        JWCEssentials_EnableTerminalEffects();
+
         if (escape == nullptr) escape = "\033";
 
         cursor = {command.c_str};

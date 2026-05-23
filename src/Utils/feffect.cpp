@@ -10,6 +10,22 @@
 
 using namespace JWCEssentials;
 
+#ifdef _WIN32
+#include <windows.h>
+
+static void enable_windows_virtual_terminal()
+{
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    if (hOut == INVALID_HANDLE_VALUE) return;
+
+    DWORD mode = 0;
+    if (!GetConsoleMode(hOut, &mode)) return;
+
+    mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+    SetConsoleMode(hOut, mode);
+}
+#endif
+
 int main(int argc, char **argv) {
     if (argc == 2 && strcmp(argv[1], "-list") == 0) {
         utf8_string_struct_array effect = feffect_list();
@@ -30,12 +46,23 @@ int main(int argc, char **argv) {
     utf8_string_struct command;
     utf8_string_struct escape = "\\033";
 
-    for (i=1; i<argc; i++) {
+    bool emit_escape = false;
+
+    for (i = 1; i < argc; i++) {
         std::string a = argv[i];
-        if (a == "-e") escape = "\033";
+        if (a == "-e") {
+            escape = "\033";
+            emit_escape = true;
+        }
         else if (!command) command = a.c_str();
         else break;
     }
+
+    #ifdef _WIN32
+    if (emit_escape) enable_windows_virtual_terminal();
+    #endif
+
+    std::cout << "got here" << std::endl;
 
     if (!command || i != argc) {
         std::cout << "usage: feffect effect_string" << std::endl;

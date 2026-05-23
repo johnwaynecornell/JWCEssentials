@@ -22,6 +22,7 @@
 #include "struct_array_struct.h"
 #include "Paths.h"
 #include "Escapes.h"
+#include "Terminal.h"
 #include "feffect.h"
 #include "BufferHelper.h"
 #include "Random_Generator.h"
