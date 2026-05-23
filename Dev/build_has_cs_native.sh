@@ -74,5 +74,13 @@ fi
 export NEWAGE_BUILD_FRESH="$FRESH"
 export NEWAGE_BUILD_CLEAN="$CLEAN"
 
+# Bootstrap note:
+# has_cs is declared by JWCEssentials as an optional composition with JWCCommandSpawn.
+# Because this proof target lives inside JWCEssentials, it must ensure JWCCommandSpawn
+# has been built before building Tools/spawn_bash_probe. Downstream repositories should
+# not need this special case because dependency build order should already satisfy it.
+newage_build_native.sh JWCCommandSpawn "$config"
+
+
 # This script proves has_cs by building the JWCCommandSpawn bash probe.
 newage_native_build_directory "Tools/spawn_bash_probe"

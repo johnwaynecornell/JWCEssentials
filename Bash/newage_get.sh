@@ -13,8 +13,8 @@ Usage:
   newage_get.sh RepoName GitUrl Branch
 
 Examples:
-  newage_get.sh JWCEssentials https://github.com/user/JWCEssentials.git
-  newage_get.sh 'JWCEssentials|https://github.com/user/JWCEssentials.git|main'
+  newage_get.sh JWCEssentials https://github.com/johnwaynecornell/JWCEssentials.git
+  newage_get.sh 'JWCEssentials|https://github.com/johnwaynecornell/JWCEssentials.git|main'
 
 Note:
   Requires \$NewAge environment variable to be set.
