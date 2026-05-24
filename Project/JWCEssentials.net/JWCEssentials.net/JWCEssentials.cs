@@ -30,7 +30,7 @@ public class Essentials
         [DllImport("JWCEssentials")]
         public static extern utf8_string_struct feffect_code(ref utf8_string_struct name);
         [DllImport("JWCEssentials")]
-                public static extern utf8_string_struct feffect_name(ref utf8_string_struct code);
+        public static extern utf8_string_struct feffect_name(ref utf8_string_struct code);
         [DllImport("JWCEssentials")]
         public static extern utf8_string_struct feffect(ref utf8_string_struct command, ref utf8_string_struct escape);
 
@@ -45,7 +45,12 @@ public class Essentials
 
     }
 
-    public string escapeStringForCommandLine(string text)
+    public static void EnableTerminalEffects()
+    { 
+        Imports.JWCEssentials_EnableTerminalEffects();
+    }
+
+    public static string escapeStringForCommandLine(string text)
     {
         utf8_string_struct p1 = text;
         return Imports.escapeStringForCommandLine(ref p1);
