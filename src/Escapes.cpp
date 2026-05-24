@@ -35,11 +35,6 @@ namespace JWCEssentials {
                     break;
                 }
 
-                // Output the quote if the next character is a quote
-                if (input[i] == '"') {
-                    escaped << '\\';
-                }
-
                 // Output the next character
                 --i; // to adjust for the outer loop increment
             } else if (c == '"') {
@@ -52,7 +47,7 @@ namespace JWCEssentials {
         }
 
         escaped << '"';
-        return escaped.str().c_str();
+        return utf8_string_struct(escaped.str());
     }
 
     utf8_string_struct escapeStringForCommandLine_Linux(utf8_string_struct text) {
@@ -71,6 +66,6 @@ namespace JWCEssentials {
         }
 
         escaped << '\'';
-        return escaped.str().c_str();
+        return utf8_string_struct(escaped.str());
     }
 }
