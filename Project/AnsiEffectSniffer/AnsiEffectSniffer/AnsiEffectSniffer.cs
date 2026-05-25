@@ -15,6 +15,8 @@ namespace JWCEssentials
     public delegate void CharDelegate(char c);
 
     public delegate void SwitchDelegate(string mode, bool enable);
+
+    public delegate void FontDelegate(int number);
     
     public class AnsiEffectSniffer
     {
@@ -23,6 +25,7 @@ namespace JWCEssentials
         public Action? Reset { get; set; }
         public CharDelegate? Char { get; set; }
         public SwitchDelegate? Switch { get; set; }
+        public FontDelegate? Font { get; set; }
 
         private readonly Decoder _decoder = Encoding.UTF8.GetDecoder();
         private readonly char[] _charBuffer = new char[1];
@@ -179,6 +182,20 @@ namespace JWCEssentials
                         if (off) name = name.Substring(0, name.Length - 4);
                         
                         Switch?.Invoke(name, !off);
+                        return;
+                    }
+
+                    if (name.StartsWith("font"))
+                    {
+                        int font = int.Parse(name.Substring(4));
+                        if (font > 9)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"[AnsiEffectSniffer Warning] Font index {font} exceeds maximum allowed value of 9. Skipping.");
+                            return; // Halts further execution of this code block and skips invocation
+                        }
+
+                        // Fire the delegate if a handler is attached
+                        Font?.Invoke(font);
                     }
                 }
             }

@@ -141,5 +141,44 @@ namespace AnsiEffectSniffer.Tests
             Assert.Contains(switches, s => s.mode == "italic" && s.enable);
             Assert.Contains(switches, s => s.mode == "bold" && !s.enable);
         }
+
+        [Fact]
+        public void TestFontFunctionality()
+        {
+            var sniffer = new JWCEssentials.AnsiEffectSniffer();
+            var fonts = new List<int>();
+
+            sniffer.Font = (number) => fonts.Add(number);
+
+            // ESC [ 10 m (Font 0)
+            sniffer.Process(new byte[] { 0x1B, (byte)'[', (byte)'1', (byte)'0', (byte)'m' });
+            
+            // ESC [ 11 m (Font 1)
+            sniffer.Process(new byte[] { 0x1B, (byte)'[', (byte)'1', (byte)'1', (byte)'m' });
+
+            // ESC [ 19 m (Font 9)
+            sniffer.Process(new byte[] { 0x1B, (byte)'[', (byte)'1', (byte)'9', (byte)'m' });
+
+            Assert.Equal(3, fonts.Count);
+            Assert.Equal(0, fonts[0]);
+            Assert.Equal(1, fonts[1]);
+            Assert.Equal(9, fonts[2]);
+        }
+
+        [Fact]
+        public void TestMultipleFontChanges()
+        {
+            var sniffer = new JWCEssentials.AnsiEffectSniffer();
+            var fonts = new List<int>();
+
+            sniffer.Font = (number) => fonts.Add(number);
+
+            // ESC [ 11 ; 12 m (Font 1 then Font 2)
+            sniffer.Process(new byte[] { 0x1B, (byte)'[', (byte)'1', (byte)'1', (byte)';', (byte)'1', (byte)'2', (byte)'m' });
+
+            Assert.Equal(2, fonts.Count);
+            Assert.Equal(1, fonts[0]);
+            Assert.Equal(2, fonts[1]);
+        }
     }
 }
