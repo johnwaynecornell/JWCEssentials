@@ -65,6 +65,10 @@ This will:
 4. Clone `JWCCommandSpawn` into `~/NewAge/JWCCommandSpawn`.
 5. Run a coordinated build of the workspace.
 
+### Agent and Session Support
+
+For working with AI agents (like Junie), a condensed context prompt is available in `docs/NewAge_Prompt.md`. This can be used at the start of a new session to "set the stage" with workspace knowledge.
+
 ### Configure and Build for a NewAge Workspace (Manual)
 
 JWCEssentials defines the foundational NewAge workspace layout. Running `configure.sh` creates the required workspace directories, exposes JWCEssentials headers through `$NewAge/include`, exposes Bash helper tools through `$NewAge/bin`, and registers the current checkout under the shared workspace.

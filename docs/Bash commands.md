@@ -11,6 +11,8 @@ The NewAge substrate uses a set of standardized Bash scripts to maintain a coher
 ### newage_go.sh
 
 The primary entry point for bootstrapping or updating a NewAge workspace.
+This file is indempotent, meaning it can be run multiple times without causing issues. And does not require NewAge to be run.
+
 
 ```bash
 newage_go.sh <target-dir> [RepoName...] [--build [build args...]]
@@ -19,7 +21,12 @@ newage_go.sh <target-dir> [RepoName...] [--build [build args...]]
 *   **Behavior**: Creates the target directory, clones `JWCEssentials`, runs `configure.sh`, and then acquires any specified repositories and their dependencies.
 *   **Update mode**: If run against an existing workspace, it ensures all repositories are up to date and re-configures the environment.
 *   **Build Integration**: The `--build` flag triggers a coordinated build of the entire workspace after acquisition.
-*   **Portability**: It remains usefull when copied outside the repository.
+
+## Agent and Session Support
+
+### NewAge Agent Prompt
+
+For working with AI agents (like Junie), a condensed context prompt is available in `docs/NewAge_Prompt.md`. This can be used at the start of a new session to "set the stage" with workspace knowledge.
 
 ### newage_get.sh
 
