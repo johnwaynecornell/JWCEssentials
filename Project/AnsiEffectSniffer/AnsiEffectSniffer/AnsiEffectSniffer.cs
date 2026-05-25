@@ -48,7 +48,7 @@ namespace JWCEssentials
             }
         }
 
-        private void ProcessByte(byte b)
+        public void ProcessByte(byte b)
         {
             switch (_state)
             {
