@@ -553,6 +553,8 @@ newage_native_build_directory() {
     fi
 
     verbose.sh cmake --build . --config "$config"
+
+    cd "$repo_dir"
 }
 
 newage_managed_build_directory() {
@@ -577,4 +579,6 @@ newage_managed_build_directory() {
     fi
 
     verbose.sh dotnet build --configuration "$config"
+
+    cd "$repo_dir"
 }
