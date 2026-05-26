@@ -63,7 +63,7 @@ while IFS= read -e line; do
 
     line=$(echo $line | grep "\S.")
 
-    if [ -d $line ]; then
+    if [ -d "$line" ]; then
         use="false"
     fi
 

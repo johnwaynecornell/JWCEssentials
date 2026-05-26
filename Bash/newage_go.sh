@@ -54,10 +54,7 @@ while [ "$#" -gt 0 ]; do
         --build)
             build="1"
             shift
-            while [ "$#" -gt 0 ]; do
-                build_args+=("$1")
-                shift
-            done
+            build_args=("$@")
             break
             ;;
         -h|--help)
