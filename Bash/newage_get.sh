@@ -7,12 +7,14 @@ set -euo pipefail
 usage() {
     cat <<EOF
 Usage:
+  newage_get.sh RepoName
   newage_get.sh 'RepoName|GitUrl'
   newage_get.sh 'RepoName|GitUrl|Branch'
   newage_get.sh RepoName GitUrl
   newage_get.sh RepoName GitUrl Branch
 
 Examples:
+  newage_get.sh JWCEssentials
   newage_get.sh JWCEssentials https://github.com/johnwaynecornell/JWCEssentials.git
   newage_get.sh 'JWCEssentials|https://github.com/johnwaynecornell/JWCEssentials.git|main'
 
@@ -37,9 +39,14 @@ GIT_URL=""
 BRANCH="main"
 
 if [ "$#" -eq 1 ]; then
-    IFS='|' read -r REPO_NAME GIT_URL BRANCH_ARG <<< "$1"
-    if [ -n "$BRANCH_ARG" ]; then
-        BRANCH="$BRANCH_ARG"
+    if [[ "$1" == *"|"* ]]; then
+        IFS='|' read -r REPO_NAME GIT_URL BRANCH_ARG <<< "$1"
+        if [ -n "$BRANCH_ARG" ]; then
+            BRANCH="$BRANCH_ARG"
+        fi
+    else
+        REPO_NAME="$1"
+        GIT_URL="https://github.com/johnwaynecornell/$REPO_NAME"
     fi
 elif [ "$#" -eq 2 ]; then
     REPO_NAME="$1"

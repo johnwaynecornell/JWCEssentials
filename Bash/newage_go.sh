@@ -15,7 +15,7 @@ Arguments:
   RepoName
       Repository name under johnwaynecornell.
       Each RepoName expands to:
-        newage_get.sh RepoName https://github.com/johnwaynecornell/RepoName
+        newage_get.sh RepoName
 
 Options:
   --build [build args...]
@@ -121,7 +121,7 @@ if [ "${#repos[@]}" -gt 0 ]; then
 
         for repo in "${repos[@]}"; do
             echo "[newage_go] Getting repo: $repo"
-            newage_get.sh "$repo" "https://github.com/johnwaynecornell/$repo"
+            newage_get.sh "$repo"
         done
 
         newage_get_deps.sh
