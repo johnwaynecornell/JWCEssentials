@@ -182,6 +182,12 @@ cmd_enable() {
     fi
     
     if [ ! -f "$FUTURES_LST" ]; then
+
+        if [ "$future_to_enable" == "all" ]; then
+          echo "No futures.lst found in $TARGET_REPO" >&2
+          return 0;
+        fi
+
         echo "ERROR: No futures.lst found in $TARGET_REPO" >&2
         exit 1
     fi
