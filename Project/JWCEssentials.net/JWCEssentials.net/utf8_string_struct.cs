@@ -61,6 +61,11 @@ namespace JWCEssentials.net
             return handle;
         }
 
+        public override string ToString()
+        {
+            return (string)this;
+        }
+
         public void Release()
         {
             length = 0;
