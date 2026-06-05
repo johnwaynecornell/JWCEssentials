@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="CSProj/CSProj.csproj" />
+  <Project Path="csproj_add_my_references/csproj_add_my_references.csproj" />
+  <Project Path="csproj_add_property/csproj_add_property.csproj" />
+  <Project Path="csproj_add_reference/csproj_add_reference.csproj" />
+  <Project Path="csproj_list_references/csproj_list_references.csproj" />
+  <Project Path="test_target/test_target.csproj" />
+</Solution>
