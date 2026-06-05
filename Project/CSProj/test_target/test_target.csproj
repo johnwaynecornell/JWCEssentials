@@ -11,6 +11,5 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="$(MyReferencePath)\JWCEssentials.net.dll" />
-    <Reference Include="$(MyReferencePath)\JWCCommandSpawn.dll" />
   </ItemGroup>
 </Project>
