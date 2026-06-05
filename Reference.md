@@ -8,6 +8,7 @@ This document serves as an orientation guide for AI assistants and maintainers o
 
 1. **C++ utility library** (`libJWCEssentials.so` / `.dll`) providing hashing, random generation, thread-local storage (TLS), terminal effect codes, UTF-8 string handling, command-line escaping, and path utilities — with managed .NET wrappers for all major subsystems.
 2. **NewAge workspace Bash tooling** — the canonical source for scripts that are copied to `$NewAge/bin`, and the `configure.sh` that establishes the collective workspace layout.
+3. **CSProj managed reference tooling** — a suite of .NET CLI tools for manipulating `.csproj` files, with `csproj_add_my_references` as the primary entry point for wiring downstream projects to consume managed assemblies from the NewAge reference path.
 
 - **Primary Languages**: C++, Bash, C#/.NET 10.0
 - **Target Platforms**: Windows and Linux
@@ -17,10 +18,12 @@ This document serves as an orientation guide for AI assistants and maintainers o
     - **AnsiEffectSniffer**: `Project/AnsiEffectSniffer/AnsiEffectSniffer.sln` — standalone ANSI escape sequence parser.
     - **Standalone Utilities**: `feffect`, `rand_identifier`, `split_arg` (from `src/Utils/`); `spawn_bash_probe` (from `Tools/`).
     - **Bash Workspace Tooling**: `Bash/` — all scripts; `configure.sh` — workspace bootstrap.
+    - **CSProj Tooling**: `Project/CSProj/CSProj.slnx` — `.csproj` manipulation tools; staged to `$NewAge/bin/`.
 - **Primary Solution/Project Files**:
     - `CMakeLists.txt` (Native build)
     - `Project/JWCEssentials.net/JWCEssentials.net.sln` (.NET wrapper)
     - `Project/AnsiEffectSniffer/AnsiEffectSniffer.sln` (AnsiEffectSniffer)
+    - `Project/CSProj/CSProj.slnx` (CSProj tooling)
 
 ## Orientation for AI Assistants
 - **Bash scripts are not live source**: `$NewAge/bin/` is populated by copying from `Bash/` during `configure.sh`. Edit scripts in `Bash/`, then re-run configure to propagate changes.
@@ -169,6 +172,67 @@ Notes: Must be disposed to trigger `TLS_Free`.
 File: `Project/AnsiEffectSniffer/AnsiEffectSniffer/AnsiEffectSniffer.cs`
 Purpose: Parses and detects ANSI escape sequences in text streams. Standalone library — does not depend on native JWCEssentials.
 
+## NewAge Reference Management (CSProj Tooling)
+
+JWCEssentials provides a suite of `.csproj` manipulation tools built on the `CSProj` shared library (`VSXml` namespace). These tools are staged to `$NewAge/bin/` and are available to any project in the workspace.
+
+### The MyReferencePath Convention
+
+Managed libraries in the NewAge ecosystem stage their built DLLs to:
+```
+$NewAge/DotNet/Libs/lib/$(Configuration)/$(TargetFramework)/
+```
+This path is exposed as the MSBuild property `MyReferencePath`. Consuming projects set this property and use it in `<Reference>` `Include` attributes, so all managed library references resolve through a single workspace-relative path regardless of machine layout.
+
+### Wiring a Project to Consume NewAge References
+
+The recommended one-step command:
+```bash
+csproj_add_my_references MyProject/MyProject.csproj Assembly1 [Assembly2 ...]
+```
+This:
+1. Backs up the `.csproj` with a timestamp.
+2. Injects `<MyReferencePath>$(NewAge)\DotNet\Libs\lib\$(Configuration)\$(TargetFramework)</MyReferencePath>` if not already present.
+3. Adds `<Reference Include="$(MyReferencePath)\AssemblyN.dll" />` for each named assembly.
+
+Example:
+```bash
+csproj_add_my_references src/MyApp/MyApp.csproj JWCEssentials.net JWCCommandSpawn
+```
+Use `-u` to update existing entries.
+
+### Making a Library Consumable
+
+A managed library becomes consumable via `csproj_add_my_references` by adding `MyReferencePath` and a `NewAge_stage.sh` PostBuild to its `.csproj`:
+```xml
+<PropertyGroup>
+  <MyReferencePath>$(NewAge)\DotNet\Libs\lib\$(Configuration)\$(TargetFramework)</MyReferencePath>
+</PropertyGroup>
+<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+  <Exec Command="bash NewAge_stage.sh '$(MSBuildProjectName)' '$(MyReferencePath)' '$(OutputPath)/'" />
+</Target>
+```
+`NewAge_stage.sh` symlinks the DLL, PDB, and deps.json into `MyReferencePath` after each build.
+
+### CSProj Tool Reference
+
+| Tool | Usage | Purpose |
+|---|---|---|
+| `csproj_add_my_references` | `[-u] file.csproj Asm1 [Asm2 ...]` | **Primary entry point.** Ensures `MyReferencePath` and adds named assembly references in one pass. |
+| `csproj_add_reference` | `[-u] file.csproj xml_reference` | Adds a single raw XML `<Reference>` element. |
+| `csproj_add_property` | `[-u] file.csproj xml_property` | Adds a single raw XML property to the second `<PropertyGroup>`. |
+| `csproj_list_references` | `file.csproj` | Lists all `<Reference>` and staged `<ProjectReference>` assembly names. |
+
+Source: `Project/CSProj/` — `CSProj` library (`VSXml.CSProj`) is also staged as a DLL to `$NewAge/DotNet/Libs/lib/` for future managed consumers.
+
+### CSProj Class Map
+
+#### `CSProj` (`VSXml`)
+File: `Project/CSProj/CSProj/CSProj.cs`
+Purpose: Core XML manipulation class for `.csproj` files. Handles opening, saving, backup, property management, and reference management.
+Key methods: `Open`, `EnsureProperty`, `AddMyReference`, `BackupWithTimestamp`, `ListReferences`, `GetPropertyValue`, `GetReferences`.
+Notes: Staged to `$NewAge/DotNet/Libs/lib/` via `NewAge_stage.sh`. Extend here when new csproj manipulation operations are needed.
+
 ## Standalone Utilities
 
 | Tool | Source | Purpose |
@@ -265,6 +329,8 @@ All scripts in `Bash/` are copied to `$NewAge/bin/` by `configure.sh`. Edit sour
 - **New managed wrapper**: Add a `.cs` file to `Project/JWCEssentials.net/JWCEssentials.net/` following the `IOwnedInteropStruct` ownership pattern.
 - **New Bash tool**: Add to `Bash/` and re-run `configure.sh`. New scripts are automatically picked up for all repos that run `newage_all_configure.sh`.
 - **New standalone utility**: Add a `.cpp` to `src/Utils/` and update `CMakeLists.txt`.
+- **New csproj operation**: Add a method to `Project/CSProj/CSProj/CSProj.cs` (`VSXml.CSProj`) and expose it via a new or existing tool in `Project/CSProj/`.
+- **Making a new managed library consumable**: Add `MyReferencePath` property and `NewAge_stage.sh` PostBuild to the library's `.csproj`. See the NewAge Reference Management section above.
 
 ## Known Cautions
 - **Single-line _EXPORT_**: Required for grep-based tooling. Do not split declarations across lines.
