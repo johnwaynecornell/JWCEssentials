@@ -1,0 +1,11 @@
+## Parameters
+- Repository name: JWCEssentials
+- Primary purpose: Core NewAge workspace foundation — provides C++ utility library (hashing, random, TLS, terminal effects, UTF-8 strings, escapes, paths) plus the Bash tooling that establishes and populates the collective NewAge workspace layout.
+- Main languages/runtimes: C++, Bash, C#/.NET 10.0
+- Target platforms: Windows and Linux
+- Primary solution/project files: CMakeLists.txt, Project/JWCEssentials.net/JWCEssentials.net.sln, Project/AnsiEffectSniffer/AnsiEffectSniffer.sln
+- Special focus areas: _EXPORT_ native entry points, Bash workspace tooling, configure.sh workspace bootstrap, managed .NET wrappers, standalone utility executables (feffect, rand_identifier, split_arg, spawn_bash_probe)
+- Reference depth: deep
+- File path style: repo-relative only
+- Export marker: _EXPORT_
+- Existing Reference.md policy: create
