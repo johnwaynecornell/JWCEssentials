@@ -7,7 +7,11 @@
 # Creates (DLL present — .NET tool, portable):
 #   $DestinationDir/ProjectName      — bash wrapper using dotnet + script-relative DLL path
 #   $DestinationDir/ProjectName.bat  — CMD/PowerShell wrapper using dotnet + %~dp0-relative path
-#   $DestinationDir/ProjectName.dll  — symlink to the DLL (located alongside wrappers)
+#   $DestinationDir/ProjectName.dll  — relative symlink to the DLL
+#
+#   The DLL symlink is relative (e.g. ../JWCEssentials/.../Project.dll) so that
+#   cp -a into a collected workspace preserves it and it resolves correctly —
+#   newage_collect.sh copies managed bins under the same repo-relative paths.
 #
 # Creates (no DLL — native binary):
 #   $DestinationDir/ProjectName      — bash wrapper with absolute path to binary
@@ -24,6 +28,23 @@ if [ ! -d "$MyReferencePath" ]; then
         exit -1
     fi
 fi
+
+# Compute the relative path from base directory to target path.
+# Mirrors relative_path_from_to in newage_collect.sh — keeping them in sync
+# ensures collect and forward agree on the same relative layout.
+relative_path_from_to() {
+    local base="$1"
+    local path="$2"
+
+    if command -v realpath >/dev/null 2>&1; then
+        realpath --relative-to="$base" "$path"
+        return
+    fi
+
+    # Fallback: strip base prefix (assumes path starts with base).
+    path="${path#"$base"/}"
+    printf '%s\n' "$path"
+}
 
 try_link() {
     echo _______________________________
@@ -51,14 +72,17 @@ try_link() {
     if [ -f "$I_dll" ]; then
         echo "dll found — staging dotnet wrappers"
 
-        # Symlink the DLL into $NewAge/bin/ alongside the wrappers.
-        # Both wrappers reference it by name relative to their own directory,
-        # so the bin/ folder is self-contained and portable (e.g. in a collection).
+        # Relative symlink: $NewAge/bin/Project.dll -> ../Repo/Project/.../Project.dll
+        # Preserved correctly by cp -a during collection; resolves in the collected
+        # workspace because collect copies managed bins under the same relative paths.
         local O_dll="${MyReferencePath}${name}.dll"
         if [ -f "$O_dll" ] || [ -L "$O_dll" ]; then
             verbose.sh rm "$O_dll"
         fi
-        verbose.sh create_symlink.sh "$I_dll" "$O_dll"
+        local rel_dll
+        rel_dll="$(relative_path_from_to "${MyReferencePath%/}" "$I_dll")"
+        ln -s "$rel_dll" "$O_dll"
+        echo "  symlink: $name.dll -> $rel_dll"
 
         # Bash wrapper — resolves DLL relative to the script's own directory.
         # Works on Linux, Mac, and Git Bash on Windows.
@@ -75,7 +99,7 @@ try_link() {
         if [ -f "$O_bat" ] || [ -L "$O_bat" ]; then
             verbose.sh rm "$O_bat"
         fi
-        printf '@echo off\r\n'                      > "$O_bat"
+        printf '@echo off\r\n'                         > "$O_bat"
         printf 'dotnet "%%~dp0%s.dll" %%*\r\n' "$name" >> "$O_bat"
 
         echo "$name dotnet wrappers staged"
@@ -84,7 +108,7 @@ try_link() {
         echo "binary found — staging binary wrapper"
 
         # Bash wrapper — absolute path; binary is platform-specific
-        echo "#!/bin/bash"    > "$O"
+        echo "#!/bin/bash"         > "$O"
         echo "\"$I_bin\" \"\$@\"" >> "$O"
         chmod +110 "$O"
 
@@ -96,7 +120,7 @@ try_link() {
             if [ -f "$O_bat" ] || [ -L "$O_bat" ]; then
                 verbose.sh rm "$O_bat"
             fi
-            printf '@echo off\r\n'       > "$O_bat"
+            printf '@echo off\r\n'        > "$O_bat"
             printf '"%s" %%*\r\n' "$I_win" >> "$O_bat"
             echo "$name.bat staged"
         fi
