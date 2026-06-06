@@ -289,8 +289,8 @@ All scripts in `Bash/` are copied to `$NewAge/bin/` by `configure.sh`. Edit sour
 | `Bash/in_dir.sh` | Runs a command in a specified directory, then returns. |
 | `Bash/newage_run_in_context.sh` | Runs a command inside a specific workspace context. |
 | `Bash/newage_go.sh` | Navigates to a named workspace location. |
-| `Bash/NewAge_forward.sh` | Forwards execution to another workspace. |
-| `Bash/NewAge_stage.sh` | Stages artifacts to workspace output paths. |
+| `Bash/NewAge_forward.sh` | PostBuild staging for executable tools. For .NET tools (DLL present), emits a bash wrapper and a `.bat` wrapper both using a script-relative path to the DLL (`dotnet "$SCRIPT_DIR/../Repo/.../Project.dll"`), making `$NewAge/bin/` self-contained and portable across collections and platforms (Linux, Windows CMD/PS, Git Bash). For native binaries, emits a bash wrapper (absolute path) and a `.bat` for `.exe` builds. |
+| `Bash/NewAge_stage.sh` | PostBuild staging for managed libraries. Symlinks DLL, PDB, and deps.json into `$(MyReferencePath)` (`$NewAge/DotNet/Libs/lib/`). |
 | `Bash/verbose.sh` | Controls verbose output mode. |
 | `Bash/colors.sh` | ANSI color helpers for shell scripts. |
 
