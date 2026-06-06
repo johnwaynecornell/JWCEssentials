@@ -5,13 +5,12 @@
 #   bash NewAge_forward.sh ProjectName DestinationDir/ OutputPath/
 #
 # Creates (DLL present — .NET tool, portable):
-#   $DestinationDir/ProjectName      — bash wrapper using dotnet + script-relative DLL path
-#   $DestinationDir/ProjectName.bat  — CMD/PowerShell wrapper using dotnet + %~dp0-relative path
-#   $DestinationDir/ProjectName.dll  — relative symlink to the DLL
+#   $DestinationDir/ProjectName      — bash wrapper; resolves DLL via BASH_SOURCE-relative path
+#   $DestinationDir/ProjectName.bat  — CMD/PowerShell wrapper; resolves DLL via %~dp0-relative path
 #
-#   The DLL symlink is relative (e.g. ../JWCEssentials/.../Project.dll) so that
-#   cp -a into a collected workspace preserves it and it resolves correctly —
-#   newage_collect.sh copies managed bins under the same repo-relative paths.
+#   No symlink is created. The relative path to the DLL is computed once and embedded
+#   in both wrappers. This survives cp -a into a collected workspace and works on
+#   Windows where symlinks are not reliably available.
 #
 # Creates (no DLL — native binary):
 #   $DestinationDir/ProjectName      — bash wrapper with absolute path to binary
@@ -30,8 +29,7 @@ if [ ! -d "$MyReferencePath" ]; then
 fi
 
 # Compute the relative path from base directory to target path.
-# Mirrors relative_path_from_to in newage_collect.sh — keeping them in sync
-# ensures collect and forward agree on the same relative layout.
+# Mirrors relative_path_from_to in newage_collect.sh.
 relative_path_from_to() {
     local base="$1"
     local path="$2"
@@ -64,32 +62,36 @@ try_link() {
     echo "I_dll=$I_dll"
     echo "I_bin=$I_bin"
 
-    # Remove existing bash wrapper
+    # Remove existing bash wrapper and any stale .dll symlink/file from prior staging
     if [ -f "$O" ] || [ -L "$O" ]; then
         verbose.sh rm "$O"
+    fi
+    local O_dll_stale="${MyReferencePath}${name}.dll"
+    if [ -f "$O_dll_stale" ] || [ -L "$O_dll_stale" ]; then
+        verbose.sh rm "$O_dll_stale"
     fi
 
     if [ -f "$I_dll" ]; then
         echo "dll found — staging dotnet wrappers"
 
-        # Relative symlink: $NewAge/bin/Project.dll -> ../Repo/Project/.../Project.dll
-        # Preserved correctly by cp -a during collection; resolves in the collected
-        # workspace because collect copies managed bins under the same relative paths.
-        local O_dll="${MyReferencePath}${name}.dll"
-        if [ -f "$O_dll" ] || [ -L "$O_dll" ]; then
-            verbose.sh rm "$O_dll"
-        fi
+        # Relative path from $NewAge/bin/ to the DLL.
+        # Embedded directly in both wrappers — no symlink needed.
+        # Survives cp -a into a collected workspace and works on Windows.
         local rel_dll
         rel_dll="$(relative_path_from_to "${MyReferencePath%/}" "$I_dll")"
-        ln -s "$rel_dll" "$O_dll"
-        echo "  symlink: $name.dll -> $rel_dll"
 
-        # Bash wrapper — resolves DLL relative to the script's own directory.
+        # Windows bat path: forward slashes → backslashes
+        local rel_dll_win
+        rel_dll_win="$(printf '%s' "$rel_dll" | sed 's|/|\\|g')"
+
+        echo "  relative dll path: $rel_dll"
+
+        # Bash wrapper — BASH_SOURCE gives the script's own directory at call time.
         # Works on Linux, Mac, and Git Bash on Windows.
         {
             echo '#!/bin/bash'
             echo 'SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"'
-            echo "dotnet \"\$SCRIPT_DIR/${name}.dll\" \"\$@\""
+            echo "dotnet \"\$SCRIPT_DIR/${rel_dll}\" \"\$@\""
         } > "$O"
         chmod +x "$O"
 
@@ -99,8 +101,8 @@ try_link() {
         if [ -f "$O_bat" ] || [ -L "$O_bat" ]; then
             verbose.sh rm "$O_bat"
         fi
-        printf '@echo off\r\n'                         > "$O_bat"
-        printf 'dotnet "%%~dp0%s.dll" %%*\r\n' "$name" >> "$O_bat"
+        printf '@echo off\r\n'                              > "$O_bat"
+        printf 'dotnet "%%~dp0%s" %%*\r\n' "$rel_dll_win" >> "$O_bat"
 
         echo "$name dotnet wrappers staged"
 
@@ -120,8 +122,8 @@ try_link() {
             if [ -f "$O_bat" ] || [ -L "$O_bat" ]; then
                 verbose.sh rm "$O_bat"
             fi
-            printf '@echo off\r\n'        > "$O_bat"
-            printf '"%s" %%*\r\n' "$I_win" >> "$O_bat"
+            printf '@echo off\r\n'           > "$O_bat"
+            printf '"%s" %%*\r\n' "$I_win"  >> "$O_bat"
             echo "$name.bat staged"
         fi
 
