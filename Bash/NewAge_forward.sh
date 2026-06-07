@@ -4,13 +4,13 @@
 # Usage (called from a PostBuild target):
 #   bash NewAge_forward.sh ProjectName DestinationDir/ OutputPath/
 #
-# Creates (DLL present — .NET tool, portable):
-#   $DestinationDir/ProjectName      — bash wrapper; resolves DLL via BASH_SOURCE-relative path
-#   $DestinationDir/ProjectName.bat  — CMD/PowerShell wrapper; resolves DLL via %~dp0-relative path
+# Creates (DLL present — .NET tool):
+#   $DestinationDir/ProjectName      — bash wrapper: dotnet "$NewAge/path/to/Project.dll" "$@"
+#   $DestinationDir/ProjectName.bat  — CMD/PowerShell: dotnet "%NewAge%\path\to\Project.dll" %*
 #
-#   No symlink is created. The relative path to the DLL is computed once and embedded
-#   in both wrappers. This survives cp -a into a collected workspace and works on
-#   Windows where symlinks are not reliably available.
+#   If the DLL is inside $NewAge, the path is $NewAge-relative (portable across collections;
+#   in_this_context.sh sets $NewAge to the workspace root on entry).
+#   If the DLL is outside $NewAge, the absolute path is used with a portability warning.
 #
 # Creates (no DLL — native binary):
 #   $DestinationDir/ProjectName      — bash wrapper with absolute path to binary
@@ -27,22 +27,6 @@ if [ ! -d "$MyReferencePath" ]; then
         exit -1
     fi
 fi
-
-# Compute the relative path from base directory to target path.
-# Mirrors relative_path_from_to in newage_collect.sh.
-relative_path_from_to() {
-    local base="$1"
-    local path="$2"
-
-    if command -v realpath >/dev/null 2>&1; then
-        realpath --relative-to="$base" "$path"
-        return
-    fi
-
-    # Fallback: strip base prefix (assumes path starts with base).
-    path="${path#"$base"/}"
-    printf '%s\n' "$path"
-}
 
 try_link() {
     echo _______________________________
@@ -74,47 +58,60 @@ try_link() {
     if [ -f "$I_dll" ]; then
         echo "dll found — staging dotnet wrappers"
 
-        # Relative path from $NewAge/bin/ to the DLL.
-        # Embedded directly in both wrappers — no symlink needed.
-        # Survives cp -a into a collected workspace and works on Windows.
-        local rel_dll
-        rel_dll="$(relative_path_from_to "${MyReferencePath%/}" "$I_dll")"
+        # Determine the DLL path to embed in wrappers.
+        # If the DLL is inside $NewAge, use $NewAge-relative path — portable across
+        # collections since in_this_context.sh sets $NewAge to the workspace root.
+        # If outside $NewAge, fall back to absolute path with a warning.
+        local newage_canon
+        newage_canon="$(cd "$NewAge" && pwd -P)"
+        local dll_canon
+        dll_canon="$(cd "$(dirname "$I_dll")" && pwd -P)/$(basename "$I_dll")"
 
-        # Windows bat path: forward slashes → backslashes
-        local rel_dll_win
-        rel_dll_win="$(printf '%s' "$rel_dll" | sed 's|/|\\|g')"
+        local dll_bash   # path string for bash wrapper (uses $NewAge variable)
+        local dll_bat    # path string for bat wrapper  (uses %NewAge% variable)
 
-        echo "  relative dll path: $rel_dll"
+        if [[ "$dll_canon" == "$newage_canon/"* ]]; then
+            # Inside $NewAge — workspace-relative, portable
+            local rel="${dll_canon#"$newage_canon/"}"
+            local rel_win
+            rel_win="$(printf '%s' "$rel" | sed 's|/|\\|g')"
+            dll_bash="\$NewAge/${rel}"
+            dll_bat="%NewAge%\\${rel_win}"
+            echo "  path: \$NewAge/${rel}"
+        else
+            # Outside $NewAge — absolute path, warn
+            local abs_win
+            abs_win="$(cygpath -w "$I_dll" 2>/dev/null || echo "$I_dll")"
+            dll_bash="$I_dll"
+            dll_bat="$abs_win"
+            echo "[NewAge_forward] WARNING: $name is outside \$NewAge — wrapper will not be portable." >&2
+            echo "  path (absolute): $I_dll"
+        fi
 
-        # Bash wrapper — BASH_SOURCE gives the script's own directory at call time.
-        # Works on Linux, Mac, and Git Bash on Windows.
+        # Bash wrapper — $NewAge is expanded at call time, not generation time
         {
             echo '#!/bin/bash'
-            echo 'SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"'
-            echo "dotnet \"\$SCRIPT_DIR/${rel_dll}\" \"\$@\""
+            echo "dotnet \"${dll_bash}\" \"\$@\""
         } > "$O"
         chmod +x "$O"
 
-        # Bat wrapper — %~dp0 expands to the script's directory with trailing backslash.
-        # Works from CMD.exe and PowerShell without needing a bash prefix.
+        # Bat wrapper — %NewAge% is expanded at call time by CMD/PowerShell
         local O_bat="${MyReferencePath}${name}.bat"
         if [ -f "$O_bat" ] || [ -L "$O_bat" ]; then
             verbose.sh rm "$O_bat"
         fi
-        printf '@echo off\r\n'                              > "$O_bat"
-        printf 'dotnet "%%~dp0%s" %%*\r\n' "$rel_dll_win" >> "$O_bat"
+        printf '@echo off\r\n'                       > "$O_bat"
+        printf 'dotnet "%s" %%*\r\n' "${dll_bat}"   >> "$O_bat"
 
         echo "$name dotnet wrappers staged"
 
     elif [ -f "$I_bin" ]; then
         echo "binary found — staging binary wrapper"
 
-        # Bash wrapper — absolute path; binary is platform-specific
         echo "#!/bin/bash"         > "$O"
         echo "\"$I_bin\" \"\$@\"" >> "$O"
         chmod +110 "$O"
 
-        # Bat wrapper for Windows .exe builds
         if [[ "$I_bin" == *.exe ]]; then
             local O_bat="${MyReferencePath}${name}.bat"
             local I_win
