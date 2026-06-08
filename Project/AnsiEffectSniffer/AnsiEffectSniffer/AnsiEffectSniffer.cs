@@ -14,6 +14,8 @@ namespace JWCEssentials
     public delegate void BgDelegate(string color, Brightness brightness);
     public delegate void CharDelegate(char c);
 
+    public delegate void StringDelegate(string s);
+
     public delegate void SwitchDelegate(string mode, bool enable);
 
     public delegate void FontDelegate(int number);
@@ -24,11 +26,28 @@ namespace JWCEssentials
         public BgDelegate? Bg { get; set; }
         public Action? Reset { get; set; }
         public CharDelegate? Char { get; set; }
+
+        //defaults to DefaultHandleString for legacy compatibility
+        public StringDelegate? Glyph { get; set; }
+        
         public SwitchDelegate? Switch { get; set; }
         public FontDelegate? Font { get; set; }
+        
+        public AnsiEffectSniffer()
+        {
+            Glyph = DefaultHandleGlyph;
+        }
+
+        public void DefaultHandleGlyph(string s)
+        {
+            foreach (char c in s)
+            {
+                Char?.Invoke(c);
+            }
+        }
 
         private readonly Decoder _decoder = Encoding.UTF8.GetDecoder();
-        private readonly char[] _charBuffer = new char[1];
+        private readonly char[] _charBuffer = new char[32];
         private readonly byte[] _byteBuffer = new byte[1];
 
         private ParserState _state = ParserState.Normal;
@@ -111,13 +130,13 @@ namespace JWCEssentials
         private void DecodeAndFireChar(byte b)
         {
             _byteBuffer[0] = b;
-            int charsUsed = _decoder.GetChars(_byteBuffer, 0, 1, _charBuffer, 0, false);
+            int charsUsed;
+            
+            charsUsed = _decoder.GetChars(_byteBuffer, 0, 1, _charBuffer, 0, false);
             if (charsUsed > 0)
             {
-                for (int i = 0; i < charsUsed; i++)
-                {
-                    Char?.Invoke(_charBuffer[i]);
-                }
+                string decodedString = new string(_charBuffer, 0, charsUsed);
+                Glyph?.Invoke(decodedString);
             }
         }
 
