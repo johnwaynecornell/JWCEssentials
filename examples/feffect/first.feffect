@@ -1,0 +1,26 @@
+bold.fg_cyan('JWCEssentials feffect demo')
+'
+'
+fg_green('UTF-8 check: ')
+'Windows is 😃, Linux is 🙂, Greek is α β γ Δ Ω, math is π ≈ 3.14159'
+'
+'
+fg_yellow('Style check: ')
+bold('bold ')
+italic('italic ')
+underline('underline ')
+overline('overline ')
+crossed('crossed')
+'
+'
+fg_magenta('Nested effects: ')
+reverse.underline('reverse + underline')
+'
+'
+fg_cyan('File composition check: ')
+'This text came from examples/feffect/first.feffect'
+'
+'
+fg_green('Done.')
+'
+'
