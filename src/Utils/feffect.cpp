@@ -10,7 +10,9 @@
 
 using namespace JWCEssentials;
 
-int main(int argc, char **argv) {
+#include "JWCEssentials/JWCMain.h"
+
+int JWCMain(int argc, char **argv) {
     if (argc == 2 && strcmp(argv[1], "-list") == 0) {
         utf8_string_struct_array effect = feffect_list();
 
@@ -44,7 +46,7 @@ int main(int argc, char **argv) {
 
     if (!command || i != argc) {
         std::cout << "usage: feffect effect_string" << std::endl;
-        std::cout << "  the first two examples are equivelent" << std::endl;
+        std::cout << "  the first two examples are equivalent" << std::endl;
         std::cout << "example: feffect \"underline.italic(\\\"Hello World\\!\\\") fg_red blink(\\\" <---\\\") fg_default\"" << std::endl;;
         std::cout << "example: feffect \"underline(italic(\\\"Hello World\\!\\\") fg_red blink(\\\" <---\\\")) fg_default\"" << std::endl;;
         std::cout << "example: feffect \"underline(italic(\\\"Hello World\\!\\\") fg_red blink(\\\" <---\\\")) fg_default\"" << std::endl;;
