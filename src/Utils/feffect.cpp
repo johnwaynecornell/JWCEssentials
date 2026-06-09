@@ -45,10 +45,10 @@ int main(int argc, char **argv) {
     if (!command || i != argc) {
         std::cout << "usage: feffect effect_string" << std::endl;
         std::cout << "  the first two examples are equivelent" << std::endl;
-        std::cout << "example: feffect \"underline.italic(\\Hello World!\\\") fg_red blink(\\\" <---\\\") fg_default\"" << std::endl;;
-        std::cout << "example: feffect \"underline(italic(\\Hello World!\\\") fg_red blink(\\\" <---\\\")) fg_default\"" << std::endl;;
-        std::cout << "example: feffect \"underline(italic(\\Hello World!\\\") fg_red blink(\\\" <---\\\")) fg_default\"" << std::endl;;
-        std::cout << "example: feffect \"reverse.underline.italic(\\Hello World!\\\") fg_red blink(\\\" <---\\\") fg_default)\"" << std::endl;;
+        std::cout << "example: feffect \"underline.italic(\\\"Hello World\\!\\\") fg_red blink(\\\" <---\\\") fg_default\"" << std::endl;;
+        std::cout << "example: feffect \"underline(italic(\\\"Hello World\\!\\\") fg_red blink(\\\" <---\\\")) fg_default\"" << std::endl;;
+        std::cout << "example: feffect \"underline(italic(\\\"Hello World\\!\\\") fg_red blink(\\\" <---\\\")) fg_default\"" << std::endl;;
+        std::cout << "example: feffect \"reverse.underline.italic(\\\"Hello World\\!\\\") fg_red blink(\\\" <---\\\") fg_default\"" << std::endl;;
         std::cout << "example: feffect \"reverse \\\"reversed\\\" reverse_off\"" << std::endl;
         std::cout << "example: feffect -list" << std::endl;
         return 1;

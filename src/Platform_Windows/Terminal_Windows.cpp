@@ -34,6 +34,9 @@ namespace JWCEssentials
             if (SetConsoleMode(hOut, target_mode)) {
                 DWORD verify_mode = 0;
                 if (GetConsoleMode(hOut, &verify_mode) && (verify_mode & ENABLE_VIRTUAL_TERMINAL_PROCESSING)) {
+                    SetConsoleOutputCP(CP_UTF8);
+                    SetConsoleCP(CP_UTF8);
+
                     is_fully_enabled = true; // The terminal is officially aware and locked in
                 }
             }

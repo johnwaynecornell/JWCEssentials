@@ -161,5 +161,8 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     add_compile_options("-Wno-return-type-c-linkage")
 endif()
 
+add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
+add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
+
 include_directories( "$ENV{NewAge}/include")
 
