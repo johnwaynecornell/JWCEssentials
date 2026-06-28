@@ -72,3 +72,5 @@ NEWAGE_BUILD_CLEAN="$CLEAN"
 newage_managed_build_directory Project/JWCEssentials.net
 newage_managed_build_directory Project/AnsiEffectSniffer
 newage_managed_build_directory Project/CSProj
+newage_managed_build_directory Project/Mercury.net
+

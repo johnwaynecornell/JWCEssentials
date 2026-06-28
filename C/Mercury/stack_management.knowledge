@@ -1,0 +1,26 @@
+<KnowledgeBase>
+    <Concept symbol="stack_management">
+        <Title>Stack Management for High-Precision Calculations</Title>
+        <Description>This concept covers the mechanism of managing memory stacks for numerical computations, ensuring thread-safe operations and efficient memory usage.</Description>
+        <Element symbol="mercuryThreadedStackGet">
+            <Purpose>Retrieves a pointer to the thread-specific segment of the master stack.</Purpose>
+            <Methodology>Calculates the base address for a thread's stack segment based on its index and the master stack's base address.</Methodology>
+        </Element>
+        <Element symbol="mercuryStackAlloc">
+            <Purpose>Allocates memory from the thread's stack segment for numerical data storage.</Purpose>
+            <Methodology>Advances the stack pointer by the requested size and returns the starting address of the allocated space.</Methodology>
+        </Element>
+        <Element symbol="mercuryStackFree">
+            <Purpose>Deallocates memory from the thread's stack segment, making it available for future allocations.</Purpose>
+            <Methodology>Decreases the stack pointer by the size of the memory being freed.</Methodology>
+        </Element>
+        <Element symbol="mercuryStackOffset">
+            <Purpose>Retrieves the current offset of the stack pointer from the base of the stack segment.</Purpose>
+            <Methodology>Returns the difference between the current stack pointer and the base address of the stack segment.</Methodology>
+        </Element>
+    </Concept>
+    <Knowledge symbol="importance_of_stack_management">
+        <Title>Importance of Stack Management in High-Precision Calculations</Title>
+        <Content>Efficient stack management is crucial for high-precision numerical computations, particularly in threaded environments. It ensures that each thread has access to its own dedicated memory space, minimizing contention and maximizing performance. The custom stack management approach demonstrated here allows for flexible and efficient use of memory resources, crucial for applications requiring high precision and high performance.</Content>
+    </Knowledge>
+</KnowledgeBase>
