@@ -344,6 +344,34 @@ public virtual void GetObjectData(SerializationInfo info, StreamingContext conte
 			Imports.mercuryLoadDouble(Imports.Stack, Precision, Elements, value);
 		}
 
+		public UltraNumber(int value)
+		{
+			Precision = Imports.GetPrecision ();
+			Elements = new uint[Precision + 2];
+			Imports.mercuryLoadInt(Imports.Stack, Precision, Elements, value);
+		}
+
+		public UltraNumber(uint value)
+		{
+			Precision = Imports.GetPrecision ();
+			Elements = new uint[Precision + 2];
+			Imports.mercuryLoadUint(Imports.Stack, Precision, Elements, value);
+		}
+
+		public UltraNumber(long value)
+		{
+			Precision = Imports.GetPrecision ();
+			Elements = new uint[Precision + 2];
+			Imports.mercuryLoadLong(Imports.Stack, Precision, Elements, value);
+		}
+
+		public UltraNumber(ulong value)
+		{
+			Precision = Imports.GetPrecision ();
+			Elements = new uint[Precision + 2];
+			Imports.mercuryLoadUlong(Imports.Stack, Precision, Elements, value);
+		}
+
 		public UltraNumber(IntPtr value)
 		{
 			Precision = Imports.GetPrecision ();
@@ -369,6 +397,46 @@ public virtual void GetObjectData(SerializationInfo info, StreamingContext conte
 		public static implicit operator UltraNumber(double d)
 		{
 			return new UltraNumber (d);
+		}
+
+		public static explicit operator int(UltraNumber a)
+		{
+			return (int)(double)a;
+		}
+
+		public static implicit operator UltraNumber(int i)
+		{
+			return new UltraNumber (i);
+		}
+
+		public static explicit operator uint(UltraNumber a)
+		{
+			return (uint)(double)a;
+		}
+
+		public static implicit operator UltraNumber(uint i)
+		{
+			return new UltraNumber (i);
+		}
+
+		public static explicit operator long(UltraNumber a)
+		{
+			return (long)(double)a;
+		}
+
+		public static implicit operator UltraNumber(long i)
+		{
+			return new UltraNumber (i);
+		}
+
+		public static explicit operator ulong(UltraNumber a)
+		{
+			return (ulong)(double)a;
+		}
+
+		public static implicit operator UltraNumber(ulong i)
+		{
+			return new UltraNumber (i);
 		}
 
 		public static UltraNumber operator +(UltraNumber a, UltraNumber b)
