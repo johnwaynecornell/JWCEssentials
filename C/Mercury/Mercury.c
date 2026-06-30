@@ -68,16 +68,6 @@ void mercuryLoadRaw(void *stack,int Precision, uint *val, bool Negative, int exp
     {
         val[2+p] = digits[i++];
     }
-/*
-    if (pl>0 && digits[pl-1] >= 0x80000000)
-    {
-        uint *t = (uint *) mercuryStackAlloc(stack, (Precision+2)<<2);
-        mercuryLoadUint(stack, Precision, t, 1);
-        t[1] = val[1]-Precision+1;
-        mercuryAdd(stack, Precision, val, t, val);
-        mercuryStackFree(stack, (Precision+2)<<2);
-    }
-    */
 }
 
 void mercuryLoadMercury(void *stack,int Precision, uint *a, uint *val)
@@ -107,9 +97,6 @@ void mercuryLoadUint(void *stack,int Precision, uint *val, uint a)
 void mercuryLoadLong(void *stack,int Precision, uint *val, slong a)
 {
     ulong d = a < 0 ? -a : a;
-    //uint s[2];
-    //s[1] = d >> 32;
-    //s[0] = d;
 
     mercuryLoadRaw(stack, Precision, val, a<0, 1, (uint *) &d, 2);
 }
@@ -135,13 +122,9 @@ void mercuryLoadDouble(void *stack,int Precision, uint *val, double a)
 
     int rawexp = _e - 1023;
 
-    //printf("exponent = %d\n", rawexp);
-
     ulong frac[2];
 
     ulong ll = ((l & 0xFFFFFFFFFFFFFULL) + 0x10000000000000ULL);
-
-    //Output(&ll,8);
 
     ll <<= (64 - 53);
 
@@ -235,11 +218,7 @@ double mercuryToDouble(void *stack, int Precision, uint * a) {
 
     ulong ll2 = doshift((ulong) mercuryGetAt(Precision, a, x - 2), 21 - 64 + shift);// << (21-shift);
 
-    //Output(&ll2, 8);
-
     ll += ll2;
-
-    //Output(&ll, 8);
 
     l += ll & 0xFFFFFFFFFFFFFULL;
 
@@ -248,8 +227,6 @@ double mercuryToDouble(void *stack, int Precision, uint * a) {
     } else {
         x = x * 32 + 31 + (-shift);
     }
-
-    //printf("new exponent = %d\n", x);
 
     x += 1023;
 
@@ -263,11 +240,6 @@ double mercuryToDouble(void *stack, int Precision, uint * a) {
 
     return *((double *) &l);
 }
-
-
-
-
-
 
 bool mercuryIsZero(int Precision, uint *val) {
     for (int i=0; i<Precision; i++)
@@ -357,8 +329,6 @@ void mercuryShift(void *stack, int Precision, uint *a, int shift, uint *val) {
 
     uint *reg = (uint *) mercuryStackAlloc(stack, (Precision + 1)*4);
 
-    //if (a[0]&1) shift*=-1;
-
     if (shift >= 0) {
         places = shift >> 5;
         shift -= places << 5;
@@ -429,33 +399,13 @@ void mercuryAbsAdd(void *stack, int Precision, uint *a, uint *b, uint *val) {
      int al = ah - Precision + 1;
      int bl = bh - Precision + 1;
 
-/*
-     int l = al < bl ? al : bl;
-     int h = ah > bh ? ah : bh;
-*/
-
-//     int range = h - l + 1;
-
-    int l;// = al < bl ? al : bl;
-    int h = ah;//ah > bh ? ah : bh;
+    int l;
+    int h = ah;
 
     l = h -Precision + 1;
 
-    //int range = h - l + 1;
-/*
-    if (range > Precision) {
-        l += range - Precision;
-        range = (h - l) + 1;
-    }
-*/
     int len = h - l + 1+1;//Precision + 1;
 
-/*
-     if (range > Precision) {
-         l += range - Precision;
-         range = (h - l) + 1;
-     }
-*/
      int e = h + 1;
      uint *scratch = (uint *) mercuryStackAlloc(stack, (len)*4);
 
@@ -466,15 +416,11 @@ void mercuryAbsAdd(void *stack, int Precision, uint *a, uint *b, uint *val) {
      ulong reg = 0;
 
      for (i = l; i < bl && i <= h; i++) {
-        //reg += ((long) mercuryGetAt(Precision, a, i)
-        //        - (long) mercuryGetAt(Precision, b, i));
 
          scratch[i - l] = a[2+i-al];
     }
 
     for (;i <= bh && i <= h; i++) {
-        //reg += ((long) mercuryGetAt(Precision, a, i)
-        //        - (long) mercuryGetAt(Precision, b, i));
 
         reg += ((slong) a[2+i-al] + (slong) b[2+i-bl]);
 
@@ -491,29 +437,12 @@ void mercuryAbsAdd(void *stack, int Precision, uint *a, uint *b, uint *val) {
     }
 
     for (;i <= h; i++) {
-        //reg += ((long) mercuryGetAt(Precision, a, i)
-        //        - (long) mercuryGetAt(Precision, b, i));
         scratch[i - l] = a[2+i-al];
         reg=0;
     }
 
     scratch[i - l] = (uint) reg;
 
-/*
-        ulong reg = ((ulong) mercuryGetAt(Precision, a, l - 1)
-                     + (ulong) mercuryGetAt(Precision, b, l - 1)) >> 32;
-
-        for (i = l; i <= h; i++) {
-            reg += ((ulong) mercuryGetAt(Precision, a, i)
-                    + (ulong) mercuryGetAt(Precision, b, i));
-
-            scratch[i - l] = (uint) reg;
-
-            reg >>= 32;
-        }
-
-        scratch[i - l] = (uint) reg;
-*/
      mercuryLoadRaw(stack, Precision, val, false, e, scratch, len);
      mercuryStackFree(stack, len*4);
  }
@@ -526,18 +455,11 @@ void mercuryAbsSub(void *stack, int Precision, uint *a, uint *b, uint *val)
     int al = ah - Precision + 1;
     int bl = bh - Precision + 1;
 
-    int l;// = al < bl ? al : bl;
-    int h = ah;//ah > bh ? ah : bh;
+    int l;
+    int h = ah;
 
     l = h -Precision + 1;
 
-    //int range = h - l + 1;
-/*
-    if (range > Precision) {
-        l += range - Precision;
-        range = (h - l) + 1;
-    }
-*/
     int len = h - l + 1;//Precision + 1;
 
     int e = h;
@@ -549,10 +471,7 @@ void mercuryAbsSub(void *stack, int Precision, uint *a, uint *b, uint *val)
 		scratch[i] = 0;
 
 	slong reg;
-    //reg = ((long) mercuryGetAt(Precision, a, l - 1)
-    //        - (long) mercuryGetAt(Precision, b, l - 1));
 
-	//if (reg > 0)
     reg = 0;
 
     if (bl<l)
@@ -568,11 +487,7 @@ void mercuryAbsSub(void *stack, int Precision, uint *a, uint *b, uint *val)
         }
     }
 
-
-
     for (i = l; i < bl && i <= h; i++) {
-        //reg += ((long) mercuryGetAt(Precision, a, i)
-        //        - (long) mercuryGetAt(Precision, b, i));
         reg += ((slong) a[2+i-al]);
 
         bool carry = reg < 0;
@@ -590,8 +505,6 @@ void mercuryAbsSub(void *stack, int Precision, uint *a, uint *b, uint *val)
     }
 
     for (;i <= bh && i <= h; i++) {
-        //reg += ((long) mercuryGetAt(Precision, a, i)
-        //        - (long) mercuryGetAt(Precision, b, i));
         reg += ((slong) a[2+i-al] - (slong) b[2+i-bl]);
 
         bool carry = reg < 0;
@@ -609,8 +522,6 @@ void mercuryAbsSub(void *stack, int Precision, uint *a, uint *b, uint *val)
     }
 
     for (;i <= h; i++) {
-        //reg += ((long) mercuryGetAt(Precision, a, i)
-        //        - (long) mercuryGetAt(Precision, b, i));
         reg += ((slong) a[2+i-al]);
 
         bool carry = reg < 0;
@@ -659,19 +570,8 @@ void mercuryAbsMul(void *stack, int Precision, uint *a, uint *b, uint *val) {
     len = Precision+2;
     int len2 = (ah-al)+1+(ah-al)+1;
 
-    //len = len2+2;
-
     int adj = len2-len;
 
-    //do {
-//        len = (ah - al) + 1 + (bh - bl) + 1;
-/*
-        if (len > Precision+2) {
-            if (al <= bl) al++;
-            else bl++;
-        }
-    } while (len > Precision+2);
-*/
     uint *scratch = (uint *) mercuryStackAlloc(stack, len*4);
 
     for (i = 0; i < len; i++) scratch[i] = 0;
@@ -679,37 +579,28 @@ void mercuryAbsMul(void *stack, int Precision, uint *a, uint *b, uint *val) {
     int br = bh - bl;
     int ar = ah - al;
 
-    int bq = Precision-1-br;//bl - ((int) b[1] - Precision + 1);
-    int aq = Precision-1-ar;//al - ((int) a[1]- Precision + 1);
+    int bq = Precision-1-br;
+    int aq = Precision-1-ar;
 
-    //for (int bi = bl; bi<=bh; bi++)
     for (int bi = bs; bi <= br; bi++) {
         uint bx = b[2 + bi + bq];//GetAt(b,bi);
 
         int ai;
         ulong reg = 0;
 
-        //      if (bx != 0) {
         for (ai = as; ai <= ar; ai++) {
             int place = ai + bi-adj;
 
             if (place >= 0) {
-                uint ax = a[2 + ai + aq];//GetAt(a, ai);
+                uint ax = a[2 + ai + aq];
 
-                //int place = (bi-bl)+(ai-al);
-
-//                if (ax != 0) {
                 reg += (ulong) bx * (ulong) ax + scratch[place];
-//                } else reg += scratch[place];
 
                 scratch[place] = (uint) reg;
                 reg >>= 32;
             } else reg = 0;
         }
 
-//        } else ai = ar;
-
-        //int place = (bi-bl)+(ai-al);
         int place = ai + bi - adj;
 
         if (place >=0) {
@@ -732,41 +623,18 @@ void mercuryAbsDiv(void *stack, int Precision, uint *a, uint *b, uint *val)
     mercuryLoadMercury(stack, Precision, b, divisor);
     divisor[0] = divisor[0]&0xFFFFFFFE;
 
-    /*
-    printf("----\n");
-
-    mercuryPrint(stack, Precision, a);
-    printf("\n");
-    mercuryPrint(stack, Precision, b);
-    printf("\n");
-    */
     int m = ((int) divisor[1])-Precision+1;
     int m1 = m;
 
     dividend[1] -= m;
     divisor[1] -= m;
 
-    int exp = 0;//dividend->Exponent;
+    int exp = 0;
 
     m = (int) dividend[1] - (int) divisor[1];
     dividend[1] -= m;
 
-    /*
-    mercuryPrint(stack, Precision, dividend);
-    printf("\n");
-    mercuryPrint(stack, Precision, divisor);
-    printf("\n");
-*/
-    //printf("dividend exp = %d, divisor exp = %d\n", dividend->Exponent, divisor->Exponent);
-    //printf("divisor explow = %d\n", divisor->ExponentLow);
-
-    //fflush(stdout);
-
     int compare = mercuryCmp(Precision, dividend,divisor);
-
-    //exp -= (m-m1);
-
-    //printf("initialshift = %d tempshift = %d rawexp=%d idigit=%s\n", m1, m, exp, compare < 0 ? "false" : "true");
 
     exp = m;
 
@@ -806,22 +674,6 @@ void mercuryAbsDiv(void *stack, int Precision, uint *a, uint *b, uint *val)
         }
     }
 
-    /*
-    char txt[1024];
-
-    for (int i=0; i<16; i++)
-    {
-        printf("%d: ", i);
-
-        for (int q=0; q<8; q++)
-        {
-            mercuryToString(stack, Precision,Table[q][i], txt, 1024);
-            printf("%s ", txt);
-        }
-
-        printf("\n");
-    }
-    */
     uint *reg = (uint *) mercuryStackAlloc(stack, Precision*4);
 
     for (int i=0; i<Precision; i++) reg[i] = 0;
@@ -986,9 +838,6 @@ int mercuryGetBit(void *stack, int Precision, int Place, uint *a)
         bit %= 32;
     } else
     {
-        //Did--;
-        //bit = (32 + bit) % 32;
-
         if ((-bit)%32 != 0) Did--;
         bit = (-bit)%32;
         bit = (32 - bit) % 32;
@@ -1013,30 +862,17 @@ void mercurySqr(void *stack, int Precision, uint *a, uint *val) {
     int as = 0;
 
     int i=0;
-    //while (al != ah && a[2+i++]==0) as++;
 
     len = Precision+1;
     int len2 = (ah-al)+1+(ah-al)+1;
 
-    //len = len2;
-
-    /*
-    do
-    {
-        len = (ah-al)+1+(ah-al)+1;
-        if (len > Precision)
-        {
-            al++;
-        }
-    } while (len>Precision);
-    */
     uint *scratch = (uint *) mercuryStackAlloc(stack, len*4);
 
     for (i=0; i<len; i++) scratch[i] = 0;
 
     int ar = ah-al;
 
-    int aq = Precision-1-ar;//al-((int)a[1] - Precision + 1);
+    int aq = Precision-1-ar;
 
     ulong ax,bx, reg;
     int ai, bi;
@@ -1044,12 +880,11 @@ void mercurySqr(void *stack, int Precision, uint *a, uint *val) {
 
     int adj = len2-len;
 
-    //for (int bi = bl; bi<=bh; bi++)
     bi = as;
 
     if (bi <= ar)
     {
-        bx = a[2+bi+aq];//GetAt(b,bi);
+        bx = a[2+bi+aq];
 
         reg = 0;
 
@@ -1058,12 +893,9 @@ void mercurySqr(void *stack, int Precision, uint *a, uint *val) {
             place = ai+bi;
 
             if (place - adj >=0) {
-                ax = a[2 + ai + aq];//GetAt(a, ai);
+                ax = a[2 + ai + aq];
 
-                //int place = (bi-bl)+(ai-al);
                 reg += bx * ax;
-
-                //if (place<0||place>=len) throw 1;
 
                 scratch[place-adj] = (uint) reg;
 
@@ -1071,7 +903,6 @@ void mercurySqr(void *stack, int Precision, uint *a, uint *val) {
             } else reg = 0;
         }
 
-        //int place = (bi-bl)+(ai-al);
         place = ai+bi;
 
         if (place - adj < len) scratch[place-adj] = (uint) reg;
@@ -1081,7 +912,7 @@ void mercurySqr(void *stack, int Precision, uint *a, uint *val) {
 
     for (; bi<=ar; bi++)
     {
-        bx = a[2+bi+aq];//GetAt(b,bi);
+        bx = a[2+bi+aq];
 
         reg = 0;
 
@@ -1091,13 +922,9 @@ void mercurySqr(void *stack, int Precision, uint *a, uint *val) {
 
 
             if (place-adj>=0) {
-                ax = a[2 + ai + aq];//GetAt(a, ai);
-
-                //int place = (bi-bl)+(ai-al);
+                ax = a[2 + ai + aq];
 
                 reg += bx * ax + scratch[place-adj];
-
-                //if (place<0||place>=len) throw 1;
 
                 scratch[place-adj] = (uint) reg;
 
@@ -1105,7 +932,6 @@ void mercurySqr(void *stack, int Precision, uint *a, uint *val) {
             } else reg = 0;
         }
 
-        //int place = (bi-bl)+(ai-al);
         place = ai+bi;
 
         if (place-adj >=0) {
@@ -1193,7 +1019,6 @@ void mercuryPow(void *stack, int Precision, uint *a, uint *b, uint *val)
         if (mercuryGetBit(stack, Precision, bit, b)==1)
         {
             mercuryMul(stack, Precision+1, r, p, r);
-            //else mercuryDiv(stack, Precision+1, r, p, r);
         }
 
         if (bit != highBit) mercurySqr(stack, Precision+1,p, p);
@@ -1207,7 +1032,6 @@ void mercuryPow(void *stack, int Precision, uint *a, uint *b, uint *val)
         if (mercuryGetBit(stack, Precision, bit, b)==1)
         {
             mercuryMul(stack, Precision+1, r, p, r);
-            //else mercuryDiv(stack, Precision+1, r, p, r);
         }
     }
 
@@ -1254,8 +1078,6 @@ void mercuryLogSlow(void *stack, int Precision, uint *a, uint *b, uint *val)
     int c = mercuryCmp(Precision, A, one);
     int c2 = mercuryCmp(Precision, B, one);
 
-    //printf("c = %d, c2 = %d\n", c, c2);
-
     if (c == 0 || c2 == 0)
     {
         /* TODO */ //c2 == 0 return INF?
@@ -1265,7 +1087,6 @@ void mercuryLogSlow(void *stack, int Precision, uint *a, uint *b, uint *val)
 
     int s;
 
-    //if (c * c2 > 0)
     {
         int g = mercuryCmp(InnerPrecision, A,B);
 
@@ -1298,13 +1119,10 @@ void mercuryLogSlow(void *stack, int Precision, uint *a, uint *b, uint *val)
 
             if (s ==0)
             {
-                //if (last != NULL) delete last;
-                //return reg;
                 mercuryLoadExtendMercury(stack, InnerPrecision, Precision, reg, val);
                 goto stackCleanup;
             }
 
-            //reg = last;
         } else
         {
             bit = -1;
@@ -1330,38 +1148,20 @@ void mercuryLogSlow(void *stack, int Precision, uint *a, uint *b, uint *val)
         mercuryLoadZero(stack, InnerPrecision, reg);
 
         int bits;
-        //if (bit <0) bits = 32 - ((-bit)%32);
-        //else bits = bit %32;
 
         bits = (Precision)*32+1;
 
-        //if (c*c2<0) bit--;
-
         for (int i=0; i<=bits; i++)
         {
-            //if (bit == -32) __asm("int3");
 
             mercuryLoadMercury(stack, InnerPrecision, reg, last);
 
             mercury_2Pow(stack, InnerPrecision, bit, p);
             if (c*c2<0) p[0] |= 1;
-/*
-            char txt[1024];
-            mercuryToString(stack, InnerPrecision, p, txt, 1024);
-            printf("bit %d = %s\n", bit, txt);
-*/
-
-//if (bit ==-37) __asm("int3");
 
             mercuryAdd(stack, InnerPrecision, reg, p, reg);
             mercuryPow(stack, InnerPrecision, B, reg, x);
-/*
-            char txt[3][1024];
-            mercuryToString(stack, InnerPrecision, B, txt[0], 1024);
-            mercuryToString(stack, InnerPrecision, reg, txt[1], 1024);
-            mercuryToString(stack, InnerPrecision, x, txt[2], 1024);
-            printf("reg %d = %s pow %s = %s\n", bit, txt[0], txt[1], txt[2]);
-*/
+
             s = mercuryCmp(InnerPrecision, x, A)*c;
 
             if (s>0)
@@ -1380,7 +1180,6 @@ void mercuryLogSlow(void *stack, int Precision, uint *a, uint *b, uint *val)
         goto stackCleanup;
     }
 
-    mercuryLoadZero(stack, Precision, val);
     stackCleanup:
     mercuryStackFree(stack, (InnerPrecision+2)*4);
     mercuryStackFree(stack, (InnerPrecision+2)*4);
@@ -1421,8 +1220,6 @@ void mercuryLog(void *stack, int Precision, uint *a, uint *b, uint *val)
     int c = mercuryCmp(InnerPrecision, A, one);
     int c2 = mercuryCmp(InnerPrecision, B, one);
 
-    //printf("c = %d, c2 = %d\n", c, c2);
-
     if (c == 0 || c2 == 0)
     {
         /* TODO */ //c2 == 0 return INF?
@@ -1432,7 +1229,6 @@ void mercuryLog(void *stack, int Precision, uint *a, uint *b, uint *val)
 
     int s;
 
-    //if (c * c2 > 0)
     {
         int g = mercuryCmp(InnerPrecision, A,B);
 
@@ -1453,10 +1249,6 @@ void mercuryLog(void *stack, int Precision, uint *a, uint *b, uint *val)
             int s;
             do
             {
-                //mercuryLoadMercury(stack, InnerPrecision, reg, last);
-                //mercury_2Pow(stack, InnerPrecision, bit, reg);
-                //if (c*c2<0) reg[0] |= 1;
-                //mercuryPow(stack, InnerPrecision, B, reg, x);
 
                 mercuryLoadExtendMercury(stack, PowerPrecision, InnerPrecision, p, x);
                 if (c*c2<0) mercuryDiv(stack, InnerPrecision, one, x, x);
@@ -1471,13 +1263,9 @@ void mercuryLog(void *stack, int Precision, uint *a, uint *b, uint *val)
 
             if (s ==0)
             {
-                //if (last != NULL) delete last;
-                //return reg;
                 mercuryLoadExtendMercury(stack, InnerPrecision, Precision, reg, val);
                 goto stackCleanup;
             }
-
-            //reg = last;
         } else
         {
             bit = 0;
@@ -1490,10 +1278,6 @@ void mercuryLog(void *stack, int Precision, uint *a, uint *b, uint *val)
                 if (c*c2<0) mercuryDiv(stack, InnerPrecision, one, x, x);
 
                 s = mercuryCmp(InnerPrecision, x, A)*c;
-                /*if (s<0)
-                {
-                    bit--;
-                }*/
 
             } while (s>0);
 
@@ -1507,17 +1291,11 @@ void mercuryLog(void *stack, int Precision, uint *a, uint *b, uint *val)
         mercuryLoadZero(stack, InnerPrecision, reg);
 
         int bits;
-        //if (bit <0) bits = 32 - ((-bit)%32);
-        //else bits = bit %32;
 
         bits = (InnerPrecision)*32+1;
 
-        //if (c*c2<0) bit--;
-
         for (int i=0; i<=bits; i++)
         {
-            //if (bit == -32) __asm("int3");
-
             mercuryLoadMercury(stack, InnerPrecision, reg, last);
             mercuryLoadMercury(stack, PowerPrecision, r, lastR);
 
@@ -1530,8 +1308,6 @@ void mercuryLog(void *stack, int Precision, uint *a, uint *b, uint *val)
 
             mercuryLoadExtendMercury(stack, PowerPrecision, InnerPrecision, r, x);
             if (c*c2<0) mercuryDiv(stack, InnerPrecision, one, x, x);
-
-            //mercuryPow(stack, InnerPrecision, B, reg, x);
 
             s = mercuryCmp(InnerPrecision, x, A)*c;
 
@@ -1572,436 +1348,3 @@ stackCleanup:
 
     return;
 }
-
-/*
-int fracPlaces(UltraNumber *a)
-{
-    int h = a->Exponent;
-    int l = a->ExponentLow;
-
-    if (h>=0) h = -1;
-
-    if (h<l) return 0;
-
-    return (h - l)+1;
-}
-*/
-
-
-/*
-uint doshift(uint val, int shift) {
-	if (shift > 0)
-		return val << shift;
-	return val >> (-shift);
-}
-
-double ToDouble(UltraNumber * a) {
-	if (a == NULL)
-		return 0.0;
-
-	if (IsZero(a))
-		return 0.0;
-
-	ulong l = 0;
-
-	if (a->Negative)
-		l += 0x8000000000000000UL;
-
-	ulong ll = 0;
-
-	int x = a->Exponent;
-
-	uint p;
-
-	do {
-		p = GetAt(a, x);
-		if (p == 0)
-			x--;
-	} while (p == 0);
-
-	int shift = 0;
-
-	while ((p & 0x80000000U) == 0) {
-		p <<= 1;
-		shift++;
-	}
-
-	ll += (ulong) p << (21);
-
-	ll += doshift((ulong) GetAt(a, x - 1), (21 - 32 + shift));
-
-	ulong ll2 = doshift((ulong) GetAt(a, x - 2), 21 - 64 + shift);// << (21-shift);
-
-	//Output(&ll2, 8);
-
-	ll += ll2;
-
-	//Output(&ll, 8);
-
-	l += ll & 0xFFFFFFFFFFFFFUL;
-
-	if (x >= 0) {
-		x = x * 32 + (31 - shift);
-	} else {
-		x = x * 32 + 31 + (-shift);
-	}
-
-	//printf("new exponent = %d\n", x);
-
-	x += 1023;
-
-	if (x < 0 || x > 0x7FF)
-		throw new std::overflow_error("Exponent");
-
-	l += (ulong) x << 52;
-
-	return *((double *) &l);
-}
-
-const char * PlaceValue = "0123456789ABCDEF";
-
-char *_show(bool Negative, StringBuilder *Input, int exp, int expl) {
-	expl++;
-
-	char *ret;
-	if (expl == 0) {
-		ret = new char[exp + 2 + (Negative ? 1 : 0)];
-	} else
-		ret = new char[exp - expl + 3+ (Negative ? 1 : 0)];
-
-	int x = 0;
-
-	if (Negative) ret[x++]='-';
-
-	for (int i = exp; i >= expl; i--) {
-		if (i == -1) {
-			ret[x++] = '.';
-		}
-		ret[x++] = Input->GetAt(exp - i);
-	}
-
-	ret[x++] = 0;
-
-	return ret;
-}
-
-char *_showPadLeft(bool Negative, int pad, StringBuilder *Input, int exp, int expl) {
-	expl++;
-
-	char *ret;
-
-	int x = 0;
-
-	ret = new char[pad + exp - expl + 3 + (Negative ? 1 : 0)];
-
-	if (Negative) ret[x++]='-';
-
-	ret[x++] = '0';
-	ret[x++] = '.';
-
-	for (int i = 1; i < pad; i++) {
-		ret[x++] = '0';
-	}
-
-	for (int i = exp; i >= expl; i--) {
-		ret[x++] = Input->GetAt(exp - i);
-	}
-
-	ret[x++] = 0;
-
-	return ret;
-}
-
-char *_showPadRight(bool Negative, int pad, StringBuilder *Input, int exp, int expl) {
-	expl++;
-
-	char *ret;
-
-	int x = 0;
-
-	ret = new char[pad + exp - expl + 2 + (Negative ? 1 : 0)];
-
-	if (Negative) ret[x++]='-';
-
-	for (int i = exp; i >= expl; i--) {
-		ret[x++] = Input->GetAt(exp - i);
-	}
-
-	for (int i = 0; i < pad; i++) {
-		ret[x++] = '0';
-	}
-
-	ret[x++] = 0;
-
-	return ret;
-}
-
-char *_showScientific(bool Negative, StringBuilder *Input, int exp, int expl) {
-	char Exp[1024];
-
-	sprintf(Exp, "(e%i)", exp);
-	int ExpLen = strlen(Exp);
-
-	bool pnt = exp - expl > 1;
-
-	expl++;
-
-	char *ret;
-
-	int x = 0;
-
-	int len = exp - expl + 3 + ExpLen + (pnt ? 1 : 0) + (Negative ? 1 : 0);
-
-	ret = new char[len + 1];
-	ret[len] = 0xFF;
-
-	if (Negative) ret[x++] = '-';
-
-	int i = exp;
-
-	ret[x++] = Input->GetAt(exp - i);
-
-	if (pnt)
-		ret[x++] = '.';
-
-	i--;
-
-	for (; i >= expl; i--) {
-		ret[x++] = Input->GetAt(exp - i);
-	}
-
-	for (int i = 0; i < ExpLen; i++)
-		ret[x++] = Exp[i];
-
-	ret[x++] = 0;
-
-	if (ret[len] != (char) 0xFF)
-		asm("int $3");
-
-	return ret;
-}
-
-char *ShowDids(bool Negative, StringBuilder *b, int exp, int expl) {
-	char *s = NULL;
-
-	if (exp >= 0 && (expl + 1) <= 0) {
-		s = _show(Negative, b, exp, expl);
-	}
-	if (exp < 0) {
-		int pad = -exp;
-		if (pad <= 8)
-			s = _showPadLeft(Negative, pad, b, exp, expl);
-	} else if (expl >= 0) {
-		int pad = expl + 1;
-		if (pad <= 8)
-			s = _showPadRight(Negative, pad, b, exp, expl);
-	}
-if (s == NULL)
-s = _showScientific(Negative, b, exp, expl);
-delete b;
-
-return s;
-}
-
-char *OutHexRaw(UltraNumber *a) {
-    StringBuilder *b = new StringBuilder();
-
-    for (int i = a->Length - 1; i >= 0; i--) {
-        uint d = a->Didgets[i];
-
-        for (int p = 7; p >= 0; p--) {
-            int x = (int) ((d >> (p << 2)) & 0xF);
-
-            b->Add(PlaceValue[x]);
-        }
-    }
-
-    char *s = b->ToString();
-    delete b;
-    return s;
-}
-
-char *ToStringHex(UltraNumber *a) {
-    int exp = ((a->Exponent + 1) * 8) - 1;
-    int expl = ((a->ExponentLow) * 8) - 1;
-
-    StringBuilder *b = new StringBuilder();
-    StringBuilder *b2;
-
-    for (int i = a->Length - 1; i >= 0; i--) {
-        uint d = a->Didgets[i];
-
-        for (int p = 7; p >= 0; p--) {
-            int x = (int) ((d >> (p << 2)) & 0xF);
-
-            b->Add(PlaceValue[x]);
-        }
-    }
-    b2 = b->ZeroTrim(&exp, &expl);
-    delete b;
-    b = b2;
-    return ShowDids(a->Negative, b, exp, expl);
-
-}
-
-char * ToString(UltraNumber *a, TextMode mode) {
-    if (mode == Hexadecimal)
-        return ToStringHex(a);
-    throw 1;
-
-}
-
-uint GetDid(char c) {
-    uint ret;
-
-    uint val = (uint) c;
-
-    for (ret = 0; ret < 0x10; ret++) {
-        if (PlaceValue[ret] == (char) val)
-            break;
-    }
-
-    return ret;
-}
-
-void getCharString(char c, char *buffer)
-{
-    unsigned char _c = (unsigned char) c;
-
-    if (c >= 32 &&_c != 127 && _c != 129)
-    {
-        sprintf(buffer, "\'%c\'", _c);
-    } else sprintf(buffer, "[%i]", (int) _c);
-}
-
-UltraNumber *FromStringHex(const char *a) {
-    UltraNumber *ret = new UltraNumber();
-
-    int i = 0;
-    char c;
-    int place = 4;
-    bool esign = false;
-    int exp = 0;
-    bool Negative = false;
-
-    int l = (a == NULL) ? 0 : strlen(a);
-
-    if (a == NULL) { sprintf(ERROR, "FromString: NULL input"); goto error; }
-
-    if (i >= l) { sprintf(ERROR, "FromString: empty input"); goto error; }
-
-    if (a[i] == '-') { Negative = true; i++; }
-    else if (a[i] == '+') { Negative = false; i++; }
-
-    if (i >= l) { sprintf(ERROR, "FromString: missing digits"); goto error; }
-
-    while (i < l) {
-        c = a[i];
-        if (c == '.')
-            goto decimal;
-        if (c == '(')
-            goto exponent;
-
-        uint d = GetDid(c);
-
-        if (d == 0x10) goto illegalChar;
-
-        UltraNumber * _d = new UltraNumber(false, 0, &d, 1);
-
-        Replace(&ret, Shift(ret, 4));
-        Replace(&ret, Add(ret, _d));
-
-        delete _d;
-        i++;
-    }
-
-    if (i ==l) goto finish;
-
-    decimal:
-    c = a[i];
-    if (c == '.') i++;
-    if (c == '(')
-        goto exponent;
-
-    while (i<l)
-    {
-        c = a[i];
-
-        if (c == '(') goto exponent;
-
-        uint d = GetDid(c);
-
-        if (d == 0x10) { goto illegalChar; }
-
-        UltraNumber * _d = new UltraNumber(false, 0, &d, 1);
-
-        Replace(&_d, Shift(_d, -place));
-        Replace(&ret, Add(ret, _d));
-
-        delete _d;
-        i++;
-        place += 4;
-    }
-
-    if (i == l) goto finish;
-    exponent:
-    c = a[i];
-    if (c != '(') goto illegalChar;
-    i++;
-    if (i == l) { sprintf(ERROR, "FromString: premature termination[exponent]"); goto error; }
-    c = a[i];
-    if (c != 'e') goto illegalChar;
-    i++;
-    if (i == l) { sprintf(ERROR, "FromString: premature termination[exponent]"); goto error; }
-    c = a[i];
-    if (c == '+') { i++;} else if (c == '-') { esign = true; i++; }
-
-    while (i < l) {
-        c = a[i];
-        if (c == ')')
-        {	i++;;
-            goto applyexponent;
-        }
-
-        uint d = GetDid(c);
-
-        if (d > 9) goto illegalChar;
-
-
-        exp *= 10; exp = exp + d;
-        i++;
-    }
-
-    sprintf(ERROR, "FromString: premature termination[exponent]");
-    goto error;
-    applyexponent:
-    if (esign) exp *= -1;
-    Replace(&ret, Shift(ret, exp *4));
-
-    if (i<l) { sprintf(ERROR, "FromString: premature termination"); goto error; }
-
-    finish:
-    ret->Negative = Negative;
-    return ret;
-    illegalChar:
-    char t[1024];
-    getCharString(c, t);
-    sprintf(ERROR, "FromString: Ilegal Charachter[%s @ %d]", t, i);
-    goto error;
-    error:
-    delete ret;
-    return NULL;
-}
-
-UltraNumber *FromString(const char *a, TextMode mode) {
-    if (mode == Hexadecimal)
-        return FromStringHex(a);
-    throw 1;
-}
-
-void FreeString(char *String) {
-    delete String;
-}
-
-
-*/
