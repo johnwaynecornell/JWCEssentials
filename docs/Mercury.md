@@ -89,7 +89,7 @@ Each thread needs its own stack. In .NET, `UltraNumber.Imports.Stack` is `[Threa
 
 ## C API Reference
 
-All symbols are declared in `Mercury.h` and `MercuryCPU.h`. On Windows they use `__declspec(dllexport/dllimport)`; on Linux the API has default visibility. Functions are annotated `__host__ __device__` for CUDA compatibility.
+All symbols are declared in `Mercury.h` and `MercuryCPU.h`. On Windows they use `__declspec(dllexport/dllimport)`; on Linux the API has default visibility. The public C ABI uses the `mercspec` macro, which expands to `extern "C" MERCURY_API` for clean C linkage from C++ callers. CUDA-compatible helper macros are kept separate from the host DLL/shared-library export surface, so the same codebase can support CPU builds while preserving a path toward `__host__ __device__` execution where appropriate.
 
 The `mercspec` macro expands to `extern "C" MERCURY_API`, giving clean C linkage from C++ callers.
 
@@ -199,8 +199,21 @@ void mercuryLog    (void *stack, int Precision, uint *a, uint *b,  uint *val); /
 void mercuryLogSlow(void *stack, int Precision, uint *a, uint *b,  uint *val); // log_b(a) Taylor
 ```
 
-`mercuryLog` and `mercuryLogSlow` both compute log base `b` of `a`. The fast variant converges more quickly for most inputs; the slow variant uses a straightforward Taylor series and is provided for reference or verification.
+In Sigma-style operational notation, this is the Power Tier:
 
+```text
+C = A pow B;   // combine base and exponent
+A = C root B;  // recover the base
+B = C log A;   // recover the exponent
+```
+
+Mercury follows that same structure at the implementation level: `pow`, `root`, and `log` are not isolated functions, but related operations in the same algebraic tier.
+
+`mercuryLog` and `mercuryLogSlow` both compute log base `b` of `a`. Conceptually, the logarithm is solved as the inverse of exponentiation: find the exponent `x` such that `b^x = a`.
+
+Both implementations use a constructive exponent-search strategy over binary places. They test candidate exponent values by raising `b` to the candidate power and comparing the result against `a`. Fractional exponent refinement is driven through repeated square roots, because each square root corresponds to halving the current exponent step.
+
+`mercuryLog` is the optimized implementation: it carries forward the current accumulated power and refines it as the candidate exponent changes. `mercuryLogSlow` is the simpler reference implementation: it recomputes candidate powers more directly and is useful for comparison or verification.
 ---
 
 ## C Usage Example
