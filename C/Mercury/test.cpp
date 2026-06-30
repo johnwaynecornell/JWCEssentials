@@ -255,6 +255,13 @@ void ComputePI(void *stack, int Precision, uint *val) {
 
     bool cont = true;
 
+
+
+    char *outputCurrent = new char[65536];
+    char *outputLast = new char[65536];;
+    outputLast[0] = '\0';
+    
+    
     do {
         mercuryMul(stack, InnerPrecision, b, k, reg8);
         mercuryAdd(stack, InnerPrecision, a, reg8, reg8);
@@ -282,10 +289,37 @@ void ComputePI(void *stack, int Precision, uint *val) {
             mercuryMul(stack, InnerPrecision, reg1, twelve, reg8);
             mercuryDiv(stack, InnerPrecision, one, reg8, reg8);
 
-            mercuryPrint(stack, InnerPrecision, reg8);
+            mercuryToString(stack, InnerPrecision, reg8, outputCurrent, 65536);
 
+            int outputIndex;
+            for (outputIndex = 0; outputCurrent[outputIndex] != '\0'; outputIndex++)
+            {
+                if (outputCurrent[outputIndex] != outputLast[outputIndex])
+                {
+                    // This is a rough estimate of the percentage of digits that have changed
+                    printf("%010.6f%% | ", ((double)outputIndex / (InnerPrecision * 8)) * 100);
+                    break;
+                }
+            }
+            
+            for (outputIndex = 0; outputCurrent[outputIndex] != '\0'; outputIndex++)
+            {
+                if (outputCurrent[outputIndex] == outputLast[outputIndex])
+                {
+                    printf("%c", outputCurrent[outputIndex]);
+                } else break;
+            }
+            
+            if (outputIndex == 0) printf("#... skipping one frame to display stable digits\n");
+                        
+            printf("\n");
+
+            //mercuryPrint(stack, InnerPrecision, reg8);
         }
 
+        char *tmp = outputLast;
+        outputLast = outputCurrent;
+        outputCurrent = tmp;
 
         if (cont)
         {
@@ -296,6 +330,9 @@ void ComputePI(void *stack, int Precision, uint *val) {
             mercuryAdd(stack, InnerPrecision, k, one, k);
         }
     } while (cont);
+
+    delete[] outputLast;
+    delete[] outputCurrent;
 
     mercuryMul(stack, InnerPrecision, reg1, twelve, reg1);
     mercuryDiv(stack, InnerPrecision, one, reg1, reg1);
@@ -509,7 +546,7 @@ int main(int argc, char **argv)
     printf("%d nibbles\n", mercuryNibbles(stack, EPrecision, E));
     */
 
-    const int PIPrecision = 512;//Precision*3/2;
+    const int PIPrecision = 256;//Precision*3/2;
     uint PI[PIPrecision+2];
     uint PI2[PIPrecision+2];
     mercuryLoadDouble(stack, PIPrecision, PI2, M_PI);
@@ -526,24 +563,6 @@ int main(int argc, char **argv)
     mercuryToString(stack, PIPrecision, PI, txt, 65536);
 
     printf("PI ~= %s\n", txt);
-
-
-
-
-    //char txt2[65536];
-    //mercuryToString(stack, EPrecision, E, txt2,65536);
-    //printf("E = %s\n", txt2);
-
-
-
-    mercuryLoadUint(stack, Precision, a, 0xFFFFFFFF);
-    mercuryLoadUint(stack, Precision, b, 0xFFFFFFFF);
-    mercuryMul(stack, Precision, a, b, c);
-
-    mercuryToString(stack, Precision,c,txt,65536);
-
-    printf("val = %s\n", txt);
-
 
     //struct MercuryStack *stack = mercuryAllocStack(12Precision, Precision);
     uint t[Precision+2];
