@@ -16,11 +16,6 @@ void * mercuryThreadedStackGet(int thread, void *master)
 void * mercuryStackAlloc(void *stack, int size)
 {
     void *r = (char *) stack + 8 + *((slong *)stack);
-    for (int i=0; i<size; i++)
-    {
-        *((char *)r + i) = 0;
-    }
-
     *((slong*)stack) += size;
 
     return r;

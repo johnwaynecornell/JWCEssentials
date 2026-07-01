@@ -7,6 +7,7 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <cstring>
+#include <time.h>
 
 #include "MercuryCPU.h"
 
@@ -216,6 +217,8 @@ void ComputePI(void *stack, int Precision, uint *val) {
 
     ulong stackPos = *(ulong *)stack;
 
+    clock_t begin, end;    
+
     reg1 = (uint *) mercuryStackAlloc(stack, (InnerPrecision + 2) * sizeof(uint));
     k = (uint *) mercuryStackAlloc(stack, (InnerPrecision + 2) * sizeof(uint));
     a = (uint *) mercuryStackAlloc(stack, (InnerPrecision + 2) * sizeof(uint));
@@ -296,8 +299,15 @@ void ComputePI(void *stack, int Precision, uint *val) {
             {
                 if (outputCurrent[outputIndex] != outputLast[outputIndex])
                 {
+                    if (outputIndex == 0) begin = clock();
+                    end = clock();
+
+                    double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+
                     // This is a rough estimate of the percentage of digits that have changed
-                    printf("%010.6f%% | ", ((double)outputIndex / (InnerPrecision * 8)) * 100);
+                    double Percent = ((double)outputIndex / (InnerPrecision * 8)) * 100;
+                    if (Percent == 0) Percent = .0000000000000000000001;
+                    printf("%010.6f%% | cps %02.4f | ", Percent, outputIndex / time_spent);
                     break;
                 }
             }
