@@ -526,6 +526,13 @@ public virtual void GetObjectData(SerializationInfo info, StreamingContext conte
 			Imports.mercuryPow(Imports.Stack, Imports.GetPrecision(), a.Elements,b.Elements,r.Elements);
 			return r;
 		}
+		
+		public static UltraNumber Root(UltraNumber a, UltraNumber b)
+		{
+			UltraNumber r = new UltraNumber();
+			Imports.mercuryRoot(Imports.Stack, Imports.GetPrecision(), a.Elements,b.Elements,r.Elements);
+			return r;
+		}
 
 		public static UltraNumber Log(UltraNumber a, UltraNumber b)
 		{

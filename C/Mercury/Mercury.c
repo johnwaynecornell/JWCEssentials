@@ -942,7 +942,7 @@ void mercurySqr(void *stack, int Precision, uint *a, uint *val) {
 void mercurySqrt(void *stack, int Precision, uint *a, uint *val) {
     int h = (int)a[1];
 
-    int highbit = ((int) ((h + 1) * 32)) / 2;
+    int highbit = ((int) ((h + 1) * 32)) / 2 - 1;
     int lowbit = highbit - Precision * 32;
 
     if (mercuryIsZero(Precision, a)) {
