@@ -9,8 +9,8 @@ int mercuryHexDid(int Ch)
     //int r = Ch;
     int r = -1;
     if (Ch >= '0' && Ch <= '9') r = Ch - '0';
-    else if (Ch >= 'A' && Ch <= 'F') r = Ch - 'A';
-    else if (Ch >= 'a' && Ch <= 'f') r = Ch - 'a';
+    else if (Ch >= 'A' && Ch <= 'F') r = 10 + Ch - 'A';
+    else if (Ch >= 'a' && Ch <= 'f') r = 10 + Ch - 'a';
 
     //return (Ch - 0);
     return r;
