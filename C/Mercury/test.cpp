@@ -556,24 +556,6 @@ int main(int argc, char **argv)
     printf("%d nibbles\n", mercuryNibbles(stack, EPrecision, E));
     */
 
-    const int PIPrecision = 256;//Precision*3/2;
-    uint PI[PIPrecision+2];
-    uint PI2[PIPrecision+2];
-    mercuryLoadDouble(stack, PIPrecision, PI2, M_PI);
-    mercuryToString(stack, PIPrecision, PI2, txt, 65536);
-
-    PIDec(stack, PIPrecision, PI2);
-    mercuryToString(stack, PIPrecision, PI2, txt2, 65536);
-
-    printf("PI ~= %s (%s)\n", txt, txt2);
-
-    printf("%d\n", strlen("243F6A8885A308D313198A2E03707344A4093822299F31D0082EFA98EC4E6C89452821E638D01377BE5466CF34E90C6CC0AC29B7C97C50DD3F84D5B5B54709179216D5D98979FB1BD1310BA698DFB5AC2FFD72DBD01ADFB7B8E1AFED6A267E96BA7C9045F12C7F9924A19947B3916CF70801F2E2858EFC16636920D871574E69A458FEA3F4933D7E0D95748F728EB658718BCD5882154AEE7B54A41DC25A59B59C30D5392AF26013C5D1B023286085F0CA417918B8DB38EF8E79DCB0603A180E6C9E0E8BB01E8A3ED71577C1BD314B2778AF2FDA55605C60E65525F3AA55AB945748986263E8144055CA396A2AAB10B6B4CC5C341141E8CEA15486AF7C"));
-
-    ComputePI(stack, PIPrecision, PI);
-    mercuryToString(stack, PIPrecision, PI, txt, 65536);
-
-    printf("PI ~= %s\n", txt);
-
     //struct MercuryStack *stack = mercuryAllocStack(12Precision, Precision);
     uint t[Precision+2];
     uint t2[Precision+2];
@@ -592,6 +574,33 @@ int main(int argc, char **argv)
     printf("%s %d\n", txt, b);
 */
     //ComputePI_Geo(stack);
+
+    mercuryLoadInt(stack, Precision, t, 100);
+    mercuryLoadInt(stack, Precision, t2, 10);
+    mercuryLog(stack, Precision, t, t2, t3);
+    mercuryToString(stack, Precision, t3, txt, 1024);
+    printf("%s\n", txt);
+
+    const int PIPrecision = 256;//Precision*3/2;
+    uint PI[PIPrecision+2];
+    uint PI2[PIPrecision+2];
+    mercuryLoadDouble(stack, PIPrecision, PI2, M_PI);
+    mercuryToString(stack, PIPrecision, PI2, txt, 65536);
+
+    PIDec(stack, PIPrecision, PI2);
+    mercuryToString(stack, PIPrecision, PI2, txt2, 65536);
+
+    printf("PI ~= %s (%s)\n", txt, txt2);
+
+    printf("%ld\n", strlen("243F6A8885A308D313198A2E03707344A4093822299F31D0082EFA98EC4E6C89452821E638D01377BE5466CF34E90C6CC0AC29B7C97C50DD3F84D5B5B54709179216D5D98979FB1BD1310BA698DFB5AC2FFD72DBD01ADFB7B8E1AFED6A267E96BA7C9045F12C7F9924A19947B3916CF70801F2E2858EFC16636920D871574E69A458FEA3F4933D7E0D95748F728EB658718BCD5882154AEE7B54A41DC25A59B59C30D5392AF26013C5D1B023286085F0CA417918B8DB38EF8E79DCB0603A180E6C9E0E8BB01E8A3ED71577C1BD314B2778AF2FDA55605C60E65525F3AA55AB945748986263E8144055CA396A2AAB10B6B4CC5C341141E8CEA15486AF7C"));
+
+    printf("PI ~= %s\n", txt);
+
+
+
+    ComputePI(stack, PIPrecision, PI);
+    mercuryToString(stack, PIPrecision, PI, txt, 65536);
+
 
     mercuryLoadDouble(stack, Precision, t, 1.5);
     mercuryToString(stack, Precision, t, txt, 1024);

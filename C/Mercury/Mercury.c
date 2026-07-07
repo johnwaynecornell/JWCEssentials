@@ -1345,3 +1345,135 @@ stackCleanup:
 
     return;
 }
+
+/*
+ * These functions are supported here to enable higher level language algorithmic solution and were not used in construction
+*/
+
+bool mercuryHasFraction(void *stack, int Precision, uint *a)
+{
+    int h = (int)a[1];
+    int l = h - Precision + 1;
+
+    for (int i = 0; i < Precision; i++) {
+        int place = l + i;
+
+        if (place < 0 && a[2 + i] != 0) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool mercuryIsInteger(void *stack, int Precision, uint *a)
+{
+    return !mercuryHasFraction(stack, Precision, a);
+}
+
+void mercuryAbs(void *stack, int Precision, uint *a, uint *val)
+{
+    mercuryLoadMercury(stack, Precision, a, val);
+    val[0] &= 0xFFFFFFFE;
+}
+
+void mercuryNeg(void *stack, int Precision, uint *a, uint *val)
+{
+    mercuryLoadMercury(stack, Precision, a, val);
+
+    if (!mercuryIsZero(Precision, val)) {
+        val[0] ^= 1;
+    }
+}
+
+void mercuryTrunc(void *stack, int Precision, uint *a, uint *val)
+{
+    if (mercuryIsZero(Precision, a)) {
+        mercuryLoadZero(stack, Precision, val);
+        return;
+    }
+
+    int h = (int)a[1];
+    int l = h - Precision + 1;
+
+    if (h < 0) {
+        mercuryLoadZero(stack, Precision, val);
+        return;
+    }
+
+    uint *digits = (uint *)mercuryStackAlloc(stack, Precision * 4);
+
+    for (int i = 0; i < Precision; i++) {
+        int place = l + i;
+        digits[i] = place < 0 ? 0 : a[2 + i];
+    }
+
+    mercuryLoadRaw(stack, Precision, val, (a[0] & 1) == 1, h, digits, Precision);
+
+    mercuryStackFree(stack, Precision * 4);
+}
+
+void mercuryFloor(void *stack, int Precision, uint *a, uint *val)
+{
+    bool sub = (a[0] & 1) && mercuryHasFraction(stack, Precision, a);
+
+    mercuryTrunc(stack, Precision, a, val);
+
+    if (sub) {
+        uint *one = (uint *)mercuryStackAlloc(stack, (Precision + 2) * 4);
+        mercuryLoadUint(stack, Precision, one, 1);
+        mercurySub(stack, Precision, val, one, val);
+        mercuryStackFree(stack, (Precision + 2) * 4);
+    }
+}
+
+void mercuryCeil(void *stack, int Precision, uint *a, uint *val)
+{
+    bool add = ((a[0] & 1) == 0) && mercuryHasFraction(stack, Precision, a);
+
+    mercuryTrunc(stack, Precision, a, val);
+
+    if (add) {
+        uint *one = (uint *)mercuryStackAlloc(stack, (Precision + 2) * 4);
+        mercuryLoadUint(stack, Precision, one, 1);
+        mercuryAdd(stack, Precision, val, one, val);
+        mercuryStackFree(stack, (Precision + 2) * 4);
+    }
+}
+
+void mercuryFrac(void *stack, int Precision, uint *a, uint *val)
+{
+    uint *whole = (uint *)mercuryStackAlloc(stack, (Precision + 2) * 4);
+
+    mercuryTrunc(stack, Precision, a, whole);
+    mercurySub(stack, Precision, a, whole, val);
+
+    mercuryStackFree(stack, (Precision + 2) * 4);
+}
+
+void mercuryCopySign(void *stack, int Precision, uint *mag, uint *sign, uint *val)
+{
+    mercuryLoadMercury(stack, Precision, mag, val);
+
+    val[0] &= 0xFFFFFFFE;
+
+    if (!mercuryIsZero(Precision, val) && (sign[0] & 1)) {
+        val[0] |= 1;
+    }
+}
+
+void mercuryMin(void *stack, int Precision, uint *a, uint *b, uint *val)
+{
+    if (mercuryCmp(Precision, a, b) <= 0)
+        mercuryLoadMercury(stack, Precision, a, val);
+    else
+        mercuryLoadMercury(stack, Precision, b, val);
+}
+
+void mercuryMax(void *stack, int Precision, uint *a, uint *b, uint *val)
+{
+    if (mercuryCmp(Precision, a, b) >= 0)
+        mercuryLoadMercury(stack, Precision, a, val);
+    else
+        mercuryLoadMercury(stack, Precision, b, val);
+}

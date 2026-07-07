@@ -138,5 +138,21 @@ mercspec  __host__ __device__ void mercuryRoot(void *stack, int Precision, uint 
 mercspec  __host__ __device__ void mercuryLogSlow(void *stack, int Precision, uint *a, uint *b, uint *val);
 mercspec  __host__ __device__ void mercuryLog(void *stack, int Precision, uint *a, uint *b, uint *val);
 
+//Support entries
+mercspec __host__ __device__ bool mercuryHasFraction(void *stack, int Precision, uint *a);
+mercspec __host__ __device__ bool mercuryIsInteger(void *stack, int Precision, uint *a);
+
+mercspec __host__ __device__ void mercuryAbs(void *stack, int Precision, uint *a, uint *val);
+mercspec __host__ __device__ void mercuryNeg(void *stack, int Precision, uint *a, uint *val);
+
+mercspec __host__ __device__ void mercuryTrunc(void *stack, int Precision, uint *a, uint *val);
+mercspec __host__ __device__ void mercuryFloor(void *stack, int Precision, uint *a, uint *val);
+mercspec __host__ __device__ void mercuryCeil(void *stack, int Precision, uint *a, uint *val);
+mercspec __host__ __device__ void mercuryFrac(void *stack, int Precision, uint *a, uint *val);
+
+mercspec __host__ __device__ void mercuryCopySign(void *stack, int Precision, uint *mag, uint *sign, uint *val);
+mercspec __host__ __device__ void mercuryMin(void *stack, int Precision, uint *a, uint *b, uint *val);
+mercspec __host__ __device__ void mercuryMax(void *stack, int Precision, uint *a, uint *b, uint *val);
+
 
 //#endif //MERCURY_MERCURY_H

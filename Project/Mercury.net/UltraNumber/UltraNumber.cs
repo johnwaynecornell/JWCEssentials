@@ -135,6 +135,12 @@ public virtual void GetObjectData(SerializationInfo info, StreamingContext conte
 			public static extern bool mercuryIsZero(int Precision, uint[] val);
 
 			[DllImport("Mercury")]
+			public static extern bool mercuryHasFraction(IntPtr stack, int Precision, uint[] a);
+
+			[DllImport("Mercury")]
+			public static extern bool mercuryIsInteger(IntPtr stack, int Precision, uint[] a);
+
+			[DllImport("Mercury")]
 			public static extern uint mercuryGetAt(int Precision, uint[] a, int Place);
 
 			[DllImport("Mercury")]
@@ -178,6 +184,33 @@ public virtual void GetObjectData(SerializationInfo info, StreamingContext conte
 
 			[DllImport("Mercury")]
 			public static extern void mercurySqr(IntPtr stack, int Precision, uint[] a, uint[] val);
+
+			[DllImport("Mercury")]
+			public static extern void mercuryAbs(IntPtr stack, int Precision, uint[] a, uint[] val);
+
+			[DllImport("Mercury")]
+			public static extern void mercuryNeg(IntPtr stack, int Precision, uint[] a, uint[] val);
+
+			[DllImport("Mercury")]
+			public static extern void mercuryTrunc(IntPtr stack, int Precision, uint[] a, uint[] val);
+
+			[DllImport("Mercury")]
+			public static extern void mercuryFloor(IntPtr stack, int Precision, uint[] a, uint[] val);
+
+			[DllImport("Mercury")]
+			public static extern void mercuryCeil(IntPtr stack, int Precision, uint[] a, uint[] val);
+
+			[DllImport("Mercury")]
+			public static extern void mercuryFrac(IntPtr stack, int Precision, uint[] a, uint[] val);
+
+			[DllImport("Mercury")]
+			public static extern void mercuryCopySign(IntPtr stack, int Precision, uint[] mag, uint[] sign, uint[] val);
+
+			[DllImport("Mercury")]
+			public static extern void mercuryMin(IntPtr stack, int Precision, uint[] a, uint[] b, uint[] val);
+
+			[DllImport("Mercury")]
+			public static extern void mercuryMax(IntPtr stack, int Precision, uint[] a, uint[] b, uint[] val);
 
 			[DllImport("Mercury")]
 			public static extern void mercurySqrt(IntPtr stack, int Precision, uint[] a, uint[] val);
@@ -237,6 +270,12 @@ public virtual void GetObjectData(SerializationInfo info, StreamingContext conte
 			public static extern bool mercuryIsZero(int Precision, IntPtr val);
 
 			[DllImport("Mercury")]
+			public static extern bool mercuryHasFraction(IntPtr stack, int Precision, IntPtr a);
+
+			[DllImport("Mercury")]
+			public static extern bool mercuryIsInteger(IntPtr stack, int Precision, IntPtr a);
+
+			[DllImport("Mercury")]
 			public static extern uint mercuryGetAt(int Precision, IntPtr a, int Place);
 
 			[DllImport("Mercury")]
@@ -280,6 +319,33 @@ public virtual void GetObjectData(SerializationInfo info, StreamingContext conte
 
 			[DllImport("Mercury")]
 			public static extern void mercurySqr(IntPtr stack, int Precision, IntPtr a, IntPtr val);
+
+			[DllImport("Mercury")]
+			public static extern void mercuryAbs(IntPtr stack, int Precision, IntPtr a, IntPtr val);
+
+			[DllImport("Mercury")]
+			public static extern void mercuryNeg(IntPtr stack, int Precision, IntPtr a, IntPtr val);
+
+			[DllImport("Mercury")]
+			public static extern void mercuryTrunc(IntPtr stack, int Precision, IntPtr a, IntPtr val);
+
+			[DllImport("Mercury")]
+			public static extern void mercuryFloor(IntPtr stack, int Precision, IntPtr a, IntPtr val);
+
+			[DllImport("Mercury")]
+			public static extern void mercuryCeil(IntPtr stack, int Precision, IntPtr a, IntPtr val);
+
+			[DllImport("Mercury")]
+			public static extern void mercuryFrac(IntPtr stack, int Precision, IntPtr a, IntPtr val);
+
+			[DllImport("Mercury")]
+			public static extern void mercuryCopySign(IntPtr stack, int Precision, IntPtr mag, IntPtr sign, IntPtr val);
+
+			[DllImport("Mercury")]
+			public static extern void mercuryMin(IntPtr stack, int Precision, IntPtr a, IntPtr b, IntPtr val);
+
+			[DllImport("Mercury")]
+			public static extern void mercuryMax(IntPtr stack, int Precision, IntPtr a, IntPtr b, IntPtr val);
 
 			[DllImport("Mercury")]
 			public static extern void mercurySqrt(IntPtr stack, int Precision, IntPtr a, IntPtr val);
@@ -519,8 +585,64 @@ public virtual void GetObjectData(SerializationInfo info, StreamingContext conte
 
 		public static UltraNumber Abs(UltraNumber a)
 		{
-			UltraNumber r = new UltraNumber(a);
-			r.Elements[0] &= 0xFFFFFFFE;
+			UltraNumber r = new UltraNumber();
+			Imports.mercuryAbs(Imports.Stack, Imports.GetPrecision(), a.Elements, r.Elements);
+			return r;
+		}
+
+		public static UltraNumber Neg(UltraNumber a)
+		{
+			UltraNumber r = new UltraNumber();
+			Imports.mercuryNeg(Imports.Stack, Imports.GetPrecision(), a.Elements, r.Elements);
+			return r;
+		}
+
+		public static UltraNumber Trunc(UltraNumber a)
+		{
+			UltraNumber r = new UltraNumber();
+			Imports.mercuryTrunc(Imports.Stack, Imports.GetPrecision(), a.Elements, r.Elements);
+			return r;
+		}
+
+		public static UltraNumber Floor(UltraNumber a)
+		{
+			UltraNumber r = new UltraNumber();
+			Imports.mercuryFloor(Imports.Stack, Imports.GetPrecision(), a.Elements, r.Elements);
+			return r;
+		}
+
+		public static UltraNumber Ceil(UltraNumber a)
+		{
+			UltraNumber r = new UltraNumber();
+			Imports.mercuryCeil(Imports.Stack, Imports.GetPrecision(), a.Elements, r.Elements);
+			return r;
+		}
+
+		public static UltraNumber Frac(UltraNumber a)
+		{
+			UltraNumber r = new UltraNumber();
+			Imports.mercuryFrac(Imports.Stack, Imports.GetPrecision(), a.Elements, r.Elements);
+			return r;
+		}
+
+		public static UltraNumber CopySign(UltraNumber mag, UltraNumber sign)
+		{
+			UltraNumber r = new UltraNumber();
+			Imports.mercuryCopySign(Imports.Stack, Imports.GetPrecision(), mag.Elements, sign.Elements, r.Elements);
+			return r;
+		}
+
+		public static UltraNumber Min(UltraNumber a, UltraNumber b)
+		{
+			UltraNumber r = new UltraNumber();
+			Imports.mercuryMin(Imports.Stack, Imports.GetPrecision(), a.Elements, b.Elements, r.Elements);
+			return r;
+		}
+
+		public static UltraNumber Max(UltraNumber a, UltraNumber b)
+		{
+			UltraNumber r = new UltraNumber();
+			Imports.mercuryMax(Imports.Stack, Imports.GetPrecision(), a.Elements, b.Elements, r.Elements);
 			return r;
 		}
 
@@ -542,6 +664,16 @@ public virtual void GetObjectData(SerializationInfo info, StreamingContext conte
 		public static bool IsZero(UltraNumber a)
 		{
 			return Imports.mercuryIsZero(Imports.GetPrecision(), a.Elements);
+		}
+
+		public static bool HasFraction(UltraNumber a)
+		{
+			return Imports.mercuryHasFraction(Imports.Stack, Imports.GetPrecision(), a.Elements);
+		}
+
+		public static bool IsInteger(UltraNumber a)
+		{
+			return Imports.mercuryIsInteger(Imports.Stack, Imports.GetPrecision(), a.Elements);
 		}
 
 		public static int GetBit(UltraNumber a, int Place)
