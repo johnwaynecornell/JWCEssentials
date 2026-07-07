@@ -206,10 +206,10 @@ public class UltraNumberTests
     [Fact]
     public void TestLog()
     {
-        UltraNumber a = 100.0;
+        UltraNumber a = 100000.0;
         UltraNumber b = 10.0;
         UltraNumber c = UltraNumber.Log(a, b);
-        Assert.Equal(2.0, (double)c, 5);
+        Assert.Equal(5.0, (double)c, 5);
     }
 
     [Fact]
