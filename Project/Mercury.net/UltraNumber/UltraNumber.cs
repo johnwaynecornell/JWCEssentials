@@ -384,6 +384,25 @@ public virtual void GetObjectData(SerializationInfo info, StreamingContext conte
 			Elements = (uint[]) a.Elements.Clone();
 		}
 
+		public static UltraNumber Zero()
+		{
+			UltraNumber r = new UltraNumber();
+			Imports.mercuryLoadZero(Imports.Stack, Imports.GetPrecision(), r.Elements);
+			return r;
+		}
+
+		public static UltraNumber FromRaw(bool Negative, int exp, uint[] digits)
+		{
+			UltraNumber r = new UltraNumber();
+			Imports.mercuryLoadRaw(Imports.Stack, Imports.GetPrecision(), r.Elements, Negative, exp, digits, digits.Length);
+			return r;
+		}
+
+		public void Load(UltraNumber a)
+		{
+			Imports.mercuryLoadMercury(Imports.Stack, Imports.GetPrecision(), a.Elements, this.Elements);
+		}
+
 		~UltraNumber()
 		{
 		}
@@ -505,12 +524,67 @@ public virtual void GetObjectData(SerializationInfo info, StreamingContext conte
 			return r;
 		}
 
-		public static UltraNumber Pow2(int Place)
+		public static UltraNumber TwoPow(int Place)
 		{
 			UltraNumber r = new UltraNumber();
 			Imports.mercury_2Pow(Imports.Stack, Imports.GetPrecision(), Place, r.Elements);
 			return r;
 			
+		}
+
+		public static UltraNumber Sqr(UltraNumber a)
+		{
+			UltraNumber r = new UltraNumber();
+			Imports.mercurySqr(Imports.Stack, Imports.GetPrecision(), a.Elements, r.Elements);
+			return r;
+		}
+
+		public static bool IsZero(UltraNumber a)
+		{
+			return Imports.mercuryIsZero(Imports.GetPrecision(), a.Elements);
+		}
+
+		public static int GetBit(UltraNumber a, int Place)
+		{
+			return Imports.mercuryGetBit(Imports.Stack, Imports.GetPrecision(), Place, a.Elements);
+		}
+
+		public static uint GetAt(UltraNumber a, int Place)
+		{
+			return Imports.mercuryGetAt(Imports.GetPrecision(), a.Elements, Place);
+		}
+
+		public static int AbsCompare(UltraNumber a, UltraNumber b)
+		{
+			return Imports.mercuryAbsCmp(Imports.GetPrecision(), a.Elements, b.Elements);
+		}
+
+		public static UltraNumber AbsAdd(UltraNumber a, UltraNumber b)
+		{
+			UltraNumber r = new UltraNumber();
+			Imports.mercuryAbsAdd(Imports.Stack, Imports.GetPrecision(), a.Elements, b.Elements, r.Elements);
+			return r;
+		}
+
+		public static UltraNumber AbsSub(UltraNumber a, UltraNumber b)
+		{
+			UltraNumber r = new UltraNumber();
+			Imports.mercuryAbsSub(Imports.Stack, Imports.GetPrecision(), a.Elements, b.Elements, r.Elements);
+			return r;
+		}
+
+		public static UltraNumber AbsMul(UltraNumber a, UltraNumber b)
+		{
+			UltraNumber r = new UltraNumber();
+			Imports.mercuryAbsMul(Imports.Stack, Imports.GetPrecision(), a.Elements, b.Elements, r.Elements);
+			return r;
+		}
+
+		public static UltraNumber AbsDiv(UltraNumber a, UltraNumber b)
+		{
+			UltraNumber r = new UltraNumber();
+			Imports.mercuryAbsDiv(Imports.Stack, Imports.GetPrecision(), a.Elements, b.Elements, r.Elements);
+			return r;
 		}
 
 		public static UltraNumber Sqrt(UltraNumber a)
@@ -538,6 +612,13 @@ public virtual void GetObjectData(SerializationInfo info, StreamingContext conte
 		{
 			UltraNumber r = new UltraNumber();
 			Imports.mercuryLog(Imports.Stack, Imports.GetPrecision(), a.Elements,b.Elements,r.Elements);
+			return r;
+		}
+
+		public static UltraNumber LogSlow(UltraNumber a, UltraNumber b)
+		{
+			UltraNumber r = new UltraNumber();
+			Imports.mercuryLogSlow(Imports.Stack, Imports.GetPrecision(), a.Elements, b.Elements, r.Elements);
 			return r;
 		}
 
