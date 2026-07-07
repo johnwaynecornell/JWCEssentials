@@ -1256,9 +1256,10 @@ void mercuryLog(void *stack, int Precision, uint *a, uint *b, uint *val)
                 }
             } while (s<0);
 
+
             if (s ==0)
             {
-                mercuryLoadExtendMercury(stack, InnerPrecision, Precision, reg, val);
+                mercury_2Pow(stack, Precision, bit, val);
                 goto stackCleanup;
             }
         } else
@@ -1276,9 +1277,10 @@ void mercuryLog(void *stack, int Precision, uint *a, uint *b, uint *val)
 
             } while (s>0);
 
+
             if (s ==0)
             {
-                mercuryLoadExtendMercury(stack, InnerPrecision, Precision, reg, val);
+                mercury_2Pow(stack, Precision, bit, val);
                 goto stackCleanup;
             }
         }
