@@ -16,6 +16,23 @@ int mercuryHexDid(int Ch)
     return r;
 }
 
+static int mercuryFloorDiv8(int value)
+{
+        int q = value / 8;
+        int r = value % 8;
+
+        if (value < 0 && r != 0) q--;
+
+        return q;
+    }
+
+static int mercuryMod8Floor(int value)
+{
+        int r = value % 8;
+        if (r < 0) r += 8;
+        return r;
+    }
+
 int mercuryHexStringGetPrecision(void *stack, const char *Input)
 {
     int I;
@@ -73,9 +90,13 @@ int mercuryHexStringGetPrecision(void *stack, const char *Input)
 
         int did;
 
-        do {
+        do
+        {
             did = mercuryHexDid(Input[P]);
-            if (did != -1) V = (V << 4) + did;
+            if (did != -1) {
+                V = (V << 4) + did;
+                P++;
+            }
         } while (did != -1);
 
         if (negativeExponent)
@@ -124,46 +145,45 @@ void mercuryFromString(void *stack, int Precision, const char *Input, uint *val)
 
 
     int Decimal = Start;
-    while (Input[Decimal] != '\0' && (
-            mercuryHexDid(Input[Decimal]) > -1 || Input[Decimal] != '.'))
-        Decimal++;
-    bool hasDecimal = Input[Decimal] == '.';
+    while (Input[Decimal] != '\0'
+           && Input[Decimal] != '.'
+           && mercuryHexDid(Input[Decimal]) > -1) Decimal++;
+        bool hasDecimal = Input[Decimal] == '.';
 
     int sciNot = 0;
 
-    if (hasDecimal) {
-        int P = Decimal+1;
-        while (mercuryHexDid(Input[P]) != -1) P++;
+        {
+                int P = hasDecimal ? Decimal + 1 : Decimal;
 
-        if (Input[P] == '@') {
-            bool negativeExponent = false;
-            P++;
-            if (Input[P] == '-') {
-                negativeExponent = true;
-                P++;
-            } else if (Input[P] == '+') {
-                negativeExponent = false;
-                P++;
+                if (hasDecimal) {
+                        while (mercuryHexDid(Input[P]) != -1) P++;
+                    }
+
+                if (Input[P] == '@') {
+                        bool negativeExponent = false;
+                        P++;
+
+                        if (Input[P] == '-') {
+                                negativeExponent = true;
+                                P++;
+                            } else if (Input[P] == '+') {
+                                    P++;
+                                }
+
+                        long V = 0;
+                        int did;
+
+                        do {
+                                did = mercuryHexDid(Input[P]);
+                               if (did != -1) {
+                                        V = (V << 4) + did;
+                                        P++;
+                                   }
+                            } while (did != -1);
+
+                        sciNot = negativeExponent ? -V : V;
+                   }
             }
-
-            long V = 0;
-
-            int did;
-
-            do {
-                did = mercuryHexDid(Input[P]);
-                if (did != -1) {
-                    V = (V << 4) + did;
-                    P++;
-                }
-            } while (did != -1);
-
-            if (negativeExponent) V *= -1;
-
-            sciNot = V;
-        }
-    }
-
     int S = Start;
     while (Input[S] == '0') S++;
 
@@ -175,19 +195,10 @@ void mercuryFromString(void *stack, int Precision, const char *Input, uint *val)
     int E;
     if (wholeLen > 0) {
 
-        Nibble = ((wholeLen - sciNot) % 8) - 1;
-        if (Nibble < 0) Nibble += 8;
+                int highestHexPlace = wholeLen - 1 + sciNot;
 
-        //00000003.243F6A8885A308D313198A2E03707344A4093822299F31D0082EFA98EC4E6C89452821E638D01377BE5466CF34E90C6CC0AC29B7C97C50DD3F84D5B5B54709179216D5D98979FB1BD1310BA698DFB5AC2FFD72DBD01ADFB7B8E1AFED6A267E96BA7C9045F12C7F9924A19947B3916CF70801F2E2858EFC16636920D871574E69A458FEA3F4933D7E0D95748F728EB658718BCD5882154AEE7B54A41DC25A59B59C30D5392AF2601300000000
-        //00000003.243F6A8885A308D313198A2E03707344A4093822299F31D0082EFA98EC4E6C89452821E638D01377BE5466CF34E90C6CC0AC29B7C97C50DD3F84D5B5B54709179216D5D98979FB1BD1310BA698DFB5AC2FFD72DBD01ADFB7B8E1AFED6A267E96BA7C9045F12C7F9924A19947B3916CF70801F2E2858EFC16636920D871574E69A458FEA3F4933D7E0D95748F728EB658718BCD5882154AEE7B54A41DC25A59B59C30D5392AF26013C5D1A
-
-        int e = Decimal - Start - 1 + sciNot;
-
-        if (e > 0) E = e / 8;
-        else {
-            E = (e / 8);
-            if (e % 8 != 0) E--;
-        }
+                E = mercuryFloorDiv8(highestHexPlace);
+                Nibble = mercuryMod8Floor(highestHexPlace);
     } else if (hasDecimal)
     {
         int fracPos = 0;
@@ -203,10 +214,10 @@ void mercuryFromString(void *stack, int Precision, const char *Input, uint *val)
 
         fracPos++;
 
-        E = -fracPos / 8;
-        if (fracPos % 8 != 0) E--;
+        int highestHexPlace = -fracPos + sciNot;
 
-        Nibble = (8 - ((fracPos - sciNot) % 8)) % 8;
+                E = mercuryFloorDiv8(highestHexPlace);
+                Nibble = mercuryMod8Floor(highestHexPlace);
 
     } else
     {
@@ -219,7 +230,7 @@ void mercuryFromString(void *stack, int Precision, const char *Input, uint *val)
     int P = 0;
     int I = S;
 
-    while (Input[I] != '\0') {
+    while (Input[I] != '\0' && P < Precision) {
         uint V = 0;
 
         int d;
@@ -293,22 +304,22 @@ int mercuryToString(void *stack,int Precision, uint *val, char *buffer, int len)
             break;
         }
 
-//        bool _d = false;
+        //        bool _d = false;
 
         if (i<0 && !scientificNotation) lead = false;
-/*
-        if (scientificNotation)
-        {
-            if (i == e-1) _d = true;
-        } else if (i == -1) _d = true;
+        /*
+                if (scientificNotation)
+                {
+                    if (i == e-1) _d = true;
+                } else if (i == -1) _d = true;
 
-        if (_d)
-        {
-            if (p<l && buffer != 0) buffer[p] = '.';
-            p++;
-            lead = false;
-        }
-*/
+                if (_d)
+                {
+                    if (p<l && buffer != 0) buffer[p] = '.';
+                    p++;
+                    lead = false;
+                }
+        */
         int low = 0;
 
         if (i==el && el<0)
@@ -364,11 +375,10 @@ int mercuryToString(void *stack,int Precision, uint *val, char *buffer, int len)
         for (int pl = 10; pl >= 0; pl--) {
             int x = (int) ((d >> (pl << 2)) & 0xF);
 
-            if (!lead || x != 0) {
+            if (!lead || x != 0 || pl == 0) {
                 if (p < l && buffer != 0) buffer[p] = PlaceValue[x];
                 p++;
-                lead = false;
-            }
+                lead = false;            }
         }
 
     }
@@ -376,5 +386,4 @@ int mercuryToString(void *stack,int Precision, uint *val, char *buffer, int len)
     if (p<len) buffer[p] = 0;
     p++;
     return p;
-
 }
