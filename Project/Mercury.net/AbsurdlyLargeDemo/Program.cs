@@ -145,6 +145,13 @@ for (int i = 0; i < 20; i++)
 }
 
 PageBreak();
+Console.WriteLine(@"micro round p.
+trim off the last 2 base 2 pow 32 digits.
+Console.WriteLine($""micro rounded : {p.RoundPlaces(2)}"");");
+OutputEnter();
+Console.WriteLine($"micro rounded : {p.RoundPlaces(2)}");
+PageBreak();
+    
 
 Console.WriteLine(@"6. Log against absurd exponent bit positions
 
@@ -170,6 +177,14 @@ Console.WriteLine($"x = 2^{place}");
 Console.WriteLine($"log_2(x) = {l} // {(double)l}");
 
 PageBreak();
+
+UltraNumber MicroRound(UltraNumber p)
+{
+    bool rnd = (p.Elements[2] >= 0x80000000);
+    p.Elements[2] = 0;
+    if (rnd) p += UltraNumber.FromRaw(false, (((int)p.Elements[1])- (p.Precision - 2)), new[] { (uint) 1 });
+    return p;
+}
 
 void OutputEnter()
 {

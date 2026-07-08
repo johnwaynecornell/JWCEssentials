@@ -96,6 +96,10 @@ mercspec __host__ __device__ slong mercuryStackOffset(void *stack);
 
 mercspec  __host__ __device__ void mercuryLoadZero(void *stack,int Precision, uint *val);
 mercspec  __host__ __device__ void mercuryLoadRaw(void *stack,int Precision, uint *val, bool Negative, int exp, uint *digits, int digitsLen);
+
+mercspec  __host__ __device__ void mercuryLoadRawRounded(void *stack,int Precision, uint *val, bool Negative, int exp, uint *digits, int digitsLen);
+mercspec  __host__ __device__ void mercuryRoundPlaces(void *stack, int Precision, uint *a, int places, uint *val);
+
 mercspec  __host__ __device__ void mercuryLoadMercury(void *stack,int Precision, uint *a, uint *val);
 mercspec  __host__ __device__ void mercuryLoadExtendMercury(void *stack,int OldPrecision, int Precision, uint *a, uint *val);
 

@@ -63,8 +63,91 @@ void mercuryLoadRaw(void *stack,int Precision, uint *val, bool Negative, int exp
     {
         val[2+p] = digits[i++];
     }
+
 }
 
+void mercuryLoadRawRounded(void *stack, int Precision, uint *val,
+                       bool Negative, int exp, uint *digits, int digitsLen)
+{
+    while (digitsLen > 0 && digits[digitsLen - 1] == 0) {
+        digitsLen--;
+        exp--;
+    }
+
+    if (digitsLen == 0) {
+        mercuryLoadZero(stack, Precision, val);
+        return;
+    }
+
+    int pl = digitsLen - Precision;
+    if (pl < 0) pl = 0;
+
+    bool rnd = pl > 0 && digits[pl - 1] >= 0x80000000U;
+
+    val[0] = (Negative && digitsLen != 0) ? 1 : 0;
+    val[1] = (uint)exp;
+
+    int p;
+    for (p = 0; p < Precision - digitsLen; p++) {
+        val[2 + p] = 0;
+    }
+
+    int i = pl;
+    for (; p < Precision; p++) {
+        val[2 + p] = digits[i++];
+    }
+
+    if (rnd) {
+        uint *reg = mercuryStackAlloc(stack, (Precision + 2) * 4);
+        uint one = 1;
+
+        mercuryLoadRaw(
+            stack,
+            Precision,
+            reg,
+            Negative,
+            ((int)val[1]) - (Precision - 1),
+            &one,
+            1
+        );
+
+        mercuryAdd(stack, Precision, val, reg, val);
+        mercuryStackFree(stack, (Precision + 2) * 4);
+    }
+}
+
+void mercuryRoundPlaces(void *stack, int Precision, uint *a, int places, uint *val)
+{
+    if (places <= 0) {
+        mercuryLoadMercury(stack, Precision, a, val);
+        return;
+    }
+
+    if (places > Precision) places = Precision;
+
+    bool neg = (a[0] & 1) == 1;
+    bool rnd = a[2 + places - 1] >= 0x80000000U;
+
+    int exp = (int)a[1];
+
+    mercuryLoadMercury(stack, Precision, a, val);
+
+    for (int i = 0; i < places; i++) {
+        val[2 + i] = 0;
+    }
+
+    if (rnd) {
+        uint *reg = mercuryStackAlloc(stack, (Precision + 2) * 4);
+        uint one = 1;
+
+        int roundExp = exp - (Precision - places - 1);
+
+        mercuryLoadRaw(stack, Precision, reg, neg, roundExp, &one, 1);
+        mercuryAdd(stack, Precision, val, reg, val);
+
+        mercuryStackFree(stack, (Precision + 2) * 4);
+    }
+}
 void mercuryLoadMercury(void *stack,int Precision, uint *a, uint *val)
 {
     for (int i=0;i<Precision+2; i++)
@@ -900,7 +983,7 @@ void mercurySqr(void *stack, int Precision, uint *a, uint *val) {
 
         place = ai+bi;
 
-        if (place - adj < len) scratch[place-adj] = (uint) reg;
+        if (place - adj >=0 && place - adj < len) scratch[place-adj] = (uint) reg;
 
         bi++;;
     }

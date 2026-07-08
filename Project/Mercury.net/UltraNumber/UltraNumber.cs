@@ -101,6 +101,14 @@ public virtual void GetObjectData(SerializationInfo info, StreamingContext conte
 				uint[] digits, int digitsLen);
 
 			[DllImport("Mercury")]
+			public static extern void mercuryLoadRawRound(IntPtr stack, int Precision, uint[] val, bool Negative, int exp,
+				uint[] digits, int digitsLen);
+
+			[DllImport("Mercury")]
+			public static extern void mercuryRoundPlaces(IntPtr stack, int Precision, uint[] a, int places, uint[] val);
+
+
+			[DllImport("Mercury")]
 			public static extern void mercuryLoadMercury(IntPtr stack, int Precision, uint[] a, uint[] val);
 
 			[DllImport("Mercury")]
@@ -233,7 +241,7 @@ public virtual void GetObjectData(SerializationInfo info, StreamingContext conte
 			[DllImport("Mercury")]
 			public static extern void mercuryLoadRaw(IntPtr stack, int Precision, IntPtr val, bool Negative, int exp,
 				IntPtr digits, int digitsLen);
-
+			
 			[DllImport("Mercury")]
 			public static extern void mercuryLoadMercury(IntPtr stack, int Precision, IntPtr a, IntPtr val);
 
@@ -463,10 +471,24 @@ public virtual void GetObjectData(SerializationInfo info, StreamingContext conte
 			Imports.mercuryLoadRaw(Imports.Stack, Imports.GetPrecision(), r.Elements, Negative, exp, digits, digits.Length);
 			return r;
 		}
+		
+		public static UltraNumber FromRawRound(bool Negative, int exp, uint[] digits)
+		{
+			UltraNumber r = new UltraNumber();
+			Imports.mercuryLoadRawRound(Imports.Stack, Imports.GetPrecision(), r.Elements, Negative, exp, digits, digits.Length);
+			return r;
+		}
 
 		public void Load(UltraNumber a)
 		{
 			Imports.mercuryLoadMercury(Imports.Stack, Imports.GetPrecision(), a.Elements, this.Elements);
+		}
+		
+		public UltraNumber RoundPlaces(int places)
+		{
+			UltraNumber r = new UltraNumber();
+			Imports.mercuryRoundPlaces(Imports.Stack, Imports.GetPrecision(), this.Elements, places, r.Elements);
+			return r;
 		}
 
 		~UltraNumber()
