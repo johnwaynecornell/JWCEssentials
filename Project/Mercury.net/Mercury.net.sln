@@ -10,6 +10,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RootTest", "RootTest\RootTe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UltraNumber.Tests", "UltraNumber.Tests\UltraNumber.Tests.csproj", "{6290C915-9EB5-4BBF-8F89-A04D73430D50}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AbsurdlyLargeDemo", "AbsurdlyLargeDemo\AbsurdlyLargeDemo.csproj", "{4060B2EF-ED05-4B48-AEF7-5E03CF6ECD94}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -80,6 +82,18 @@ Global
 		{6290C915-9EB5-4BBF-8F89-A04D73430D50}.Release|x64.Build.0 = Release|Any CPU
 		{6290C915-9EB5-4BBF-8F89-A04D73430D50}.Release|x86.ActiveCfg = Release|Any CPU
 		{6290C915-9EB5-4BBF-8F89-A04D73430D50}.Release|x86.Build.0 = Release|Any CPU
+		{4060B2EF-ED05-4B48-AEF7-5E03CF6ECD94}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4060B2EF-ED05-4B48-AEF7-5E03CF6ECD94}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4060B2EF-ED05-4B48-AEF7-5E03CF6ECD94}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4060B2EF-ED05-4B48-AEF7-5E03CF6ECD94}.Debug|x64.Build.0 = Debug|Any CPU
+		{4060B2EF-ED05-4B48-AEF7-5E03CF6ECD94}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{4060B2EF-ED05-4B48-AEF7-5E03CF6ECD94}.Debug|x86.Build.0 = Debug|Any CPU
+		{4060B2EF-ED05-4B48-AEF7-5E03CF6ECD94}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4060B2EF-ED05-4B48-AEF7-5E03CF6ECD94}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4060B2EF-ED05-4B48-AEF7-5E03CF6ECD94}.Release|x64.ActiveCfg = Release|Any CPU
+		{4060B2EF-ED05-4B48-AEF7-5E03CF6ECD94}.Release|x64.Build.0 = Release|Any CPU
+		{4060B2EF-ED05-4B48-AEF7-5E03CF6ECD94}.Release|x86.ActiveCfg = Release|Any CPU
+		{4060B2EF-ED05-4B48-AEF7-5E03CF6ECD94}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
