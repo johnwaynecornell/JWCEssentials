@@ -1520,6 +1520,7 @@ void mercuryRound(void *stack, int Precision, uint *a, uint *val)
         uint raw = 1;
 
         mercuryLoadUint(stack, Precision, one, 1);
+        if (neg) mercuryNeg(stack, Precision, one, one);
         mercuryAdd(stack, Precision, val, one, val);
 
         mercuryStackFree(stack, (Precision + 2) * 4);
