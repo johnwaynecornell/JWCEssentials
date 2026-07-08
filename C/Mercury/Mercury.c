@@ -1496,6 +1496,36 @@ void mercuryTrunc(void *stack, int Precision, uint *a, uint *val)
     mercuryStackFree(stack, Precision * 4);
 }
 
+void mercuryRound(void *stack, int Precision, uint *a, uint *val)
+{
+    if (mercuryIsZero(Precision, a)) {
+        mercuryLoadZero(stack, Precision, val);
+        return;
+    }
+
+    bool neg = (a[0] & 1) == 1;
+
+    /*
+        Rounding to the nearest integer is decided by place -1,
+        the first base-2^32 place below the identity place.
+
+        If its high bit is set, the fractional magnitude is at least 1/2.
+    */
+    bool round = mercuryGetAt(Precision, a, -1) >= 0x80000000U;
+
+    mercuryTrunc(stack, Precision, a, val);
+
+    if (round) {
+        uint *one = mercuryStackAlloc(stack, (Precision + 2) * 4);
+        uint raw = 1;
+
+        mercuryLoadUint(stack, Precision, one, 1);
+        mercuryAdd(stack, Precision, val, one, val);
+
+        mercuryStackFree(stack, (Precision + 2) * 4);
+    }
+}
+
 void mercuryFloor(void *stack, int Precision, uint *a, uint *val)
 {
     bool sub = (a[0] & 1) && mercuryHasFraction(stack, Precision, a);

@@ -149,6 +149,7 @@ mercspec __host__ __device__ bool mercuryIsInteger(void *stack, int Precision, u
 mercspec __host__ __device__ void mercuryAbs(void *stack, int Precision, uint *a, uint *val);
 mercspec __host__ __device__ void mercuryNeg(void *stack, int Precision, uint *a, uint *val);
 
+mercspec __host__ __device__ void mercuryRound(void *stack, int Precision, uint *a, uint *val);
 mercspec __host__ __device__ void mercuryTrunc(void *stack, int Precision, uint *a, uint *val);
 mercspec __host__ __device__ void mercuryFloor(void *stack, int Precision, uint *a, uint *val);
 mercspec __host__ __device__ void mercuryCeil(void *stack, int Precision, uint *a, uint *val);

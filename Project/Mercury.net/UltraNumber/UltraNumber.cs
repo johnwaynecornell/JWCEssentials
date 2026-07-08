@@ -203,6 +203,9 @@ public virtual void GetObjectData(SerializationInfo info, StreamingContext conte
 			public static extern void mercuryTrunc(IntPtr stack, int Precision, uint[] a, uint[] val);
 
 			[DllImport("Mercury")]
+			public static extern void mercuryRound(IntPtr stack, int Precision, uint[] a, uint[] val);
+			
+			[DllImport("Mercury")]
 			public static extern void mercuryFloor(IntPtr stack, int Precision, uint[] a, uint[] val);
 
 			[DllImport("Mercury")]
@@ -616,6 +619,13 @@ public virtual void GetObjectData(SerializationInfo info, StreamingContext conte
 		{
 			UltraNumber r = new UltraNumber();
 			Imports.mercuryNeg(Imports.Stack, Imports.GetPrecision(), a.Elements, r.Elements);
+			return r;
+		}
+
+		public static UltraNumber Round(UltraNumber a)
+		{
+			UltraNumber r = new UltraNumber();
+			Imports.mercuryRound(Imports.Stack, Imports.GetPrecision(), a.Elements, r.Elements);
 			return r;
 		}
 
