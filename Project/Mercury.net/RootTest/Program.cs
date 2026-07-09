@@ -22,6 +22,24 @@ Console.WriteLine("negated " + UltraNumber.Round(-c * step) / step);
 Console.WriteLine(@"using 'fluent' functions. (-c).Shift(16).Round().Shift(-16)");
 Console.WriteLine((-c).Shift(16).Round().Shift(-16));
 
+Console.WriteLine();
+Console.WriteLine("SetAtWithNormalize first case normalize second descend");
+
+UltraNumber var = 1;
+var.SetAtWithNormalize( 2, 1);
+Console.WriteLine(var);
+
+var.SetAtWithNormalize(-1, 1);
+Console.WriteLine(var);
+
+
+
+
+
+
+
+
+
 UltraNumber bit;
 
 int place = 0;

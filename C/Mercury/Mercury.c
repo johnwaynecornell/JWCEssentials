@@ -336,14 +336,81 @@ uint mercuryGetAt(int Precision, uint *a, int Place)
 
 bool mercurySetAt(int Precision, uint *a, int Place, uint value)
 {
-    int x = Place - ((int)a[1] - Precision + 1);
 
-    if (x < 0 || x >= Precision) {
+    bool neg = (a[0] & 1) == 1;
+    int h = (int)a[1];
+
+    int x = Precision - 1 + Place - h;
+
+    if  (x < 0 || x >= Precision) {
         return false;
     }
 
+
+    /*
+        Place is inside the retained window. Write it
+    */
+    a[2 + x] = value;
+    return true;
+}
+
+bool mercurySetAtWithNormalize(void *stack, int Precision, uint *a, int Place, uint value)
+{
+    if (mercuryIsZero(Precision, a))
+    {
+        if (value == 0) return true;
+
+        mercuryLoadRaw(stack, Precision, a, false,Place, &value, 1);
+        return true;
+    }
+
+    bool neg = (a[0] & 1) == 1;
+    int h = (int)a[1];
+
+    int x = Precision - 1 + Place - h;
+
+    /*
+        Place is below the retained window. We cannot represent it without
+        shifting the window downward and discarding higher places, so reject.
+    */
+    if (x < 0) {
+        return false;
+    }
+
+    /*
+        Place is above the retained window. Build a new raw digit window ending
+        at Place.
+    */
+    if (x >= Precision) {
+        if (value == 0) return true;        
+        
+        uint *digits = (uint *)mercuryStackAlloc(stack, Precision * 4);
+
+        for (int i = 0; i < Precision; i++) {
+            digits[Precision - 1 - i] =
+                (i == 0) ? value : mercuryGetAt(Precision, a, Place - i);
+        }
+
+        mercuryLoadRaw(stack, Precision, a, neg, Place, digits, Precision);
+
+        mercuryStackFree(stack, Precision * 4);
+        return true;
+    }
+
+    /*
+        Place is inside the retained window. Write it, then normalize because
+        the write may have zeroed the highest retained place.
+    */
     a[2 + x] = value;
 
+    uint *digits = (uint *)mercuryStackAlloc(stack, Precision * 4);
+
+    for (int i = 0; i < Precision; i++) {
+        digits[i] = a[2 + i];
+    }
+
+    mercuryLoadRaw(stack, Precision, a, neg, h, digits, Precision);
+    mercuryStackFree(stack, Precision * 4);
     return true;
 }
 
