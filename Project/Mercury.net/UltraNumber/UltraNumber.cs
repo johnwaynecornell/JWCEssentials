@@ -549,6 +549,16 @@ public virtual void GetObjectData(SerializationInfo info, StreamingContext conte
 			return new UltraNumber (i);
 		}
 
+		public static UltraNumber operator +(UltraNumber a)
+		{
+			return new UltraNumber(a);
+		}
+		
+		public static UltraNumber operator -(UltraNumber a)
+		{
+			return UltraNumber.Neg(a);
+		}
+		
 		public static UltraNumber operator +(UltraNumber a, UltraNumber b)
 		{
 			UltraNumber r = new UltraNumber();

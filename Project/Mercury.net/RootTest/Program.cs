@@ -17,6 +17,7 @@ Console.WriteLine("1 << 31 : "+c.ToString());
 Console.WriteLine("Arbitrary bit position rounding");
 UltraNumber step = UltraNumber.TwoPow(16);
 Console.WriteLine(UltraNumber.Round(c * step) / step);
+Console.WriteLine("negated " + UltraNumber.Round(-c * step) / step);
 
 UltraNumber bit;
 
