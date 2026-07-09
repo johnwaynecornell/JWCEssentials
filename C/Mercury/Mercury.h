@@ -118,6 +118,7 @@ mercspec  __host__ __device__ int mercuryToString(void *stack,int Precision, uin
 
 mercspec  __host__ __device__ bool mercuryIsZero(int Precision, uint *val);
 mercspec  __host__ __device__ uint mercuryGetAt(int Precision, uint *a, int Place);
+mercspec  __host__ __device__ bool mercurySetAt(int Precision, uint *a, int Place, uint value);
 
 mercspec  __host__ __device__ int mercuryAbsCmp(int Precision, uint *a, uint *b);
 mercspec  __host__ __device__ int mercuryCmp(int Precision, uint *a, uint *b);

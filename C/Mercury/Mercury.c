@@ -334,6 +334,19 @@ uint mercuryGetAt(int Precision, uint *a, int Place)
     return a[2+x];
 }
 
+bool mercurySetAt(int Precision, uint *a, int Place, uint value)
+{
+    int x = Place - ((int)a[1] - Precision + 1);
+
+    if (x < 0 || x >= Precision) {
+        return false;
+    }
+
+    a[2 + x] = value;
+
+    return true;
+}
+
 int mercuryAbsCmp(int Precision, uint *a, uint *b)
 {
 

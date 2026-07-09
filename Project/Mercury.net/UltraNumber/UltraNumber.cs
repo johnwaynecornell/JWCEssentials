@@ -150,7 +150,10 @@ public virtual void GetObjectData(SerializationInfo info, StreamingContext conte
 
 			[DllImport("Mercury")]
 			public static extern uint mercuryGetAt(int Precision, uint[] a, int Place);
-
+			
+			[DllImport("Mercury")]
+			public static extern bool mercurySetAt(int Precision, uint [] a, int Place, uint value);
+			
 			[DllImport("Mercury")]
 			public static extern int mercuryAbsCmp(int Precision, uint[] a, uint[] b);
 
@@ -728,6 +731,11 @@ public virtual void GetObjectData(SerializationInfo info, StreamingContext conte
 			return Imports.mercuryGetAt(Imports.GetPrecision(), a.Elements, Place);
 		}
 
+		public static bool SetAt(UltraNumber a, int Place, uint value)
+		{
+			return Imports.mercurySetAt(Imports.GetPrecision(), a.Elements, Place, value);
+		}
+		
 		public static int AbsCompare(UltraNumber a, UltraNumber b)
 		{
 			return Imports.mercuryAbsCmp(Imports.GetPrecision(), a.Elements, b.Elements);
