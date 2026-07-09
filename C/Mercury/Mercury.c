@@ -382,9 +382,20 @@ bool mercurySetAtWithNormalize(void *stack, int Precision, uint *a, int Place, u
         at Place.
     */
     if (x >= Precision) {
-        if (value == 0) return true;        
-        
         uint *digits = (uint *)mercuryStackAlloc(stack, Precision * 4);
+
+        // We said normalize let's normalize
+        if (value == 0)
+        {
+            for (int i = 0; i < Precision; i++) {
+                digits[i] = a[2 + i];
+            }
+
+            mercuryLoadRaw(stack, Precision, a, neg, h, digits, Precision);
+            mercuryStackFree(stack, Precision * 4);
+            return true;
+        }
+        
 
         for (int i = 0; i < Precision; i++) {
             digits[Precision - 1 - i] =
