@@ -497,6 +497,47 @@ public virtual void GetObjectData(SerializationInfo info, StreamingContext conte
 			return r;
 		}
 
+		public UltraNumber Abs() => Abs(this);
+		public UltraNumber Neg() => Neg(this);
+		public UltraNumber Round() => Round(this);
+		public UltraNumber Trunc() => Trunc(this);
+		public UltraNumber Floor() => Floor(this);
+		public UltraNumber Ceil() => Ceil(this);
+		public UltraNumber Frac() => Frac(this);
+		public UltraNumber Sqr() => Sqr(this);
+		public UltraNumber Sqrt() => Sqrt(this);
+		
+		public UltraNumber Add(UltraNumber b) => this + b;
+		public UltraNumber Sub(UltraNumber b) => this - b;
+		public UltraNumber Mul(UltraNumber b) => this * b;
+		public UltraNumber Div(UltraNumber b) => this / b;
+		
+		public UltraNumber Pow(UltraNumber b) => Pow(this, b);
+		public UltraNumber Root(UltraNumber b) => Root(this, b);
+		public UltraNumber Log(UltraNumber b) => Log(this, b);
+		public UltraNumber LogSlow(UltraNumber b) => LogSlow(this, b);
+		public UltraNumber Min(UltraNumber b) => Min(this, b);
+		public UltraNumber Max(UltraNumber b) => Max(this, b);
+		public UltraNumber CopySign(UltraNumber sign) => CopySign(this, sign);
+		public UltraNumber Interpolate(UltraNumber b, UltraNumber x) => Interpolate(this, b, x);
+		public UltraNumber Shift(int places) => Shift(this, places);
+		
+		public bool IsZero() => IsZero(this);
+		public bool HasFraction() => HasFraction(this);
+		public bool IsInteger() => IsInteger(this);
+		
+		public int GetBit(int Place) => GetBit(this, Place);
+		public uint GetAt(int Place) => GetAt(this, Place);
+		public bool SetAt(int Place, uint value) => SetAt(this, Place, value);
+		
+		public int Compare(UltraNumber b) => Compare(this, b);
+		public int AbsCompare(UltraNumber b) => AbsCompare(this, b);
+		
+		public UltraNumber AbsAdd(UltraNumber b) => AbsAdd(this, b);
+		public UltraNumber AbsSub(UltraNumber b) => AbsSub(this, b);
+		public UltraNumber AbsMul(UltraNumber b) => AbsMul(this, b);
+		public UltraNumber AbsDiv(UltraNumber b) => AbsDiv(this, b);
+
 		~UltraNumber()
 		{
 		}
@@ -607,18 +648,21 @@ public virtual void GetObjectData(SerializationInfo info, StreamingContext conte
 			return Imports.mercuryCmp(Imports.GetPrecision(), a.Elements, b.Elements);
 		}
 
-		public static UltraNumber operator <<(UltraNumber a, int places)
+		public static UltraNumber Shift(UltraNumber a, int places)
 		{
 			UltraNumber r = new UltraNumber();
 			Imports.mercuryShift(Imports.Stack, Imports.GetPrecision(), a.Elements, places, r.Elements);
 			return r;
 		}
 
+		public static UltraNumber operator <<(UltraNumber a, int places)
+		{
+			return Shift(a, places);
+		}
+
 		public static UltraNumber operator >>(UltraNumber a, int places)
 		{
-			UltraNumber r = new UltraNumber();
-			Imports.mercuryShift(Imports.Stack, Imports.GetPrecision(), a.Elements, -places, r.Elements);
-			return r;
+			return Shift(a, -places);
 		}
 
 		public static UltraNumber Abs(UltraNumber a)

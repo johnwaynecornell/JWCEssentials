@@ -19,6 +19,9 @@ UltraNumber step = UltraNumber.TwoPow(16);
 Console.WriteLine(UltraNumber.Round(c * step) / step);
 Console.WriteLine("negated " + UltraNumber.Round(-c * step) / step);
 
+Console.WriteLine(@"using 'fluent' functions. (-c).Shift(16).Round().Shift(-16)");
+Console.WriteLine((-c).Shift(16).Round().Shift(-16));
+
 UltraNumber bit;
 
 int place = 0;
