@@ -409,11 +409,40 @@ public virtual void GetObjectData(SerializationInfo info, StreamingContext conte
 			}
 		}
 		
-		
-		
 		public IntPtr Handle;
 		public int Precision;
+		
+		public bool Negative
+		{
+			get => (Elements[0] & 1) == 1;
+			set
+			{
+				if (IsZero()) {
+					Elements[0] &= 0xFFFFFFFE;
+					return;
+				}
 
+				if (value) Elements[0] |= 1;
+				else Elements[0] &= 0xFFFFFFFE;
+			}
+		}
+
+		public int Exponent
+		{
+			get => unchecked((int)Elements[1]);
+			set => Elements[1] = unchecked((uint)value);
+		}
+		
+		public int LowPlace => Exponent - Precision + 1;
+		public int HighPlace => Exponent;
+		
+		/// <summary>
+		/// Use the SetAtWithNormalize methood as a companion setter
+		/// </summary>
+		/// <param name="place"></param>
+		public uint this[int place] =>
+			Imports.mercuryGetAt(Precision, Elements, place);
+		
 		public UltraNumber ()
 		{
 			Precision = Imports.GetPrecision ();
