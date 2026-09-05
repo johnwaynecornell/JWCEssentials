@@ -1,0 +1,35 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentCommandLine", "FluentCommandLine\FluentCommandLine.csproj", "{4DC078E2-D8DF-4410-AA19-C75881D4D400}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JWCFarm", "JWCFarm\JWCFarm.csproj", "{EB28636C-65D3-4B0C-8477-6B0F78415EDD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MethodTests", "MethodTests\MethodTests.csproj", "{9F66E2B4-57CE-4CDD-8453-4B5255E56DD7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{2463DF9C-0539-4877-A30F-947EE5CC4176}"
+	ProjectSection(SolutionItems) = preProject
+		FluentCommandLine.md = FluentCommandLine.md
+		JWCFarm.md = JWCFarm.md
+		FluentDesignMethodology.md = FluentDesignMethodology.md
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4DC078E2-D8DF-4410-AA19-C75881D4D400}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4DC078E2-D8DF-4410-AA19-C75881D4D400}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4DC078E2-D8DF-4410-AA19-C75881D4D400}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4DC078E2-D8DF-4410-AA19-C75881D4D400}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EB28636C-65D3-4B0C-8477-6B0F78415EDD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB28636C-65D3-4B0C-8477-6B0F78415EDD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EB28636C-65D3-4B0C-8477-6B0F78415EDD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EB28636C-65D3-4B0C-8477-6B0F78415EDD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9F66E2B4-57CE-4CDD-8453-4B5255E56DD7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F66E2B4-57CE-4CDD-8453-4B5255E56DD7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F66E2B4-57CE-4CDD-8453-4B5255E56DD7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F66E2B4-57CE-4CDD-8453-4B5255E56DD7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
