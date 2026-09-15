@@ -20,14 +20,14 @@ public class MetricCatalogs
         return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>);
     }
     
-    public static MetricDescriptor? MetricLoadStaticFromMethod(MethodInfo methodInfo)
+    public static MetricDescriptor? MetricLoadStaticFromMethod(MethodInfo methodInfo, bool autoProp = false)
     {
         MetricAttribute? metricAttribute =
             methodInfo.GetCustomAttributes(typeof(MetricAttribute), true).FirstOrDefault() as MetricAttribute;
         
         if (metricAttribute == null)
             return null;
-        
+
         ParameterInfo[] parameters = methodInfo.GetParameters();
 
         List<MetricParameterDescriptor> _p = new List<MetricParameterDescriptor>();
@@ -52,30 +52,84 @@ public class MetricCatalogs
                 });
         }
 
-        return new MetricDescriptor
+        if (!autoProp || _p.Count != 0)
         {
-            Type = MetricDescriptor.EType.Method,
-            Name = metricAttribute.Name ?? methodInfo.Name,
-            ValueType = methodInfo.ReturnType,
-            Help = (methodInfo.GetCustomAttributes(typeof(MetricHelpAttribute), true)
-                .FirstOrDefault() as MetricHelpAttribute)?.Description ?? methodInfo.Name,
-            Invoke = (ctx, instance, args) =>
+            return new MetricDescriptor
             {
-                object?[] invokeArgs = new object?[args.Length + ii];
-                if (ii == 1)
-                    invokeArgs[0] = instance;
-                else
+                Type = MetricDescriptor.EType.Method,
+                Name = metricAttribute.Name ??  methodInfo.Name,
+                ValueType = methodInfo.ReturnType,
+                Help = (methodInfo.GetCustomAttributes(typeof(MetricHelpAttribute), true)
+                    .FirstOrDefault() as MetricHelpAttribute).Description,
+                Invoke = (ctx, instance, args) =>
                 {
-                    invokeArgs[0] = ctx;
-                    invokeArgs[1] = instance;
-                }
+                    object?[] invokeArgs = new object?[args.Length + ii];
+                    if (ii == 1)
+                        invokeArgs[0] = instance;
+                    else
+                    {
+                        invokeArgs[0] = ctx;
+                        invokeArgs[1] = instance;
+                    }
 
-                Array.Copy(args, 0, invokeArgs, ii, args.Length);
-                return methodInfo.Invoke(null, invokeArgs);
-            },
-            Parameters = _p,
-            SourceExpressions = metricAttribute?.SourceExpressions
-        };
+                    Array.Copy(args, 0, invokeArgs, ii, args.Length);
+                    return methodInfo.Invoke(null, invokeArgs);
+                },
+                Parameters = _p,
+                SourceExpressions = metricAttribute?.SourceExpressions
+            };
+        }
+        else
+        {
+            return new MetricDescriptor
+            {
+                Type = MetricDescriptor.EType.Property,
+                Name = metricAttribute.Name ??  methodInfo.Name,
+                ValueType = methodInfo.ReturnType,
+                Help = (methodInfo.GetCustomAttributes(typeof(MetricHelpAttribute), true)
+                    .FirstOrDefault() as MetricHelpAttribute).Description,
+                Getter = (ctx, instance) =>
+                {
+                    object?[] invokeArgs = new object?[ii];
+                    if (ii == 1)
+                        invokeArgs[0] = instance;
+                    else
+                    {
+                        invokeArgs[0] = ctx;
+                        invokeArgs[1] = instance;
+                    }
+                    
+                    return methodInfo.Invoke(null, invokeArgs);
+                },
+                SourceExpressions = metricAttribute?.SourceExpressions
+            };
+            
+        }
+    }
+
+    public MetricCatalogs LoadStaticFromMethodBySampleType(MethodInfo methodInfo, bool autoProp = true)
+    {
+        MetricDescriptor? descriptor = MetricLoadStaticFromMethod(methodInfo, autoProp);
+        if (descriptor == null) return this;
+        
+        ParameterInfo[] parameters = methodInfo.GetParameters();
+        int ii = ((parameters.Length > 0) && (parameters[0].ParameterType == typeof(MetricEvaluationContext))) ? 1 : 0;
+        Type t = parameters[ii].ParameterType;
+        if (!TryGet(t, out var catalog)) throw new ArgumentException($"No catalog found for type {t}");
+        
+        catalog?.Add(descriptor);
+        
+        return this;
+    }
+
+    public MetricCatalogs MetricLoadStaticFromTypeBySampleType(Type type, bool autoProp = true)
+    {
+        foreach (var member in type.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy))
+        {
+            LoadStaticFromMethodBySampleType(member, autoProp);
+        }
+        
+        return this;
     }
 
     public static MetricCatalog MetricLoadStaticFromType(Type type, MetricCatalog catalog)
@@ -94,17 +148,11 @@ public class MetricCatalogs
         }
         return catalog;
     }
-
+    
     public static MetricCatalog MetricLoadStaticFromType(Type type)
     {
         return MetricLoadStaticFromType(type, new MetricCatalog());
     }
-
-    public static MetricCatalog MetricLoadStatcFromType(Type type, MetricCatalog catalog)
-        => MetricLoadStaticFromType(type, catalog);
-
-    public static MetricCatalog MetricLoadStatcFromType(Type type)
-        => MetricLoadStaticFromType(type);
     
     public static MetricCatalog? DefaultReflect(Type arg)
     {
