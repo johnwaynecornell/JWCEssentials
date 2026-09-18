@@ -7,6 +7,11 @@ The repository contains both native C/C++ components and .NET bindings/utilities
 
 In the broader platform layout, higher-level projects may clone or consume JWCEssentials as a foundational module. The repository is therefore intentionally structured around portable build outputs, explicit staging, and reusable shell tooling.
 
+MethodPack: FluentCommandLine and JWCFarm
+----------------------------------------
+
+Coming from the [FluentCommandLine link on JohnCornell.net](https://johncornell.net/)? Start at the [MethodPack guide](Project/MethodPack/README.md) for the framework, its typed composition example, real consumers, and the current build requirements. The framework documentation lives at [FluentCommandLine](Project/MethodPack/FluentCommandLine.md); [JWCFarm](Project/MethodPack/JWCFarm.md) provides streaming and metric projections on top. MethodPack is a collection of managed projects within JWCEssentials; NewAge is the optional broader workspace convention, though the checked-in MethodPack build currently relies on its staging layout.
+
 Repository Layout
 -----------------
 
@@ -15,7 +20,8 @@ Repository Layout
     ├── include/              # Public C/C++ headers
     ├── lib/                  # Staged native library outputs
     ├── Project/
-    │   └── JWCEssentials.net # .NET project and solution files
+    │   ├── JWCEssentials.net # .NET project and solution files
+    │   └── MethodPack/       # FluentCommandLine, JWCFarm, and tests
     ├── src/                  # Native C/C++ source
     ├── CMakeLists.txt        # Native C/C++ build entry point
     └── Docket.md             # Development docket / work tracking
@@ -56,7 +62,7 @@ To bootstrap a new workspace in `~/NewAge` with `JWCCommandSpawn`:
 ./Bash/newage_go.sh ~/NewAge JWCCommandSpawn --build
 ```
 
-This file remains usefull when copied out of the repo.
+The script can also be copied outside the repository and run from there.
 
 This will:
 1. Create `~/NewAge` if it doesn't exist.
@@ -144,7 +150,7 @@ Environment Variables
 
 ### `NewAge`, `NewAge_Config`, and `NewAge_Lane`
 
-JWCEssentials expects `NewAge` to be set, and prefers that `NewAge_Config` and `NewAge_Lane` are managed through context wrappers.
+The integrated NewAge build expects `NewAge` to be set, and prefers that `NewAge_Config` and `NewAge_Lane` are managed through context wrappers. The standalone fluent grammar has no workspace concept.
 
 *   **`NewAge`**: Root of the broader NewAge workspace.
 *   **`NewAge_Config`**: Build configuration (e.g., `Debug`, `Release`).
@@ -263,10 +269,9 @@ As a public repository, JWCEssentials should be cloneable and buildable independ
 
 ### Standalone Use
 
-1.  Clone the repository.
-2.  Build the native project with CMake.
-3.  Build the .NET project with `dotnet build`.
-4.  If staging fails, configure or disable the post-build staging step for your local environment.
+1.  Clone the repository and see the [MethodPack build notes](Project/MethodPack/README.md) if you want FluentCommandLine or JWCFarm.
+2.  The native component uses CMake; the checked-in .NET projects use Bash post-build staging and workspace reference paths.
+3.  For a supported first integrated build, use [`newage_go.sh`](Bash/newage_go.sh). A standalone managed build needs its references and staging arranged explicitly.
 
 ### Use Inside a Larger Workspace
 
