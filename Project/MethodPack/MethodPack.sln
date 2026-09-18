@@ -11,6 +11,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{2463DF9C-0
 		FluentCommandLine.md = FluentCommandLine.md
 		JWCFarm.md = JWCFarm.md
 		FluentDesignMethodology.md = FluentDesignMethodology.md
+		README.md = README.md
 	EndProjectSection
 EndProject
 Global
