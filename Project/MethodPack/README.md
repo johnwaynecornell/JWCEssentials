@@ -1,6 +1,6 @@
 # MethodPack
 
-MethodPack is the group of .NET projects in JWCEssentials for building typed command languages and processing their results. [FluentCommandLine](FluentCommandLine.md) turns registered C# methods and their parameter types into a composable command grammar. This is useful when an argument is itself a meaningful choice or construction, rather than another flag in an option bag. [JWCFarm](JWCFarm.md) adds reusable streaming, metrics, and projection machinery for applications built with that grammar. [Fluent Design Methodology](FluentDesignMethodology.md) explains how to choose the types and vocabulary.
+MethodPack is the group of .NET projects in JWCEssentials for building typed command languages and processing their results. [FluentCommandLine](FluentCommandLine.md) turns registered C# methods and their parameter types into a composable command grammar. This is useful when an argument is itself a meaningful choice or construction, rather than another flag in an option bag. [JWCFarm](JWCFarm.md) provides reusable streaming, metrics, and projection machinery that an application can pair with a FluentCommandLine command surface. JWCFarm does not itself reference the FluentCommandLine project. [Fluent Design Methodology](FluentDesignMethodology.md) explains how to choose the types and vocabulary.
 
 ## Start here
 
