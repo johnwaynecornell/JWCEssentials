@@ -10,7 +10,7 @@ In the broader platform layout, higher-level projects may clone or consume JWCEs
 MethodPack: FluentCommandLine and JWCFarm
 ----------------------------------------
 
-Coming from the [FluentCommandLine link on JohnCornell.net](https://johncornell.net/)? Start at the [MethodPack guide](Project/MethodPack/README.md) for the framework, its typed composition example, real consumers, and the current build requirements. The framework documentation lives at [FluentCommandLine](Project/MethodPack/FluentCommandLine.md); [JWCFarm](Project/MethodPack/JWCFarm.md) provides streaming and metric projections on top. MethodPack is a collection of managed projects within JWCEssentials; NewAge is the optional broader workspace convention, though the checked-in MethodPack build currently relies on its staging layout.
+Coming from the [FluentCommandLine link on JohnCornell.net](https://johncornell.net/)? Start at the [MethodPack guide](Project/MethodPack/README.md) for the framework, its typed composition example, real consumers, and the current build requirements. The framework documentation lives at [FluentCommandLine](Project/MethodPack/FluentCommandLine.md); [JWCFarm](Project/MethodPack/JWCFarm.md) provides streaming and metric projections that applications can pair with a fluent command surface. MethodPack is a collection of managed projects within JWCEssentials; NewAge is the optional broader workspace convention, though the checked-in MethodPack build currently relies on its staging layout.
 
 Repository Layout
 -----------------
