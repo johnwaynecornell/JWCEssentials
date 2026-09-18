@@ -242,24 +242,26 @@ This document defines only the shared environment. Repository-specific build ins
 
 ## Bootstrapping a Workspace
 
+If you arrived through [MethodPack](../Project/MethodPack/README.md), this integrated setup is the current checked-in build path; the fluent grammar itself is not tied to a NewAge workspace.
+
 The `newage_go.sh` tool (located in `JWCEssentials/Bash/` and installed to `$NewAge/bin/`) is designed to simplify the creation and maintenance of a NewAge workspace.
 
 ### Standard Bootstrap
 
-To create a new workspace and fetch core repositories:
+From the JWCEssentials repository root, to create a new workspace and fetch core repositories:
 
 ```bash
-./JWCEssentials/Bash/newage_go.sh ~/NewAge JWCCommandSpawn CrystalCatalystLibrary
+bash Bash/newage_go.sh "$HOME/NewAge" JWCCommandSpawn CrystalCatalystLibrary
 ```
 
 This file remains useful when copied out of the repo.
 
 ### Bootstrap and Build
 
-To bootstrap and immediately run a coordinated build:
+From the JWCEssentials repository root, to bootstrap and immediately run a coordinated build:
 
 ```bash
-./JWCEssentials/Bash/newage_go.sh ~/NewAge JWCCommandSpawn --build Debug
+bash Bash/newage_go.sh "$HOME/NewAge" JWCCommandSpawn --build Debug
 ```
 
 This command will:
