@@ -10,8 +10,10 @@ The NewAge substrate uses a set of standardized Bash scripts to maintain a coher
 
 ### newage_go.sh
 
+See the [MethodPack first-use guide](../Project/MethodPack/README.md) for how this setup relates to FluentCommandLine and JWCFarm.
+
 The primary entry point for bootstrapping or updating a NewAge workspace.
-This file is indempotent, meaning it can be run multiple times without causing issues. And does not require NewAge to be run.
+It can run before `NewAge` is set. Re-running it configures the target workspace again; an existing JWCEssentials checkout is left in place.
 
 
 ```bash
@@ -19,7 +21,7 @@ newage_go.sh <target-dir> [RepoName...] [--build [build args...]]
 ```
 
 *   **Behavior**: Creates the target directory, clones `JWCEssentials`, runs `configure.sh`, and then acquires any specified repositories and their dependencies.
-*   **Update mode**: If run against an existing workspace, it ensures all repositories are up to date and re-configures the environment.
+*   **Existing workspace**: It skips cloning an existing JWCEssentials checkout, configures the workspace, then fetches/updates requested repositories through `newage_get.sh`. Update JWCEssentials itself separately if you need its latest changes.
 *   **Build Integration**: The `--build` flag triggers a coordinated build of the entire workspace after acquisition.
 
 ## Agent and Session Support
