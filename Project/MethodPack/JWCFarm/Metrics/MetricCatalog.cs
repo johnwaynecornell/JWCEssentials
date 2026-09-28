@@ -3,7 +3,7 @@ namespace JWCFarm.Metrics;
 
 public class MetricCatalog
 {
-    public Dictionary<string, MetricDescriptor> Metrics { get; set; } = new Dictionary<string, MetricDescriptor>();
+    public Dictionary<string, MetricDescriptor> Metrics { get; set; }  = new(StringComparer.Ordinal);
     
     public void Add(MetricDescriptor metric)
     {
