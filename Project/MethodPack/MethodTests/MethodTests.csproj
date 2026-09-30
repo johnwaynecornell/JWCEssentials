@@ -19,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CLIExpander\CLIExpander.csproj" />
     <ProjectReference Include="..\FluentCommandLine\FluentCommandLine.csproj" />
     <ProjectReference Include="..\JWCFarm\JWCFarm.csproj" />
   </ItemGroup>

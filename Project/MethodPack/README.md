@@ -1,13 +1,14 @@
 # MethodPack
 
-MethodPack is the group of .NET projects in JWCEssentials for building typed command languages and processing their results. [FluentCommandLine](FluentCommandLine.md) turns registered C# methods and their parameter types into a composable command grammar. This is useful when an argument is itself a meaningful choice or construction, rather than another flag in an option bag. [JWCFarm](JWCFarm.md) provides reusable streaming, metrics, and projection machinery that an application can pair with a FluentCommandLine command surface. JWCFarm does not itself reference the FluentCommandLine project. [Fluent Design Methodology](FluentDesignMethodology.md) explains how to choose the types and vocabulary.
+MethodPack is the group of .NET projects in JWCEssentials for building typed command languages and processing their results. [FluentCommandLine](FluentCommandLine.md) turns registered C# methods and their parameter types into a composable command grammar. This is useful when an argument is itself a meaningful choice or construction, rather than another flag in an option bag. [CLIExpander](CLIExpander.md) provides command-line argument expansion, combinatorial sweeps (Cartesian products), and template substitution using concise expansion syntax. [JWCFarm](JWCFarm.md) provides reusable streaming, metrics, and projection machinery that an application can pair with a FluentCommandLine command surface. JWCFarm does not itself reference the FluentCommandLine project. [Fluent Design Methodology](FluentDesignMethodology.md) explains how to choose the types and vocabulary.
 
 ## Start here
 
 1. Read the [FluentCommandLine overview and composition example](FluentCommandLine.md#1-overview).
-2. Browse [FluentCommandLine source](FluentCommandLine/) and [MethodTests](MethodTests/) for registration and parsing examples. The [solution](MethodPack.sln) contains FluentCommandLine, JWCFarm, and MethodTests.
-3. For a working application, see [ClipFlow](https://github.com/johnwaynecornell/CrystalCatalystLibrary/tree/main/Project/ClipFlowPack), whose [module](https://github.com/johnwaynecornell/CrystalCatalystLibrary/blob/main/Project/ClipFlowPack/ClipFlow.Format/ClipFlow_Fluent.cs) defines typed clipboard commands, or [TruthInTheFlip](https://github.com/johnwaynecornell/TruthInTheFlip) for an analytical consumer.
-4. Read the [methodology](FluentDesignMethodology.md) and [JWCFarm architecture](JWCFarm.md) when you want to design your own vocabulary or processing pipeline.
+2. Browse [FluentCommandLine source](FluentCommandLine/), [CLIExpander source](CLIExpander/), and [MethodTests](MethodTests/) for registration, expansion, and parsing examples. The [solution](MethodPack.sln) contains FluentCommandLine, CLIExpander, JWCFarm, and MethodTests.
+3. Read [CLIExpander](CLIExpander.md) for argument expansion, nested combinatorial sweeps, and token substitution.
+4. For a working application, see [ClipFlow](https://github.com/johnwaynecornell/CrystalCatalystLibrary/tree/main/Project/ClipFlowPack), whose [module](https://github.com/johnwaynecornell/CrystalCatalystLibrary/blob/main/Project/ClipFlowPack/ClipFlow.Format/ClipFlow_Fluent.cs) defines typed clipboard commands, or [TruthInTheFlip](https://github.com/johnwaynecornell/TruthInTheFlip) for an analytical consumer.
+5. Read the [methodology](FluentDesignMethodology.md) and [JWCFarm architecture](JWCFarm.md) when you want to design your own vocabulary or processing pipeline.
 
 ## Build and workspace
 
