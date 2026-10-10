@@ -12,9 +12,9 @@ A Mercury number is an array of `Precision + 2` unsigned 32-bit words (`uint[]`)
 
 | Index | Contents |
 |-------|----------|
-| `[0]` | Flags — bit 0 is the sign (`1` = negative) |
-| `[1]` | Base-2 exponent (stored as `uint`, interpreted signed) |
-| `[2 … Precision+1]` | Mantissa words, most-significant first (base 2³²) |
+| `[0]` | Flags — bit 0 is the sign (`1` = negative, `0` = positive) |
+| `[1]` | Base-2³² word exponent (stored as `uint`, interpreted signed 32-bit `int`) |
+| `[2 … Precision+1]` | Mantissa words, least-significant word first in ascending place order (`[2]` is lowest place, `[Precision+1]` is highest place at the exponent) |
 
 `Precision` is the number of 32-bit mantissa words. Common choices:
 
@@ -164,7 +164,7 @@ Neither comparison function needs a stack.
 
 ```c
 void mercuryShift(void *stack, int Precision, uint *a, int shift, uint *val);
-// shift > 0: left (multiply by 2^(32*shift)); shift < 0: right (divide)
+// shift > 0: left bit-shift (multiply by 2^shift); shift < 0: right bit-shift (divide by 2^(-shift))
 
 void mercury_2Pow(void *stack, int Precision, int Place, uint *val);
 // val = 2^Place  (Place may be negative)
@@ -196,7 +196,28 @@ void mercurySqrt   (void *stack, int Precision, uint *a,           uint *val); /
 void mercuryPow    (void *stack, int Precision, uint *a, uint *b,  uint *val); // a^b
 void mercuryRoot   (void *stack, int Precision, uint *a, uint *b,  uint *val); // a^(1/b)
 void mercuryLog    (void *stack, int Precision, uint *a, uint *b,  uint *val); // log_b(a) fast
-void mercuryLogSlow(void *stack, int Precision, uint *a, uint *b,  uint *val); // log_b(a) Taylor
+void mercuryLogSlow(void *stack, int Precision, uint *a, uint *b,  uint *val); // log_b(a) constructive
+```
+
+### Support Operations and Rounding (`Mercury.h`)
+
+```c
+void   mercuryRoundPlaces(void *stack, int Precision, uint *a, int places, uint *val);
+void   mercuryLoadRawRound(void *stack, int Precision, uint *val, bool Negative, int exp, uint *digits, int digitsLen);
+bool   mercuryHasFraction(void *stack, int Precision, uint *a);
+bool   mercuryIsInteger  (void *stack, int Precision, uint *a);
+void   mercuryAbs        (void *stack, int Precision, uint *a, uint *val);
+void   mercuryNeg        (void *stack, int Precision, uint *a, uint *val);
+void   mercuryRound      (void *stack, int Precision, uint *a, uint *val);
+void   mercuryTrunc      (void *stack, int Precision, uint *a, uint *val);
+void   mercuryFloor      (void *stack, int Precision, uint *a, uint *val);
+void   mercuryCeil       (void *stack, int Precision, uint *a, uint *val);
+void   mercuryFrac       (void *stack, int Precision, uint *a, uint *val);
+void   mercuryCopySign   (void *stack, int Precision, uint *mag, uint *sign, uint *val);
+void   mercuryMin        (void *stack, int Precision, uint *a, uint *b, uint *val);
+void   mercuryMax        (void *stack, int Precision, uint *a, uint *b, uint *val);
+bool   mercurySetAt      (int Precision, uint *a, int Place, uint value);
+bool   mercurySetAtWithNormalize(void *stack, int Precision, uint *a, int Place, uint value);
 ```
 
 In Sigma-style operational notation, this is the Power Tier:
@@ -320,22 +341,41 @@ double d = (double)x;
 | `a - b` | Subtraction |
 | `a * b` | Multiplication |
 | `a / b` | Division |
-| `a << n` | Left shift by `n` base-2³² places |
-| `a >> n` | Right shift by `n` base-2³² places |
+| `a << n` | Left bit-shift by `n` bits (multiplies by 2ⁿ) |
+| `a >> n` | Right bit-shift by `n` bits (divides by 2ⁿ) |
 | `==`, `!=`, `<`, `<=`, `>`, `>=` | Signed comparison |
 
 ### Static Methods
 
 ```csharp
 UltraNumber UltraNumber.Abs(UltraNumber a)
-UltraNumber UltraNumber.Pow2(int place)          // 2^place
-UltraNumber UltraNumber.Sqrt(UltraNumber a)      // √a
-UltraNumber UltraNumber.Pow(UltraNumber a, UltraNumber b)   // a^b
-UltraNumber UltraNumber.Log(UltraNumber a, UltraNumber b)   // log_b(a)
-int         UltraNumber.Compare(UltraNumber a, UltraNumber b)
+UltraNumber UltraNumber.Neg(UltraNumber a)
+UltraNumber UltraNumber.TwoPow(int place)          // 2^place
+UltraNumber UltraNumber.Sqrt(UltraNumber a)        // √a
+UltraNumber UltraNumber.Sqr(UltraNumber a)         // a²
+UltraNumber UltraNumber.Pow(UltraNumber a, UltraNumber b)     // a^b
+UltraNumber UltraNumber.Root(UltraNumber a, UltraNumber b)    // a^(1/b)
+UltraNumber UltraNumber.Log(UltraNumber a, UltraNumber b)     // log_b(a)
+UltraNumber UltraNumber.LogSlow(UltraNumber a, UltraNumber b) // log_b(a) reference search
+int         UltraNumber.Compare(UltraNumber a, UltraNumber b)    // signed: -1, 0, 1
+int         UltraNumber.AbsCompare(UltraNumber a, UltraNumber b) // magnitude: -1, 0, 1
 UltraNumber UltraNumber.Parse(string s)
-UltraNumber UltraNumber.Interpolate(UltraNumber a, UltraNumber b, UltraNumber x)
-                                                 // a + (b - a) * x
+UltraNumber UltraNumber.Interpolate(UltraNumber a, UltraNumber b, UltraNumber x) // a + (b - a) * x
+UltraNumber UltraNumber.Round(UltraNumber a)
+UltraNumber UltraNumber.Trunc(UltraNumber a)
+UltraNumber UltraNumber.Floor(UltraNumber a)
+UltraNumber UltraNumber.Ceil(UltraNumber a)
+UltraNumber UltraNumber.Frac(UltraNumber a)
+UltraNumber UltraNumber.CopySign(UltraNumber mag, UltraNumber sign)
+UltraNumber UltraNumber.Min(UltraNumber a, UltraNumber b)
+UltraNumber UltraNumber.Max(UltraNumber a, UltraNumber b)
+bool        UltraNumber.IsZero(UltraNumber a)
+bool        UltraNumber.HasFraction(UltraNumber a)
+bool        UltraNumber.IsInteger(UltraNumber a)
+int         UltraNumber.GetBit(UltraNumber a, int place)
+uint        UltraNumber.GetAt(UltraNumber a, int place)
+bool        UltraNumber.SetAt(UltraNumber a, int place, uint value)
+bool        UltraNumber.SetAtWithNormalize(UltraNumber a, int place, uint value)
 ```
 
 ### Instance Methods

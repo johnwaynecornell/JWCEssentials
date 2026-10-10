@@ -12,19 +12,26 @@ MethodPack: FluentCommandLine and JWCFarm
 
 Coming from the [FluentCommandLine link on JohnCornell.net](https://johncornell.net/)? Start at the [MethodPack guide](Project/MethodPack/README.md) for the framework, its typed composition example, real consumers, and the current build requirements. The framework documentation lives at [FluentCommandLine](Project/MethodPack/FluentCommandLine.md); [JWCFarm](Project/MethodPack/JWCFarm.md) provides streaming and metric projections that applications can pair with a fluent command surface. MethodPack is a collection of managed projects within JWCEssentials; NewAge is the optional broader workspace convention, though the checked-in MethodPack build currently relies on its staging layout.
 
-Repository Layout
------------------
+Repository Layout & Architecture Map
+------------------------------------
+
+For an architectural guide, subsystem breakdown, and dependency flow, see the [Repository Map](RepositoryMap.md).
 
     JWCEssentials/
     ├── Bash/                 # Shared shell tooling used by builds and staging
+    ├── C/                    # Isolated native subsystems (Mercury arbitrary-precision math)
+    ├── docs/                 # Technical documentation and specifications
+    ├── examples/             # Example configuration and data assets
     ├── include/              # Public C/C++ headers
     ├── lib/                  # Staged native library outputs
     ├── Project/
     │   ├── JWCEssentials.net # .NET project and solution files
+    │   ├── Mercury.net/      # UltraNumber arbitrary-precision managed library and tests
     │   └── MethodPack/       # FluentCommandLine, JWCFarm, and tests
     ├── src/                  # Native C/C++ source
     ├── CMakeLists.txt        # Native C/C++ build entry point
-    └── Docket.md             # Development docket / work tracking
+    ├── Docket.md             # Development docket / work tracking
+    └── RepositoryMap.md      # Repository architecture and navigation map
 
 
 Design Goals
