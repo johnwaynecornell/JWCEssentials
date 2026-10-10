@@ -61,7 +61,7 @@ This document provides a comprehensive architectural map and navigation guide fo
 - **Location**: `C/Mercury/`
 - **Documentation**: [`docs/Mercury.md`](docs/Mercury.md) (Canonical reference), [`C/Mercury/README.md`](C/Mercury/README.md)
 - **Files**:
-  - `Mercury.h`: Core declarations, arithmetic operations, and trigonometric/transcendental prototypes.
+  - `Mercury.h`: Core declarations, arithmetic operations, and transcendental prototypes.
   - `MercuryCPU.h`: Host-side scratch stack allocator (`mercuryAllocateStack`, `mercuryDeallocateStack`).
   - `Mercury.c`: High-precision arithmetic routines (addition, subtraction, multiplication, division, powers, roots, logarithms).
   - `MercuryCPU.c`: Stack management and debug formatting.
