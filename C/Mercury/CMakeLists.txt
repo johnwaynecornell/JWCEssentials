@@ -13,4 +13,7 @@ newage_configure_native_paths(Mercury)
 add_executable(test test.cpp)
 target_link_libraries(test Mercury)
 
+add_executable(test_shift test_shift.c)
+target_link_libraries(test_shift Mercury)
+
 shuttle(Mercury lib)

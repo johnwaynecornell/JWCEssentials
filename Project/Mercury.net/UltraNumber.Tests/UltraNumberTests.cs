@@ -220,4 +220,39 @@ public class UltraNumberTests
         UltraNumber c = UltraNumber.LogSlow(a, b);
         Assert.Equal(2.0, (double)c, 5);
     }
+
+    [Fact]
+    public void TestShifts()
+    {
+        UltraNumber val = 1.0;
+
+        // Positive shifts (left shift, multiplication by 2^n)
+        Assert.Equal(2.0, (double)(val << 1));
+        Assert.Equal((double)(1L << 31), (double)(val << 31));
+        Assert.Equal((double)(1L << 32), (double)(val << 32));
+        Assert.Equal((double)(1L << 33), (double)(val << 33));
+        Assert.Equal(Math.Pow(2, 63), (double)(val << 63));
+        Assert.Equal(Math.Pow(2, 64), (double)(val << 64));
+
+        // Negative shifts (right shift, division by 2^n)
+        UltraNumber big = Math.Pow(2, 64);
+        Assert.Equal(Math.Pow(2, 63), (double)(big >> 1));
+        Assert.Equal(Math.Pow(2, 33), (double)(big >> 31));
+        Assert.Equal(Math.Pow(2, 32), (double)(big >> 32));
+        Assert.Equal(Math.Pow(2, 31), (double)(big >> 33));
+        Assert.Equal(2.0, (double)(big >> 63));
+        Assert.Equal(1.0, (double)(big >> 64));
+
+        // Exact 32-bit multiples for right shift
+        UltraNumber twoTo32 = Math.Pow(2, 32);
+        Assert.Equal(1.0, (double)(twoTo32 >> 32));
+        Assert.Equal(1.0, (double)UltraNumber.Shift(twoTo32, -32));
+
+        // Zero and identity shifts
+        UltraNumber zero = UltraNumber.Zero();
+        Assert.True(UltraNumber.IsZero(zero << 10));
+        Assert.True(UltraNumber.IsZero(zero >> 10));
+        Assert.False(UltraNumber.IsZero(val << 0));
+        Assert.Equal(1.0, (double)(val << 0));
+    }
 }

@@ -36,6 +36,25 @@ void mercuryLoadZero(void *stack, int Precision, uint *val)
     for (int i=0; i<Precision+2; i++) val[i] = 0;
 }
 
+/*
+ * mercuryLoadRaw
+ *
+ * Positional Number Layout & Invariants:
+ * - A Mercury number represents:
+ *     V = (-1)^sign * Sum_{p=0}^{Precision-1} val[2+p] * (2^32)^(exp - Precision + 1 + p)
+ * - Array structure:
+ *     val[0] : Flags (bit 0 is sign: 1 = negative, 0 = positive)
+ *     val[1] : Base-2^32 word exponent (signed int stored as uint), giving the
+ *              positional place of the most-significant limb (val[Precision+1]).
+ *     val[2 .. Precision+1] : Mantissa limbs in ascending place order (least-significant
+ *              limb at val[2], most-significant limb at val[Precision+1]).
+ *
+ * Normalization & Retained Window:
+ * - digits is an array of digitsLen limbs where digits[digitsLen-1] corresponds to place exp.
+ * - Leading zero limbs at the top of digits are stripped, decrementing exp accordingly.
+ * - If digitsLen > Precision, the highest Precision limbs are retained and lower limbs truncated.
+ * - If digitsLen < Precision, the value is right-aligned in the window with low-order zero padding.
+ */
 void mercuryLoadRaw(void *stack,int Precision, uint *val, bool Negative, int exp, uint *digits, int digitsLen)
 {
     while (digitsLen > 0 && digits[digitsLen-1]==0)
@@ -485,6 +504,18 @@ int mercuryCmp(int Precision, uint *a, uint *b) {
     return mercuryAbsCmp(Precision, a, b) * neg;
 }
 
+/*
+ * mercuryShift
+ *
+ * Arbitrary Bit-Shift Semantics:
+ * - Multiplies by 2^shift (shift > 0, left shift) or divides by 2^(-shift) (shift < 0, right shift).
+ * - Decomposes shift into word places (places = |shift| / 32) and intra-limb bit offset (|shift| % 32).
+ * - Bit carries propagate between adjacent limbs:
+ *     - Left shift:  reg[i] = (a[i-1] >> (32 - shift)) | (a[i] << shift)
+ *     - Right shift: reg[i] = (a[i] << (32 - shift)) | (a[i-1] >> shift)
+ * - Scratch buffer of Precision+1 limbs decouples input from output, guaranteeing safety when val == a.
+ * - mercuryLoadRaw normalizes leading zeros and manages precision window truncation.
+ */
 void mercuryShift(void *stack, int Precision, uint *a, int shift, uint *val) {
     int places;
 
@@ -532,7 +563,7 @@ void mercuryShift(void *stack, int Precision, uint *a, int shift, uint *val) {
 
     if (shift == 0) {
         mercuryLoadRaw(stack, Precision, val, (a[0] & 1) == 1,
-                       a[1] + places,
+                       a[1] - places,
                        a+2, Precision);
         mercuryStackFree(stack, (Precision+1)*4);
         return;
@@ -540,7 +571,7 @@ void mercuryShift(void *stack, int Precision, uint *a, int shift, uint *val) {
 
         reg[Precision] = a[2 + Precision - 1] >> shift;
 
-        for (int i = Precision - 1; i >= 0; i--) {
+        for (int i = Precision - 1; i > 0; i--) {
             reg[i] = (a[2 + i - 1] >> shift)
                      + (a[2 + i] << (32 - shift));
         }
@@ -553,6 +584,17 @@ void mercuryShift(void *stack, int Precision, uint *a, int shift, uint *val) {
     }
 }
 
+/*
+ * mercuryAbsAdd
+ *
+ * Magnitude Addition (|A| + |B|):
+ * - Aligns inputs by exponent place so that exponent(A) >= exponent(B).
+ * - Retained window of A spans places [al, ah] where ah = a[1], al = ah - Precision + 1.
+ * - Retained window of B spans places [bl, bh] where bh = b[1], bl = bh - Precision + 1.
+ * - Computes sum in a scratch buffer spanning places [l, h+1] where l = ah - Precision + 1, h = ah.
+ * - Performs multi-limb addition with carry propagation using 64-bit accumulator.
+ * - Final carry-out at place h+1 is normalized into the Precision window via mercuryLoadRaw.
+ */
 void mercuryAbsAdd(void *stack, int Precision, uint *a, uint *b, uint *val) {
 
     if (((int)a[1])<((int)b[1]))
@@ -711,6 +753,20 @@ void mercuryAbsSub(void *stack, int Precision, uint *a, uint *b, uint *val)
     mercuryStackFree(stack, len*4);
 }
 
+/*
+ * mercuryAbsMul
+ *
+ * Base-2^32 Positional Multiplication (|A| * |B|):
+ * - Evaluates the product P = Sum_{i,j} (a_i * b_j) * (2^32)^(i+j).
+ * - Exponent of result: maximum possible exponent place is e = ah + bh + 1.
+ * - Accumulator & Carry Propagation:
+ *     Multiplies 32-bit limbs into a 64-bit unsigned accumulator (reg):
+ *       reg += (ulong)bx * (ulong)ax + scratch[place];
+ *     Emits lower 32 bits into scratch[place] and carries top 32 bits (reg >>= 32).
+ * - Intermediate Precision & Truncation:
+ *     Scratch buffer holds Precision+2 limbs to preserve intermediate carry precision.
+ *     mercuryLoadRaw trims leading zeros and truncates to the retained Precision window.
+ */
 void mercuryAbsMul(void *stack, int Precision, uint *a, uint *b, uint *val) {
     if (mercuryIsZero(Precision, a) || mercuryIsZero(Precision, b)) {
         mercuryLoadZero(stack, Precision, val);
@@ -782,6 +838,21 @@ void mercuryAbsMul(void *stack, int Precision, uint *a, uint *b, uint *val) {
     mercuryStackFree(stack, len*4);
 }
 
+/*
+ * mercuryAbsDiv
+ *
+ * Digit-by-Digit Quotient Construction (|A| / |B|):
+ * - Exponent Normalization:
+ *     Aligns dividend and divisor to compute the quotient's base exponent (exp).
+ * - Radix-16 Precomputed Table:
+ *     Generates Table[p][d] = d * 16^p * divisor for each nibble position p in [0, 7]
+ *     and digit d in [0, 15], accelerating quotient digit selection without trial division.
+ * - Multi-Limb Long Division:
+ *     Iterates from highest quotient limb (Precision-1) down to 0, and nibble p from 7 to 0.
+ *     Finds largest hex digit d via comparison (mercuryAbsCmp), subtracts Table[p][d]
+ *     from dividend, and accumulates (d << 4p) into quotient limb reg[i].
+ *     Advances dividend by one base-2^32 place (dividend[1]++) for each subsequent limb.
+ */
 void mercuryAbsDiv(void *stack, int Precision, uint *a, uint *b, uint *val)
 {
     uint *dividend = (uint *) mercuryStackAlloc(stack, (Precision+2)*4);
@@ -967,34 +1038,16 @@ void mercuryDiv(void *stack, int Precision, uint *a, uint *b, uint *val) {
 }
 
 void mercury_2Pow(void *stack, int Precision, int Place, uint *val) {
-
+    int e, p;
     if (Place >= 0) {
-
-        int e = Place >> 5;
-        int p = Place - (e << 5);
-
-        uint i;
-
-        if (p == 0)
-            i = 1;
-        else
-            i = 1U << p;
-
-        mercuryLoadRaw(stack, Precision, val, false, e, &i, 1);
+        e = Place / 32;
+        p = Place % 32;
     } else {
-        int e = (Place - 31) / 32;
-
-        int p = (Place - 32) - (e * 32);
-
-        uint i;
-
-        if (p == 0)
-            i = 1;
-        else
-            i = 1U << p;
-
-        mercuryLoadRaw(stack, Precision, val, false, e, &i, 1);
+        e = (Place - 31) / 32;
+        p = Place - e * 32;
     }
+    uint i = 1U << p;
+    mercuryLoadRaw(stack, Precision, val, false, e, &i, 1);
 }
 
 int mercuryGetBit(void *stack, int Precision, int Place, uint *a)
@@ -1361,6 +1414,27 @@ void mercuryLogSlow(void *stack, int Precision, uint *a, uint *b, uint *val)
     return;
 }
 
+/*
+ * mercuryLog
+ *
+ * Constructive Binary Logarithm Algorithm (y = log_b(a)):
+ * - Solves b^y = a by constructing y = Sum_j 2^(bit_j) bit-by-bit in binary exponent space.
+ *
+ * 1. Initial Power-of-Two Bracketing:
+ *    Finds initial binary power index (bit) such that b^(2^bit) brackets a:
+ *    - If A > B: Repeatedly squares the probe factor (p <- p^2 via mercurySqr) and increments
+ *                bit++ (doubling the power-of-two place) until p >= A.
+ *    - If A < B: Repeatedly extracts square roots (p <- sqrt(p) via mercurySqrt) and decrements
+ *                bit-- (halving the power-of-two place) until p <= A.
+ *
+ * 2. Binary Refinement & Root Halving:
+ *    Iterates through bits from highest power down to the precision limit:
+ *    - Maintains accumulated power r = b^y in guard precision PowerPrecision (Precision+1)
+ *      to avoid premature precision loss, and running exponent y in reg (InnerPrecision).
+ *    - Probes candidate step: tests whether r * p <= A (where p = b^(2^bit)).
+ *    - If r * p <= A, commits bit (y <- y + 2^bit) and updates accumulator r <- r * p.
+ *    - Halves the step exponent place for next iteration via p <- sqrt(p) (mercurySqrt).
+ */
 void mercuryLog(void *stack, int Precision, uint *a, uint *b, uint *val)
 {
     int InnerPrecision = Precision;
