@@ -16,4 +16,7 @@ target_link_libraries(test Mercury)
 add_executable(test_shift test_shift.c)
 target_link_libraries(test_shift Mercury)
 
+add_executable(test_strings test_strings.c)
+target_link_libraries(test_strings Mercury)
+
 shuttle(Mercury lib)

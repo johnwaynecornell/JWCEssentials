@@ -134,6 +134,9 @@ public virtual void GetObjectData(SerializationInfo info, StreamingContext conte
 			public static extern double mercuryToDouble(IntPtr stack, int Precision, uint[] a);
 			
 			[DllImport("Mercury")]
+			public static extern int mercuryHexDid(int Ch);
+			
+			[DllImport("Mercury")]
 			public static extern void mercuryFromString(IntPtr stack, int Precision, String Input, uint[] val);
 
 			[DllImport("Mercury")]
@@ -517,6 +520,8 @@ public virtual void GetObjectData(SerializationInfo info, StreamingContext conte
 			return r;
 		}
 
+		public static int HexDid(int ch) => Imports.mercuryHexDid(ch);
+		
 		public void Load(UltraNumber a)
 		{
 			Imports.mercuryLoadMercury(Imports.Stack, Imports.GetPrecision(), a.Elements, this.Elements);
@@ -570,7 +575,7 @@ public virtual void GetObjectData(SerializationInfo info, StreamingContext conte
 		public UltraNumber AbsSub(UltraNumber b) => AbsSub(this, b);
 		public UltraNumber AbsMul(UltraNumber b) => AbsMul(this, b);
 		public UltraNumber AbsDiv(UltraNumber b) => AbsDiv(this, b);
-
+		
 		~UltraNumber()
 		{
 		}

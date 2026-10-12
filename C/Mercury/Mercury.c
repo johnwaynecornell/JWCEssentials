@@ -49,6 +49,15 @@ void mercuryLoadZero(void *stack, int Precision, uint *val)
  *     val[2 .. Precision+1] : Mantissa limbs in ascending place order (least-significant
  *              limb at val[2], most-significant limb at val[Precision+1]).
  *
+ * Numerical Domain & Exponent Invariants:
+ * - The representable mantissa window spans limb places [exp - Precision + 1, exp].
+ * - Because limb positions (Place) are represented as signed 32-bit integers (int Place),
+ *   the lowest limb place must satisfy (exp - Precision + 1) >= INT32_MIN.
+ * - Therefore, for precision P, the lowest supported word exponent is:
+ *       exp_min(P) = INT32_MIN + P - 1
+ *   and the highest supported word exponent is INT32_MAX.
+ * - Values with exponents below this range underflow the representable numerical domain.
+ *
  * Normalization & Retained Window:
  * - digits is an array of digitsLen limbs where digits[digitsLen-1] corresponds to place exp.
  * - Leading zero limbs at the top of digits are stripped, decrementing exp accordingly.
@@ -348,9 +357,9 @@ bool mercuryIsZero(int Precision, uint *val) {
 
 uint mercuryGetAt(int Precision, uint *a, int Place)
 {
-    int x = Place - ((int) a[1] - Precision+1);
-    if (x<0 || x>=Precision) return 0;
-    return a[2+x];
+    slong x = (slong)Place - ((slong)(int)a[1] - Precision + 1);
+    if (x < 0 || x >= Precision) return 0;
+    return a[2 + x];
 }
 
 bool mercurySetAt(int Precision, uint *a, int Place, uint value)
@@ -359,7 +368,7 @@ bool mercurySetAt(int Precision, uint *a, int Place, uint value)
     bool neg = (a[0] & 1) == 1;
     int h = (int)a[1];
 
-    int x = Precision - 1 + Place - h;
+    slong x = (slong)Precision - 1 + (slong)Place - (slong)h;
 
     if  (x < 0 || x >= Precision) {
         return false;
@@ -369,7 +378,7 @@ bool mercurySetAt(int Precision, uint *a, int Place, uint value)
     /*
         Place is inside the retained window. Write it
     */
-    a[2 + x] = value;
+    a[2 + (int)x] = value;
     return true;
 }
 
@@ -386,7 +395,7 @@ bool mercurySetAtWithNormalize(void *stack, int Precision, uint *a, int Place, u
     bool neg = (a[0] & 1) == 1;
     int h = (int)a[1];
 
-    int x = Precision - 1 + Place - h;
+    slong x = (slong)Precision - 1 + (slong)Place - (slong)h;
 
     /*
         Place is below the retained window. We cannot represent it without
@@ -431,7 +440,7 @@ bool mercurySetAtWithNormalize(void *stack, int Precision, uint *a, int Place, u
         Place is inside the retained window. Write it, then normalize because
         the write may have zeroed the highest retained place.
     */
-    a[2 + x] = value;
+    a[2 + (int)x] = value;
 
     uint *digits = (uint *)mercuryStackAlloc(stack, Precision * 4);
 
@@ -450,13 +459,13 @@ int mercuryAbsCmp(int Precision, uint *a, uint *b)
     int ah = a[1];
     int bh = b[1];
 
-    int al = ah - Precision + 1;
-    int bl = bh - Precision + 1;
+    slong al = (slong)ah - Precision + 1;
+    slong bl = (slong)bh - Precision + 1;
 
     if ((al==ah)&&(bl==bh))
     {
-        bool az = (al == ah) && mercuryGetAt(Precision, a, al) == 0;
-        bool bz = (bl == bh) && mercuryGetAt(Precision, b, bl) == 0;
+        bool az = (al == ah) && mercuryGetAt(Precision, a, (int)al) == 0;
+        bool bz = (bl == bh) && mercuryGetAt(Precision, b, (int)bl) == 0;
 
         if (az) {
             if (bz)
@@ -477,12 +486,12 @@ int mercuryAbsCmp(int Precision, uint *a, uint *b)
 
     }
 
-    int l = al > bl ? (int) bl : (int) al;
-    int h = ah > bh ? (int) ah : (int) bh;
+    slong l = al > bl ? bl : al;
+    slong h = ah > bh ? (slong)ah : (slong)bh;
 
-    for (int i = (int) h; i >= l; i--) {
-        uint ad = mercuryGetAt(Precision, a, i);
-        uint bd = mercuryGetAt(Precision, b, i);
+    for (slong i = h; i >= l; i--) {
+        uint ad = mercuryGetAt(Precision, a, (int)i);
+        uint bd = mercuryGetAt(Precision, b, (int)i);
 
         if (ad > bd)
             return 1;

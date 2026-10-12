@@ -94,6 +94,17 @@ mercspec __host__ __device__ void * mercuryStackAlloc(void *stack, int size);
 mercspec  __host__ __device__ void mercuryStackFree(void *stack, int size);
 mercspec __host__ __device__ slong mercuryStackOffset(void *stack);
 
+/*
+ * Numerical Domain & Exponent Range Invariant:
+ * A Mercury number represents mantissa limbs across the window [exp - Precision + 1, exp].
+ * Because limb positions (Place) are represented as signed 32-bit integers (int Place),
+ * the lowest limb place must satisfy (exp - Precision + 1) >= INT32_MIN.
+ * Therefore, for precision P, the lowest supported word exponent is:
+ *     exp_min(P) = INT32_MIN + P - 1
+ * and the highest supported word exponent is INT32_MAX.
+ * Inputs with exponents below this range underflow the representable numerical domain.
+ */
+
 mercspec  __host__ __device__ void mercuryLoadZero(void *stack,int Precision, uint *val);
 mercspec  __host__ __device__ void mercuryLoadRaw(void *stack,int Precision, uint *val, bool Negative, int exp, uint *digits, int digitsLen);
 
@@ -112,6 +123,7 @@ mercspec  __host__ __device__ void mercuryLoadDouble(void *stack,int Precision, 
 mercspec  __host__ __device__ int mercuryNibbles(void *stack,int Precision, uint *val);
 mercspec __host__ __device__ double mercuryToDouble(void *stack, int Precision, uint *a);
 
+mercspec  __host__ __device__ int mercuryHexDid(int Ch);
 mercspec  __host__ __device__ int mercuryHexStringGetPrecision(void *stack, const char *Input);
 mercspec  __host__ __device__ void mercuryFromString(void *stack, int Precision, const char *Input, uint *val);
 mercspec  __host__ __device__ int mercuryToString(void *stack,int Precision, uint *val, char *buffer, int len);

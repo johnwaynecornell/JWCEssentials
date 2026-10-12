@@ -27,6 +27,22 @@ A Mercury number is an array of `Precision + 2` unsigned 32-bit words (`uint[]`)
 
 All functions take `Precision` as an explicit parameter — the same buffer can be reinterpreted at a different precision by `mercuryLoadExtendMercury`.
 
+### Numerical Domain & Exponent Range Invariant
+
+A Mercury number with precision $P$ and word exponent $e$ represents:
+
+$$V = (-1)^{\text{sign}} \sum_{p=0}^{P-1} \text{val}[2+p] \cdot (2^{32})^{e - P + 1 + p}$$
+
+- **Mantissa Window**: The limbs occupy word places spanning $[e - P + 1, e]$, where `val[Precision+1]` is at place $e$ and `val[2]` is at place $e - P + 1$.
+- **Limb Position Addressing**: Limb positions (`Place`) are represented throughout the API as signed 32-bit integers (`int Place`, e.g., in `mercuryGetAt` and `mercurySetAt`).
+- **Domain Invariant**: For precision $P$, the lowest limb place $e - P + 1$ must satisfy $e - P + 1 \ge \text{INT32\_MIN} = -2^{31}$. Consequently:
+  - **Lowest supported word exponent**: $e_{\min}(P) = \text{INT32\_MIN} + P - 1$
+  - **Highest supported word exponent**: $e_{\max} = \text{INT32\_MAX} = 2^{31} - 1$
+- **Hexadecimal Exponents**: Since each 32-bit word corresponds to 8 hexadecimal digits (nibbles), the highest hexadecimal digit place of limb $e$ is $H = e \times 8 + 7$.
+  - At $e_{\min}(P)$, the lowest valid hexadecimal exponent for a normalized number is $H_{\min}(P) = (\text{INT32\_MIN} + P) \times 8 - 1$.
+  - At $e_{\max}$, the highest valid hexadecimal exponent is $H_{\max} = \text{INT32\_MAX} \times 8 + 7 = 0\text{x}3\text{FFFFFFFF} = 17,179,869,183$.
+- **Underflow & Boundary Handling**: Exponent values below $e_{\min}(P)$ underflow Mercury's representable numerical domain. When parsing strings (`mercuryFromString`), out-of-range or underflowing exponents predictably load as zero (`0`) without integer wrapping or undefined behavior.
+
 ---
 
 ## String Format
